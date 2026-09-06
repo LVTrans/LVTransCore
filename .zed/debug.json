@@ -1,0 +1,12 @@
+// Project-local debug tasks
+//
+// For more documentation on how to configure debug tasks,
+// see: https://zed.dev/docs/debugger
+[
+    {
+        "label": "Debug reservoir_pipe_valve",
+        "request": "launch",
+        "adapter": "CodeLLDB",
+        "program": "./build/examples/reservoir_pipe_valve"
+    }
+]
