@@ -1,10 +1,7 @@
-#include "lvtrans/const.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <vector>
-
-using namespace lvtrans;
 
 int main() {
   // ------------------------------------------------------------
@@ -18,25 +15,17 @@ int main() {
 
   double g = 9.806;    // Gravitational acceleration [m/s^2]
   double HR = 150.0;   // Reservoir head above datum [m]
-  double Tmax = 20.3;  // Duration of transient [s]
+  double Tmax = 4.3;   // Duration of transient [s]
   double CdA0 = 0.009; // Valve coefficient/opening parameter
 
   double tau_i = 1.0; // Initial valve position
   double tau_f = 0.0; // Final valve position
-  double tc = 4.1;    // Valve operating/closure time [s]
+  double tc = 2.1;    // Valve operating/closure time [s]
   double em = 0.75;   // Exponent defining valve motion
 
   int N = 10;     // Number of pipe reaches; must be even
   int IPR = 1;    // Output interval
   int IGRAF = 11; // Original FORTRAN graph location
-                  //
-                  //
-  std::ofstream output_file("output.csv");
-
-  if (!output_file) {
-    std::cerr << "Error opening output file." << std::endl;
-    return 1;
-  }
 
   // ------------------------------------------------------------
   // Grid setup
@@ -47,7 +36,7 @@ int main() {
 
   const int nodes = N + 1;
 
-  const double area = consts::pi * D * D / 4.0;
+  const double area = M_PI * D * D / 4.0;
   const double dx = L / N;
 
   // Same R as the FORTRAN expression:
@@ -74,8 +63,15 @@ int main() {
   std::cout << "system dt = " << system_dt << " s\n";
   std::cout << "B         = " << B << '\n';
   std::cout << "R         = " << R << '\n';
-  output_file << "t,tau,H_valve,Q_valve\n";
 
+  std::ofstream output_file("output_old.csv");
+
+  if (!output_file) {
+    std::cerr << "Error opening output file." << std::endl;
+    return 1;
+  }
+
+  output_file << "t,tau,H_valve,Q_valve\n";
   // ------------------------------------------------------------
   // Find initial steady-state flow
   // ------------------------------------------------------------
@@ -103,6 +99,11 @@ int main() {
   for (int i = 0; i <= N; i += 2) {
     H[i] = HR - i * R * Qi * Qi;
     Q[i] = Qi;
+  }
+
+  for (int i = 0; i < N; i++) {
+    std::cout << "H[" << i << "] = " << H[i] << " m\n";
+    std::cout << "Q[" << i << "] = " << Q[i] << " m^3/s\n";
   }
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
@@ -169,14 +170,25 @@ int main() {
     // constant-head reservoir
     // ========================================================
 
-    H[0] = HR + 10 * std::sin(consts::pi * t);
+    H[0] = HR;
 
-    Q[0] = (H[0] - H[1] + B * Q[1]) / (B + R * std::abs(Q[1]));
+    const double Cm = H[1] - B * Q[1];
+    const double Bm = B + R * std::abs(Q[1]);
+
+    Q[0] = (H[0] - Cm) / Bm;
 
     // ========================================================
     // Downstream boundary:
     // closing valve
     // ========================================================
+
+    if (t < tc) {
+      tau = tau_i - (tau_i - tau_f) * std::pow(t / tc, em);
+    } else {
+      tau = tau_f;
+    }
+
+    const double CV = tau * tau * CVP;
 
     // C+ characteristic arriving at valve
     const double Cp = H[N - 1] + B * Q[N - 1];
@@ -185,7 +197,7 @@ int main() {
 
     // Solve characteristic equation +
     // nonlinear valve equation simultaneously.
-    Q[N] = 0;
+    Q[N] = -CV * Bp + std::sqrt(CV * CV * Bp * Bp + 2.0 * CV * Cp);
 
     H[N] = Cp - Bp * Q[N];
 
@@ -195,6 +207,7 @@ int main() {
 
     output_file << t << "," << tau << "," << H[N] << "," << Q[N] << '\n';
   }
+
   output_file.close();
 
   return 0;

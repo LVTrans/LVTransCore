@@ -1,21 +1,21 @@
-add_executable(
+set(
+  LVTRANS_EXAMPLES
   pipe_valve_closed
-  pipe_valve_closed.cpp
-)
-
-add_executable(
   pump_pipe
-  pump_pipe.cpp
+  pump_startup
+  reservoir_pipe_valve
+  reservoir_pipe_valve_old
 )
 
-target_link_libraries(
-  pipe_valve_closed
-  PRIVATE
-  lvtrans_core
-)
+foreach(example IN LISTS LVTRANS_EXAMPLES)
+  add_executable(
+    ${example}
+    ${example}.cpp
+  )
 
-target_link_libraries(
-  pump_pipe
-  PRIVATE
-  lvtrans_core
-)
+  target_link_libraries(
+    ${example}
+    PRIVATE
+    lvtrans_core
+  )
+endforeach()
