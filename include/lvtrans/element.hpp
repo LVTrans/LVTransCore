@@ -5,17 +5,16 @@ struct IterateOutput {
   double Q{};
 };
 struct IterateInput {
+  double t{};
   double H{};
   double Q{};
   double B{};
   double R{};
-  double t{};
 };
 
 class Element {
 public:
-  virtual void iterate(const IterateInput input = {},
-                       IterateOutput output = {}) {};
+  virtual void iterate(const IterateInput = {}, IterateOutput = {}) {};
   virtual ~Element() {};
 };
 } // namespace lvtrans

@@ -8,11 +8,10 @@ int main() {
   // Input data from SINGLE.DAT
   // ------------------------------------------------------------
 
-  double a = 1200.0; // Wave propagation velocity [m/s]
-  double L = 600.0;  // Pipeline length [m]
-  double D = 0.5;    // Inside diameter [m]
-  double f = 0.018;  // Darcy-Weisbach friction factor
-
+  double a = 1200.0;   // Wave propagation velocity [m/s]
+  double L = 600.0;    // Pipeline length [m]
+  double D = 0.5;      // Inside diameter [m]
+  double f = 0.018;    // Darcy-Weisbach friction factor
   double g = 9.806;    // Gravitational acceleration [m/s^2]
   double HR = 150.0;   // Reservoir head above datum [m]
   double Tmax = 4.3;   // Duration of transient [s]
@@ -101,10 +100,10 @@ int main() {
     Q[i] = Qi;
   }
 
-  for (int i = 0; i < N; i++) {
-    std::cout << "H[" << i << "] = " << H[i] << " m\n";
-    std::cout << "Q[" << i << "] = " << Q[i] << " m^3/s\n";
-  }
+  // for (int i = 0; i < N; i++) {
+  //   std::cout << "H[" << i << "] = " << H[i] << " m\n";
+  //   std::cout << "Q[" << i << "] = " << Q[i] << " m^3/s\n";
+  // }
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
@@ -169,11 +168,10 @@ int main() {
     // Upstream boundary:
     // constant-head reservoir
     // ========================================================
-
-    H[0] = HR;
-
     const double Cm = H[1] - B * Q[1];
     const double Bm = B + R * std::abs(Q[1]);
+
+    H[0] = HR;
 
     Q[0] = (H[0] - Cm) / Bm;
 
@@ -182,12 +180,6 @@ int main() {
     // closing valve
     // ========================================================
 
-    if (t < tc) {
-      tau = tau_i - (tau_i - tau_f) * std::pow(t / tc, em);
-    } else {
-      tau = tau_f;
-    }
-
     const double CV = tau * tau * CVP;
 
     // C+ characteristic arriving at valve
@@ -195,8 +187,8 @@ int main() {
 
     const double Bp = B + R * std::abs(Q[N - 1]);
 
-    // Solve characteristic equation +
-    // nonlinear valve equation simultaneously.
+    // // Solve characteristic equation +
+    // // nonlinear valve equation simultaneously.
     Q[N] = -CV * Bp + std::sqrt(CV * CV * Bp * Bp + 2.0 * CV * Cp);
 
     H[N] = Cp - Bp * Q[N];
@@ -205,6 +197,12 @@ int main() {
     // Example output
     // --------------------------------------------------------
 
+    if (t < tc) {
+      tau = tau_i - (tau_i - tau_f) * std::pow(t / tc, em);
+    } else {
+      tau = tau_f;
+    }
+    std::cout << t << "," << tau << "," << H[N] << "," << Q[N] << '\n';
     output_file << t << "," << tau << "," << H[N] << "," << Q[N] << '\n';
   }
 

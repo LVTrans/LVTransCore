@@ -3,6 +3,7 @@
 #include <cmath>
 
 namespace lvtrans {
+
 struct ValveConfig {
   double tau_i{};
   double tau_f{};

@@ -10,8 +10,8 @@ inline constexpr double calculate_R(double f, double dx, double diameter,
                                     double area) {
   return f * dx / (2.0 * consts::g * diameter * area * area);
 }
-inline constexpr double calculate_dx(double pipe_length, int num_reaches) {
-  return pipe_length / num_reaches;
+inline constexpr double calculate_dx(double pipe_length, size_t num_reaches) {
+  return pipe_length / static_cast<double>(num_reaches);
 }
 
 inline constexpr double calculate_pipe_area(double diameter) {
@@ -27,7 +27,7 @@ struct PipeConfig {
   double diameter{};
   double f{};
   double a{};
-  int num_reaches{};
+  size_t num_reaches{};
   double z0{};
   double z1{};
 };
@@ -59,11 +59,11 @@ public:
 private:
   void initialize_h_q(InitialValues H0, InitialValues Q0);
   PipeConfig m_config{};
-  const double m_dx{};
   const double m_area{};
+  const double m_dx{};
   const double m_R{};
   const double m_B{};
-  const int m_num_nodes{};
+  const size_t m_num_nodes{};
 
   bool m_first_iter_run{false};
 
