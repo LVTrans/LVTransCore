@@ -38,6 +38,20 @@ target_compile_features(
         cxx_std_17
 )
 
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(lvtrans_core PRIVATE
+        -Wall -Wextra -Wpedantic -Wconversion
+        $<$<CONFIG:Release>:-O2>
+        $<$<CONFIG:Debug>:-O0 -g3>
+    )
+elseif(MSVC)
+    target_compile_options(lvtrans_core PRIVATE
+        /W4 /permissive- /GS
+        $<$<CONFIG:Release>:/O2>
+        $<$<CONFIG:Debug>:/Od /Zi /RTC1>
+    )
+endif()
+
 if(LVTRANS_ENABLE_OPENMP)
   find_package(OpenMP)
 
