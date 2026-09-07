@@ -2,13 +2,14 @@ find_package(GTest CONFIG REQUIRED)
 
 set(TEST_SOURCES
   test_pipe.cpp
+  test_multi_elements.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
 
 
 target_compile_definitions(tests PRIVATE
-    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}"
+    TEST_DATA_DIR="${CMAKE_CURRENT_SOURCE_DIR}/test_data/"
 )
 
 target_link_libraries(tests
