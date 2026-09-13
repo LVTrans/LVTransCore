@@ -13,8 +13,14 @@ struct IterateInput {
 };
 
 class Element {
+  using IDType = int;
+
 public:
   virtual void iterate(const IterateInput = {}, IterateOutput = {}) {};
   virtual ~Element() {};
+  IDType get_ID() const { return m_ID; }
+
+protected:
+  IDType m_ID;
 };
 } // namespace lvtrans
