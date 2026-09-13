@@ -1,0 +1,79 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+abstract class Element {
+  + ID: int
+  + get_ID(): int
+  + iterate(): void
+}
+
+abstract class NonPipe {
+  + field: Type
+  + method(): Type
+}
+
+abstract class Pipe {
+  - H: vector<double>
+  - Q: vector<double>
+}
+
+class Reservoir {
+  + HR: int
+}
+
+class Valve {
+  - State: Open | Closed
+}
+
+class Pump {
+}
+
+class AlgebraicPipe {
+  + method(): Type
+}
+
+class AlgebraicPipe2 as "AlgebraicPipe" {
+  + method(): Type
+}
+
+class Plant {
+  - container: PlantContainer
+  - configService: ConfigurationService
+  + Plant(path_to_plant: string)
+  + step(): void
+  + run_steps(in: int): void
+}
+
+class PlantContainer {
+  - elements: vector<Element>
+  + addElement(Element): void
+  + removeElement(ElementID): boolean
+  + getElementByID(id): Element
+}
+
+class ConfigurationService {
+  + readConfigFromFile(path): Simulation
+  + read(path): Simulation
+  + saveState(ElementID)
+}
+
+' --- Relasjoner og Arv ---
+
+Element <|-- NonPipe
+Element <|-- Pipe
+
+NonPipe <|-- Reservoir
+NonPipe <|-- Valve
+NonPipe <|-- Pump
+
+Pipe <|-- AlgebraicPipe
+Pipe <|-- AlgebraicPipe2
+
+' Elementer samles i containeren
+PlantContainer o-- Element
+
+' Plant har relasjoner til sine tjenester/containere
+Plant --> ConfigurationService
+Plant *-- PlantContainer
+
+@enduml
