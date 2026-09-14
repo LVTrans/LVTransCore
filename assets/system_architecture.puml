@@ -1,9 +1,11 @@
 @startuml
 
 abstract class Element {
+  + Element(id: int)
   + ID: int
   + get_ID(): int
   + iterate(): void
+  + get_state(): ElementState
 }
 
 abstract class NonPipe {
@@ -20,34 +22,131 @@ abstract class Pipe {
 }
 
 class Reservoir {
+  + Reservoir(id: int, HR: int)
   + HR: int
 }
 
 class Valve {
   - State: Open | Closed
-  + set_state(state: Open | Closed): void
+  + Valve(id: int)
+  + set_state(state): void
   + is_open(): bool
 }
 
 class Pump {
+  + Pump(id: int)
 }
 
 class AlgebraicPipe {
+  + AlgebraicPipe(id: int)
 }
 
 class NormalPipe {
+  + NormalPipe(id: int)
 }
+
+
+interface ElementVisitor {
+  + visit(pipe: Pipe): void
+  + visit(valve: Valve): void
+  + visit(reservoir: Reservoir): void
+}
+
+
+class ElementStateVisitor {
+  + visit(pipe: Pipe): TElementState
+}
+
+class ElementDisplayVisitor {
+  + visit(pipe: Pipe): TElementState
+  + visit(valve: Valve): TElementState
+  + visit(reservoir: Reservoir): TElementState
+}
+
+
+struct ScalarValue {
+  + name: string
+  + symbol: string
+  + unit: string
+
+  + value: double
+}
+
+struct SeriesValue {
+  + name: string
+  + symbol: string
+
+  + x_unit: string
+  + y_unit: string
+
+  + x: vector<double>
+  + y: vector<double>
+}
+
+struct DisplayValue {
+  + value: ScalarValue | SeriesValue
+}
+
+struct ElementView {
+  + id: ElementID
+  + type: ElementType
+
+  + values: vector<DisplayValue>
+}
+
+struct ToggleModification {
+  + state1_name: string
+  + state2_name: string
+  + current_state: string
+}
+
+struct NumberModification {
+  + value: double
+}
+
+struct RangeModification {
+  + min_value: double
+  + max_value: double
+  + step_size: double
+}
+
+struct ModificationOption {
+  + type: ToggleModification | NumberModification | RangeModification
+}
+
+struct ElementModification {
+  + id: ElementID
+  + type: ElementType
+
+  + options: vector<ModificationOption>
+}
+
+ToggleModification --> ModificationOption
+NumberModification --> ModificationOption
+RangeModification --> ModificationOption
+ModificationOption --> ElementModification
+
+
 
 class Plant {
   - container: PlantContainer
-  - state: State
+  - state: PlantState
   + Plant(file_path: string)
-  + get_state(): State
+  + get_state(): PlantState
   + step(): void
   + run_steps(in: int): void
   + stop(): void
   + pause(): void
   + resume(): void
+  + run(): void
+  + save_state(path) 
+}
+
+
+struct PlantState {
+  + time_step: double
+  + current_time: double
+  + num_iterations: int
 }
 
 
@@ -58,10 +157,6 @@ class PlantContainer {
   + get_element_by_ID(id): Element
 }
 
-class PlantConfiguration {
-  + elements: vector<Element>
-  + time_step: double
-}
 
 class ConfigurationService << (S,#FF7700) Singleton >> {
   + read_plant_from_file(path): PlantConfiguration
@@ -69,9 +164,15 @@ class ConfigurationService << (S,#FF7700) Singleton >> {
 }
 
 
+SeriesValue --> DisplayValue
+ScalarValue --> DisplayValue
+DisplayValue --> ElementView
+
 
 ' Relations 
-ConfigurationService -- PlantConfiguration 
+ElementVisitor <|-- ElementStateVisitor
+ElementVisitor <|-- ElementDisplayVisitor
+Plant -- PlantState
 
 Element <|-- NonPipe
 Element <|-- Pipe
@@ -83,7 +184,7 @@ NonPipe <|-- Pump
 Pipe <|-- AlgebraicPipe
 Pipe <|-- NormalPipe
 
-PlantContainer o-- Element
+PlantContainer -- Element
 
 Plant -- PlantContainer
 Plant -- ConfigurationService
