@@ -1,5 +1,4 @@
 @startuml
-skinparam classAttributeIconSize 0
 
 abstract class Element {
   + ID: int
@@ -8,8 +7,11 @@ abstract class Element {
 }
 
 abstract class NonPipe {
-  + field: Type
-  + method(): Type
+  + c_characteristic: double
+  + b_characteristic: double
+  + set_c_characteristic(val): void
+  + set_b_characteristic(val): void
+
 }
 
 abstract class Pipe {
@@ -23,41 +25,53 @@ class Reservoir {
 
 class Valve {
   - State: Open | Closed
+  + set_state(state: Open | Closed): void
+  + is_open(): bool
 }
 
 class Pump {
 }
 
 class AlgebraicPipe {
-  + method(): Type
 }
 
-class AlgebraicPipe2 as "AlgebraicPipe" {
-  + method(): Type
+class NormalPipe {
 }
 
 class Plant {
   - container: PlantContainer
-  - configService: ConfigurationService
-  + Plant(path_to_plant: string)
+  - state: State
+  + Plant(file_path: string)
+  + get_state(): State
   + step(): void
   + run_steps(in: int): void
+  + stop(): void
+  + pause(): void
+  + resume(): void
 }
+
 
 class PlantContainer {
   - elements: vector<Element>
-  + addElement(Element): void
-  + removeElement(ElementID): boolean
-  + getElementByID(id): Element
+  + add_element(Element): void
+  + remove_element(ElementID): boolean
+  + get_element_by_ID(id): Element
 }
 
-class ConfigurationService {
-  + readConfigFromFile(path): Simulation
-  + read(path): Simulation
-  + saveState(ElementID)
+class PlantConfiguration {
+  + elements: vector<Element>
+  + time_step: double
 }
 
-' --- Relasjoner og Arv ---
+class ConfigurationService << (S,#FF7700) Singleton >> {
+  + read_plant_from_file(path): PlantConfiguration
+  + save_plant_to_file(path, plant): Result
+}
+
+
+
+' Relations 
+ConfigurationService -- PlantConfiguration 
 
 Element <|-- NonPipe
 Element <|-- Pipe
@@ -67,13 +81,11 @@ NonPipe <|-- Valve
 NonPipe <|-- Pump
 
 Pipe <|-- AlgebraicPipe
-Pipe <|-- AlgebraicPipe2
+Pipe <|-- NormalPipe
 
-' Elementer samles i containeren
 PlantContainer o-- Element
 
-' Plant har relasjoner til sine tjenester/containere
-Plant --> ConfigurationService
-Plant *-- PlantContainer
+Plant -- PlantContainer
+Plant -- ConfigurationService
 
 @enduml
