@@ -45,3 +45,7 @@ int main(){
     plant.save("example_plant.yaml");
 }
 ```
+
+## System Architecture (WIP)
+
+![System Architecture](assets/system_architecture.png)
