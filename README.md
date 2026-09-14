@@ -19,11 +19,10 @@ The plant should be able to:
 | [ ]  | Save current simulation state                                   | OK                        |                                                 |
 | [ ]  | Continue simulation from a loaded state                         | OK                        | Via constructor                                 |
 | [ ]  | Read element outputs/state while the simulation is running      | OK                        | Via visitor pattern                             |
-| [ ]  | Change supported runtime inputs while the simulation is running |                           |                                                 |
-| [ ]  | Accept runtime input independently of the user interface        |                           |                                                 |
+| [ ]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
 | [ ]  | Expose simulation output independently of the user interface    |                           |                                                 |
-| [ ]  | Support execution faster than real time                         |                           |                                                 |
-| [ ]  | Support multiple independent simulation instances               |                           |                                                 |
+| [ ]  | Support execution faster than real time                         | OK                        |                                                 |
+| [ ]  | Support multiple independent simulation instances               | OK?                       |                                                 |
 
 ## Examples
 
@@ -60,7 +59,7 @@ int main(){
 
 
     Valve valve1 = plant.get_element("valve_1");
-    ValveState valve1_state = valve1.get_state(); // ? 
+    ValveState valve1_state = valve1.get_state(); // ?
 
     // ...
 ```
@@ -81,8 +80,11 @@ _Change runtime element's parameters_
 int main(){
     Plant plant("example_plant.yaml");
 
-
-    plant.set_element
+    // modify element checks that
+    // 1. the element exists given the id
+    // 2. the combination of state type, modification type and modification value is valid for that element
+    plant.modify_element("valve_1", VALVE_STATE, true);
+    plant.modify_element("pelton_1", PELTON_INJECTOR, nonlinear);
 }
 ```
 
