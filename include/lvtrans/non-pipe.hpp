@@ -13,6 +13,11 @@ public:
   void set_c_characteristics(double c) { m_c_characteristics = c; }
   void set_b_characteristics(double b) { m_b_characteristics = b; }
 
+  Ports &get_ports() { return m_ports; }
+  void set_port(PortIndex index, std::shared_ptr<Port> p) {
+    m_ports[index]->connect(p);
+  }
+
 protected:
   std::shared_ptr<Element> m_left_elem;
   std::shared_ptr<Element> m_right_elem;

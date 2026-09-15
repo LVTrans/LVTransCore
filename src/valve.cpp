@@ -3,7 +3,15 @@
 #include <cmath>
 namespace lvtrans {
 
-Valve::Valve(const ValveConfig &conf) : m_config(conf), m_tau(conf.tau_i) {}
+Valve::Valve(const ValveConfig &conf) : m_config(conf), m_tau(conf.tau_i) {
+  auto port_left = std::make_shared<Port>(*this);
+  auto port_right = std::make_shared<Port>(*this);
+
+  m_ports.resize(2);
+
+  m_ports[PortLeft] = port_left;
+  m_ports[PortRight] = port_right;
+}
 
 Valve::~Valve() {}
 

@@ -1,6 +1,5 @@
 #pragma once
 #include "lvtrans/const.hpp"
-#include "lvtrans/element.hpp"
 #include "lvtrans/non-pipe.hpp"
 #include <variant>
 #include <vector>
@@ -48,16 +47,31 @@ public:
   const std::vector<double> &get_Q() const { return m_Q; }
 
   void connect_left(std::shared_ptr<NonPipe> elem) {
-    m_left_elem = elem;
-    elem->set_right(std::make_shared<Pipe>(*this));
+    m_ports[PortLeft]->connect(elem->get_ports()[PortRight]); // connect ours
+    elem->set_port(PortRight, m_ports[PortLeft]);             // connect theirs
   }
   void connect_right(std::shared_ptr<NonPipe> elem) {
-    m_right_elem = elem;
-    elem->set_left(std::make_shared<Pipe>(*this));
+    m_ports[PortRight]->connect(elem->get_ports()[PortLeft]);
+    elem->set_port(PortLeft, m_ports[PortRight]);
   }
 
 private:
   void initialize_h_q(InitialValues H0, InitialValues Q0);
+
+  NonPipe *left_elem() {
+    if (m_ports[PortLeft]->connected_to) {
+      return dynamic_cast<NonPipe *>(&m_ports[PortLeft]->connected_to->owner);
+    }
+    return nullptr;
+  }
+
+  NonPipe *right_elem() {
+    if (m_ports[PortRight]->connected_to) {
+      return dynamic_cast<NonPipe *>(&m_ports[PortRight]->connected_to->owner);
+    }
+    return nullptr;
+  }
+
   PipeConfig m_config{};
   const double m_area{};
   const double m_dx{};
@@ -67,8 +81,6 @@ private:
 
   bool m_first_iter_run{false};
 
-  std::shared_ptr<NonPipe> m_left_elem;
-  std::shared_ptr<NonPipe> m_right_elem;
   std::vector<double> m_H{};
   std::vector<double> m_Q{};
   std::vector<double> m_Z{};

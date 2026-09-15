@@ -18,11 +18,19 @@ Pipe::Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0)
     ++conf.num_reaches;
   }
 
+  auto port1 = std::make_shared<Port>(*this);
+  auto port2 = std::make_shared<Port>(*this);
+
+  m_ports.resize(2);
+
+  m_ports[PortLeft] = port1;
+  m_ports[PortRight] = port2;
+
   initialize_h_q(H0, Q0);
 
-  std::cout << "R        = " << m_R << " m\n";
-  std::cout << "B        = " << m_B << " s/m\n";
-  std::cout << "N       = " << conf.num_reaches << "\n";
+  // std::cout << "R        = " << m_R << " m\n";
+  // std::cout << "B        = " << m_B << " s/m\n";
+  // std::cout << "N       = " << conf.num_reaches << "\n";
 
   // for (size_t i{0}; i < conf.num_reaches; i++) {
   //   std::cout << "H[" << i << "] = " << m_H[i] << " m\n";
@@ -89,23 +97,23 @@ void Pipe::iterate(const IterateInput, IterateOutput) {
   }
 
   // C- characteristic
-  if (m_left_elem) {
-    m_left_elem->set_c_characteristics(m_H[L0 + 1] - m_B * m_Q[L0 + 1]);
-    m_left_elem->set_b_characteristics(m_R * std::abs(m_Q[L0 + 1]) + m_B);
-    m_H[0] = m_left_elem->get_H();
-    m_Q[0] = m_left_elem->get_Q();
+  if (left_elem()) {
+    left_elem()->set_c_characteristics(m_H[L0 + 1] - m_B * m_Q[L0 + 1]);
+    left_elem()->set_b_characteristics(m_R * std::abs(m_Q[L0 + 1]) + m_B);
+    m_H[0] = left_elem()->get_H();
+    m_Q[0] = left_elem()->get_Q();
   }
 
   // C+ characteristic
-  if (m_right_elem) {
-    m_right_elem->set_c_characteristics(m_H[L1 - 1] + m_B * m_Q[L1 - 1]);
-    m_right_elem->set_b_characteristics(m_B + m_R * std::abs(m_Q[L1 - 1]));
-    m_H[m_config.num_reaches] = m_right_elem->get_H();
-    m_Q[m_config.num_reaches] = m_right_elem->get_Q();
+  if (right_elem()) {
+    right_elem()->set_c_characteristics(m_H[L1 - 1] + m_B * m_Q[L1 - 1]);
+    right_elem()->set_b_characteristics(m_B + m_R * std::abs(m_Q[L1 - 1]));
+    m_H[m_config.num_reaches] = right_elem()->get_H();
+    m_Q[m_config.num_reaches] = right_elem()->get_Q();
   }
 
-  std::cout << "end..\n";
-  std::cout << "H[LAST] = " << m_H[m_config.num_reaches] << " m\n";
-  std::cout << "Q[LAST] = " << m_Q[m_config.num_reaches] << " m^3/s\n";
+  // std::cout << "end..\n";
+  // std::cout << "H[LAST] = " << m_H[m_config.num_reaches] << " m\n";
+  // std::cout << "Q[LAST] = " << m_Q[m_config.num_reaches] << " m^3/s\n";
 }
 } // namespace lvtrans
