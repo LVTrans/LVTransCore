@@ -64,7 +64,7 @@ int main(){
     // ...
 ```
 
-_Run simulation continuously until stopped._
+_Run simulation continuously until stopped._ ??
 
 ```cpp
 int main(){
@@ -84,8 +84,53 @@ int main(){
     // 1. the element exists given the id
     // 2. the combination of state type, modification type and modification value is valid for that element
     plant.modify_element("valve_1", VALVE_STATE, true);
-    plant.modify_element("pelton_1", PELTON_INJECTOR, nonlinear);
+    plant.modify_element("pelton_1", PELTON_INJECTOR, NON_LINEAR);
 }
+```
+
+_Add elements to a plant_
+
+```cpp
+int main(){
+
+    Reservoir reservoir1(ReservoirConfig{....});
+    Pipe pipe1(PipeConfig{....});
+    Valve valve1(ValveConfig{....});
+
+
+    PlantConfiguration plant_config{...};
+    Plant plant(plant_config);
+    // internally:
+    // {
+    //  std::vector<std::shared_ptr<Port>> ports;
+    //  ports.push_back(new Port(this));
+    //  ports.push_back(new Port(this));
+    // }
+
+
+
+    // 1. specify right and left here
+    plant.add_pipe(pipe1, reservoir1, valve1);
+    // internally:
+    // {
+    //  pipe1.connect_left(reservoir1);
+    //  {
+    //      ports[LEFT_IDX].connect(reservoir1);
+    //  }
+    //  pipe1.connect_right(valve1);
+    //  {
+    //      ports[RIGHT_IDX].connect(valve1);
+    //  }
+    // }
+    // or
+    plant.add_element(pipe1, reservoir1, valve1);
+    plant.add_element(reservoir, nullptr, pipe1);
+    // 2. specify after adding the pipe
+    plant.add_element(&pipe1);
+    pipe1.set_left(reservoir1); // automatically sets reservoir1's right pipe1?
+    pipe1.set_right(valve1);
+    // plant should now have all elements connected
+
 ```
 
 ## System Architecture (WIP)
