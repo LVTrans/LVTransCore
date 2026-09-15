@@ -1,8 +1,16 @@
 @startuml
 
+class Port {
+  + Port(owner: Element)
+  - connect_to: shared_ptr<Port>
+  - owner: &Element
+}
+
 abstract class Element {
-  + Element(id: int)
+  + Element(id: int, type: ElementType)
+  - ports: vecotor<Port>
   + ID: int
+  + type: ElementType
   + get_ID(): int
   + iterate(): void
   + get_state(): ElementState
@@ -63,8 +71,7 @@ class ElementDisplayVisitor {
   + visit(reservoir: Reservoir): TElementState
 }
 
-
-struct ScalarValue {
+object ScalarValue {
   + name: string
   + symbol: string
   + unit: string
@@ -72,7 +79,7 @@ struct ScalarValue {
   + value: double
 }
 
-struct SeriesValue {
+object SeriesValue {
   + name: string
   + symbol: string
 
@@ -83,38 +90,38 @@ struct SeriesValue {
   + y: vector<double>
 }
 
-struct DisplayValue {
+object DisplayValue {
   + value: ScalarValue | SeriesValue
 }
 
-struct ElementView {
+object ElementView {
   + id: ElementID
   + type: ElementType
 
   + values: vector<DisplayValue>
 }
 
-struct ToggleModification {
+object ToggleModification {
   + state1_name: string
   + state2_name: string
   + current_state: string
 }
 
-struct NumberModification {
+object NumberModification {
   + value: double
 }
 
-struct RangeModification {
+object RangeModification {
   + min_value: double
   + max_value: double
   + step_size: double
 }
 
-struct ModificationOption {
+object ModificationOption {
   + type: ToggleModification | NumberModification | RangeModification
 }
 
-struct ElementModification {
+object ElementModification {
   + id: ElementID
   + type: ElementType
 
@@ -139,11 +146,12 @@ class Plant {
   + pause(): void
   + resume(): void
   + run(): void
-  + save_state(path) 
+  + save_state(path)
+  + modify_element(id, mod_type, mod_value): void
 }
 
 
-struct PlantState {
+object PlantState {
   + time_step: double
   + current_time: double
   + num_iterations: int
@@ -151,7 +159,7 @@ struct PlantState {
 
 
 class PlantContainer {
-  - elements: vector<Element>
+  - elements: map<ElementID, Element>
   + add_element(Element): void
   + remove_element(ElementID): boolean
   + get_element_by_ID(id): Element
@@ -169,13 +177,14 @@ ScalarValue --> DisplayValue
 DisplayValue --> ElementView
 
 
-' Relations 
+' Relations
 ElementVisitor <|-- ElementStateVisitor
 ElementVisitor <|-- ElementDisplayVisitor
 Plant -- PlantState
 
 Element <|-- NonPipe
 Element <|-- Pipe
+Element -- Port
 
 NonPipe <|-- Reservoir
 NonPipe <|-- Valve
