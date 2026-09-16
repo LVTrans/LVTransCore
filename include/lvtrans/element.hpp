@@ -5,6 +5,9 @@
 
 namespace lvtrans {
 
+using Ports = std::vector<std::shared_ptr<Port>>;
+using ElementID = int;
+
 struct IterateOutput {
   double H{};
   double Q{};
@@ -19,18 +22,18 @@ struct IterateInput {
 };
 
 enum PortIndex { PortLeft, PortRight, PortUp, PortDown };
-using Ports = std::vector<std::shared_ptr<Port>>;
 
 class Element {
-  using ElementID = int;
 
 public:
   virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
+  // Element(ElementID id) : m_ID(id) {}
   virtual ~Element() = default;
   ElementID get_ID() const { return m_ID; }
+  void set_ID(ElementID id) { m_ID = id; }
 
 protected:
-  ElementID m_ID;
+  ElementID m_ID{};
   Ports m_ports;
 };
 } // namespace lvtrans
