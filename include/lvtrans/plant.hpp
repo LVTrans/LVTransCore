@@ -1,9 +1,9 @@
 #pragma once
-
 #include "lvtrans/element.hpp"
-#include <optional>
+#include "lvtrans/element_container.hpp"
+#include "lvtrans/non-pipe.hpp"
+#include "lvtrans/pipe.hpp"
 #include <string_view>
-#include <unordered_map>
 namespace lvtrans {
 
 struct PlantState {
@@ -14,19 +14,34 @@ struct PlantState {
 
 class Plant {
 public:
-  using Elements = std::unordered_map<ElementID, std::shared_ptr<Element>>;
-
   Plant();
   Plant(std::string_view file_path);
 
-  void add_element(std::shared_ptr<Element> element);
-  void remove_element(ElementID id);
-  const Elements &get_elements() const { return m_elements; }
-  std::optional<std::shared_ptr<Element>> get_element_by_id(ElementID id);
+  template <typename T, typename... Args> T &add_element(Args &&...args) {
+    return m_element_container.add_element<T>(std::forward<Args>(args)...);
+  }
+  const std::vector<std::unique_ptr<Pipe>> &get_pipes() const {
+    return m_element_container.get_pipes();
+  }
+  const std::vector<std::unique_ptr<NonPipe>> &get_non_pipes() const {
+    return m_element_container.get_non_pipes();
+  }
+  std::vector<Element *> get_elements() const {
+    return m_element_container.get_elements();
+  }
+  Element *get_element_by_id(ElementID id) {
+    return m_element_container.get_element_by_id(id);
+  }
+  void remove_element(ElementID id) {
+    return m_element_container.remove_element(id);
+  }
+
+  void step(double t);
+  void run_steps(size_t num_steps);
+  void display();
 
 private:
   PlantState m_state;
-  Elements m_elements;
-  inline static ElementID s_element_id{0};
+  ElementContainer m_element_container;
 };
 } // namespace lvtrans

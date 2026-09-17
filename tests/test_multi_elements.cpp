@@ -1,5 +1,6 @@
 #include "lvtrans/const.hpp"
 #include "lvtrans/element.hpp"
+#include "lvtrans/plant.hpp"
 #include "test_helpers.hpp"
 #include <cassert>
 #include <cmath>
@@ -20,7 +21,6 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   double em = 0.75;   // Exponent defining valve motion
 
   using namespace lvtrans;
-  using SystemElemnts = std::vector<std::shared_ptr<Element>>;
 
   double HR = 150.0;   // Reservoir head above datum [m]
   double Tmax = 4.3;   // Duration of transient [s]
@@ -63,8 +63,6 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   const double H0 = HR - R * pipe_config.num_reaches * Q0 * Q0;
 
-  auto reservoir = std::make_shared<Reservoir>(HR);
-
   const double Qi =
       std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                 (R * pipe_config.num_reaches * Q0 * Q0 * tau_i * tau_i + H0));
@@ -74,42 +72,34 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     Q0_[i] = Qi;
   }
 
-  auto pipe = std::make_shared<Pipe>(pipe_config, H0_, Q0_);
-
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
   ValveConfig valve_config{tau_i, tau_f, tc, em, CVP};
 
-  auto valve = std::make_shared<Valve>(valve_config);
-  pipe->connect_left(reservoir);
-  pipe->connect_right(valve);
+  Plant plant;
 
-  SystemElemnts system_elements{};
-  system_elements.push_back(reservoir);
-  system_elements.push_back(pipe);
-  system_elements.push_back(valve);
+  auto &pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
 
-  std::vector<std::shared_ptr<Pipe>> pipes = {pipe};
-  std::vector<std::shared_ptr<NonPipe>> non_pipes = {reservoir, valve};
+  auto &valve = plant.add_element<Valve>(valve_config);
+
+  plant.add_element<Reservoir>(HR);
+
+  // pipe.connect_left(reservoir);
+  // pipe.connect_right(valve);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 
   for (int k = 1; k < Kmax; ++k) {
     const double t = 2.0 * dt * k;
-    for (const auto &pipe : pipes) {
-      pipe->iterate();
-    }
 
-    IterateInput input{};
-    input.t = t;
+    // IterateInput input{};
+    // input.t = t;
 
-    for (const auto &non_pipe : non_pipes) {
-      non_pipe->iterate(input);
-    }
+    plant.step(t);
 
-    output_file << t << "," << valve->get_tau() << ","
-                << pipe->get_H()[pipe_config.num_reaches] << ","
-                << pipe->get_Q()[pipe_config.num_reaches] << '\n';
+    output_file << t << "," << valve.get_tau() << ","
+                << pipe.get_H()[pipe_config.num_reaches] << ","
+                << pipe.get_Q()[pipe_config.num_reaches] << '\n';
   }
 
   output_file.close();

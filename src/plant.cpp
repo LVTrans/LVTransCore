@@ -1,36 +1,49 @@
 #include "lvtrans/plant.hpp"
-#include <optional>
+#include "lvtrans/element.hpp"
+#include <iostream>
 
 namespace lvtrans {
 
-Plant::Plant() : m_state{} {}
+Plant::Plant() : m_state{}, m_element_container{} {}
 
-Plant::Plant(std::string_view file_path) : Plant() {}
+Plant::Plant(std::string_view) : Plant() {}
 
-void Plant::add_element(std::shared_ptr<Element> element) {
-  if (!element) {
-    return;
+void Plant::step(double t) {
+  for (auto &pipe : m_element_container.get_pipes()) {
+    pipe->iterate();
   }
-  element->set_ID(s_element_id);
-  m_elements[s_element_id++] = element;
+
+  for (auto &non_pipe : m_element_container.get_non_pipes()) {
+    IterateInput input{};
+    input.t = t;
+    non_pipe->iterate(input);
+  }
 }
 
-void Plant::remove_element(ElementID id) {
-  for (auto it = m_elements.begin(); it != m_elements.end(); ++it) {
-    if (it->second->get_ID() == id) {
-      m_elements.erase(it);
-      return;
+void Plant::run_steps(size_t num_steps) {
+  for (size_t i = 0; i < num_steps; ++i) {
+    step(0.0);
+  }
+}
+
+void Plant::display() {
+  for (const auto *element : get_elements()) {
+    std::cout << "Element " << element->get_ID();
+    std::cout << " (Type: " << typeid(*element).name() << ")\n";
+  }
+
+  std::cout << "\n------\n";
+  for (auto &pipe : m_element_container.get_pipes()) {
+    auto *left_elem = pipe->left_elem();
+    if (left_elem) {
+      std::cout << "R(" << left_elem->get_ID() << ")<---->";
+    }
+    std::cout << "P(" << pipe->get_ID() << ")";
+    auto *right_elem = pipe->right_elem();
+    if (right_elem) {
+      std::cout << "<---->V(" << right_elem->get_ID() << ")\n";
     }
   }
-}
-
-std::optional<std::shared_ptr<Element>> Plant::get_element_by_id(ElementID id) {
-  auto it = m_elements.find(id);
-
-  if (it != m_elements.end()) {
-    return it->second;
-  }
-  return std::nullopt;
 }
 
 } // namespace lvtrans
