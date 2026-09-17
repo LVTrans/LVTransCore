@@ -7,15 +7,16 @@
 namespace lvtrans {
 
 struct PlantState {
-  double time_step{};
-  double curent_time{};
-  int num_iterations{};
+  double time_step{0.1};
+  double curent_time{0};
+  int num_iterations{0};
 };
+
 
 class Plant {
 public:
-  Plant();
-  Plant(std::string_view file_path);
+  Plant(double dt);
+  Plant(std::string_view file_path, double dt);
 
   template <typename T, typename... Args> T &add_element(Args &&...args) {
     return m_element_container.add_element<T>(std::forward<Args>(args)...);
@@ -36,9 +37,11 @@ public:
     return m_element_container.remove_element(id);
   }
 
-  void step(double t);
+  void step();
   void run_steps(size_t num_steps);
   void display();
+  double get_current_time() const { return m_state.curent_time; }
+
 
 private:
   PlantState m_state;

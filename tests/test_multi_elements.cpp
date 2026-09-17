@@ -76,7 +76,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   ValveConfig valve_config{tau_i, tau_f, tc, em, CVP};
 
-  Plant plant;
+  Plant plant(system_dt);
 
   auto &pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
 
@@ -88,13 +88,10 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   pipe.connect_right(valve);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
-
   for (int k = 1; k < Kmax; ++k) {
-    const double t = 2.0 * dt * k;
+    plant.step();
 
-    plant.step(t);
-
-    output_file << t << "," << valve.get_tau() << ","
+    output_file << plant.get_current_time() << "," << valve.get_tau() << ","
                 << pipe.get_H()[pipe_config.num_reaches] << ","
                 << pipe.get_Q()[pipe_config.num_reaches] << '\n';
   }
