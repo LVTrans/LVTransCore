@@ -12,7 +12,7 @@ void print_elements(const lvtrans::Plant &plant) {
 
 TEST(PlantTest, AddElements) {
   using namespace lvtrans;
-  Plant plant{};
+  Plant plant(0);
 
   ASSERT_TRUE(plant.get_elements().empty());
 
@@ -25,7 +25,7 @@ TEST(PlantTest, AddElements) {
 
 TEST(PlantTest, LooksUpAndRemovesElementsById) {
   using namespace lvtrans;
-  Plant plant;
+  Plant plant(0);
   plant.add_element<Reservoir>(100.0);
   plant.add_element<Reservoir>(100.0);
 
