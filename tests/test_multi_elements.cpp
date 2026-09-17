@@ -82,18 +82,15 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   auto &valve = plant.add_element<Valve>(valve_config);
 
-  plant.add_element<Reservoir>(HR);
+  auto &reservoir = plant.add_element<Reservoir>(HR);
 
-  // pipe.connect_left(reservoir);
-  // pipe.connect_right(valve);
+  pipe.connect_left(reservoir);
+  pipe.connect_right(valve);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 
   for (int k = 1; k < Kmax; ++k) {
     const double t = 2.0 * dt * k;
-
-    // IterateInput input{};
-    // input.t = t;
 
     plant.step(t);
 
