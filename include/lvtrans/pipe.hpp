@@ -79,8 +79,6 @@ private:
   const double m_B{};
   const size_t m_num_nodes{};
 
-  bool m_first_iter_run{false};
-
   std::vector<double> m_H{};
   std::vector<double> m_Q{};
   std::vector<double> m_Z{};

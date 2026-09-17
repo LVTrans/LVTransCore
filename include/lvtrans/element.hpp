@@ -27,7 +27,6 @@ class Element {
 
 public:
   virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
-  // Element(ElementID id) : m_ID(id) {}
   virtual ~Element() = default;
   ElementID get_ID() const { return m_ID; }
   void set_ID(ElementID id) { m_ID = id; }
