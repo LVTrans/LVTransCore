@@ -46,17 +46,14 @@ public:
   const std::vector<double> &get_H() const { return m_H; }
   const std::vector<double> &get_Q() const { return m_Q; }
 
-  void connect_left(std::shared_ptr<NonPipe> elem) {
-    m_ports[PortLeft]->connect(elem->get_ports()[PortRight]); // connect ours
-    elem->set_port(PortRight, m_ports[PortLeft]);             // connect theirs
+  void connect_left(NonPipe &elem) {
+    m_ports[PortLeft]->connect(elem.get_ports()[PortRight]); // connect ours
+    elem.set_port(PortRight, m_ports[PortLeft]);             // connect theirs
   }
-  void connect_right(std::shared_ptr<NonPipe> elem) {
-    m_ports[PortRight]->connect(elem->get_ports()[PortLeft]);
-    elem->set_port(PortLeft, m_ports[PortRight]);
+  void connect_right(NonPipe &elem) {
+    m_ports[PortRight]->connect(elem.get_ports()[PortLeft]);
+    elem.set_port(PortLeft, m_ports[PortRight]);
   }
-
-private:
-  void initialize_h_q(InitialValues H0, InitialValues Q0);
 
   NonPipe *left_elem() {
     if (m_ports[PortLeft]->connected_to) {
@@ -71,6 +68,9 @@ private:
     }
     return nullptr;
   }
+
+private:
+  void initialize_h_q(InitialValues H0, InitialValues Q0);
 
   PipeConfig m_config{};
   const double m_area{};

@@ -14,7 +14,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   EXPECT_EQ(&port->owner, reservoir.get());
 
   Pipe pipe(PipeConfig{600.0, 0.5, 0.018, 1200.0, 10, 10.0, 15.0}, 150.0, 0.0);
-  pipe.connect_left(reservoir);
+  pipe.connect_left(*reservoir);
   ASSERT_NE(port->connected_to, nullptr);
   EXPECT_EQ(&port->connected_to->owner, &pipe);
   EXPECT_EQ(port->connected_to->connected_to, port);

@@ -22,6 +22,7 @@ target_sources(
         src/valve.cpp
         src/reservoir.cpp
         src/plant.cpp
+        src/element_container.cpp
 )
 
 
@@ -40,13 +41,13 @@ target_compile_features(
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    target_compile_options(lvtrans_core PRIVATE
+  target_compile_options(lvtrans_core PRIVATE
         -Wall -Wextra -Wpedantic -Wconversion
         $<$<CONFIG:Release>:-O2>
         $<$<CONFIG:Debug>:-O0 -g3>
     )
 elseif(MSVC)
-    target_compile_options(lvtrans_core PRIVATE
+  target_compile_options(lvtrans_core PRIVATE
         /W4 /permissive- /GS
         $<$<CONFIG:Release>:/O2>
         $<$<CONFIG:Debug>:/Od /Zi /RTC1>

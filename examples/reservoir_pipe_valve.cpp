@@ -88,8 +88,8 @@ int main() {
 
   auto valve = std::make_shared<Valve>(valve_config);
 
-  pipe->connect_left(reservoir);
-  pipe->connect_right(valve);
+  pipe->connect_left(*reservoir);
+  pipe->connect_right(*valve);
 
   // TODO: Make system elements a class that includes all elements
   SystemElemnts system_elements{};
