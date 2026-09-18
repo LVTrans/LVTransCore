@@ -10,8 +10,8 @@ The plant should be able to:
 | ---- | --------------------------------------------------------------- | ------------------------- | ----------------------------------------------- |
 | [ ]  | Load existing plant from file                                   | OK                        |                                                 |
 | [ ]  | Save plant to file                                              | OK                        |                                                 |
-| [ ]  | Step simulation                                                 | OK                        |                                                 |
-| [ ]  | Step simulation _N_ times                                       | OK                        |                                                 |
+| [x]  | Step simulation                                                 | OK                        |                                                 |
+| [x]  | Step simulation _N_ times                                       | OK                        |                                                 |
 | [ ]  | Run simulation continuously                                     | OK                        | Maybe the client should be responsible instead? |
 | [ ]  | Stop simulation                                                 | OK                        |                                                 |
 | [ ]  | Pause simulation                                                | OK                        |                                                 |
