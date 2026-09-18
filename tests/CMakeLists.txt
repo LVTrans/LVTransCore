@@ -6,6 +6,7 @@ set(TEST_SOURCES
   test_valve.cpp
   test_multi_elements.cpp
   test_plant.cpp
+  test_element_container.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
