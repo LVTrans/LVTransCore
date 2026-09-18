@@ -42,8 +42,8 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
   auto &reservoir = add_to<Reservoir>(container);
   auto &pipe = add_to<Pipe>(container);
-  auto &valve = container.add_element<Valve>(
-      ValveConfig{0.8, 0.0, 4.0, 1.0, 0.5});
+  auto &valve =
+      container.add_element<Valve>(ValveConfig{0.8, 0.0, 4.0, 1.0, 0.5});
 
   EXPECT_NE(reservoir.get_ID(), pipe.get_ID());
   EXPECT_NE(reservoir.get_ID(), valve.get_ID());
@@ -57,7 +57,8 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   EXPECT_EQ(container.get_pipes().front().get(), &pipe);
   ASSERT_EQ(container.get_non_pipes().size(), 2u);
   const ElementContainer &view = container;
-  EXPECT_THAT(view.get_elements(), UnorderedElementsAre(&pipe, &reservoir, &valve));
+  EXPECT_THAT(view.get_elements(),
+              UnorderedElementsAre(&pipe, &reservoir, &valve));
 }
 
 TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
@@ -76,11 +77,13 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
   EXPECT_EQ(second.get_elements().size(), 1u);
 }
 
-template <typename T> class ElementContainerStorageTest : public ::testing::Test {};
+template <typename T>
+class ElementContainerStorageTest : public ::testing::Test {};
 using StorageTypes = ::testing::Types<Pipe, Reservoir>;
 TYPED_TEST_SUITE(ElementContainerStorageTest, StorageTypes);
 
-TYPED_TEST(ElementContainerStorageTest, RemovesOnlyElementAndDoesNotReuseItsId) {
+TYPED_TEST(ElementContainerStorageTest,
+           RemovesOnlyElementAndDoesNotReuseItsId) {
   ElementContainer container;
   const auto removed_id = add_to<TypeParam>(container).get_ID();
   container.remove_element(removed_id);
@@ -96,7 +99,8 @@ TYPED_TEST(ElementContainerStorageTest, RemovesOnlyElementAndDoesNotReuseItsId) 
   EXPECT_EQ(container.get_element_by_id(removed_id), nullptr);
 }
 
-TYPED_TEST(ElementContainerStorageTest, RemovingFirstMiddleOrLastPreservesSurvivors) {
+TYPED_TEST(ElementContainerStorageTest,
+           RemovingFirstMiddleOrLastPreservesSurvivors) {
   for (size_t removed_index : {0u, 2u, 4u}) {
     SCOPED_TRACE(removed_index);
     ElementContainer container;
@@ -126,7 +130,8 @@ TYPED_TEST(ElementContainerStorageTest, RemovingFirstMiddleOrLastPreservesSurviv
   }
 }
 
-TYPED_TEST(ElementContainerStorageTest, MissingAndRepeatedRemovalLeaveOtherElementsIntact) {
+TYPED_TEST(ElementContainerStorageTest,
+           MissingAndRepeatedRemovalLeaveOtherElementsIntact) {
   ElementContainer container;
   auto &first = add_to<TypeParam>(container);
   auto &second = add_to<TypeParam>(container);
@@ -144,7 +149,8 @@ TYPED_TEST(ElementContainerStorageTest, MissingAndRepeatedRemovalLeaveOtherEleme
   EXPECT_EQ(container.get_element_by_id(second.get_ID()), &second);
 }
 
-TYPED_TEST(ElementContainerStorageTest, AddingAfterRemovalKeepsMovedElementAccessible) {
+TYPED_TEST(ElementContainerStorageTest,
+           AddingAfterRemovalKeepsMovedElementAccessible) {
   ElementContainer container;
   const auto first_id = add_to<TypeParam>(container).get_ID();
   auto &survivor = add_to<TypeParam>(container);
@@ -156,7 +162,8 @@ TYPED_TEST(ElementContainerStorageTest, AddingAfterRemovalKeepsMovedElementAcces
   EXPECT_EQ(container.get_element_by_id(first_id), nullptr);
   EXPECT_EQ(container.get_element_by_id(survivor.get_ID()), &survivor);
   EXPECT_EQ(container.get_element_by_id(added.get_ID()), &added);
-  EXPECT_THAT(container.get_elements(), UnorderedElementsAre(&survivor, &added));
+  EXPECT_THAT(container.get_elements(),
+              UnorderedElementsAre(&survivor, &added));
 }
 
 TYPED_TEST(ElementContainerStorageTest, GrowthKeepsReturnedAddressesStable) {
@@ -183,7 +190,8 @@ private:
   int &destroyed_;
 };
 
-TYPED_TEST(ElementContainerStorageTest, DestroysRemovedAndRemainingElementsExactlyOnce) {
+TYPED_TEST(ElementContainerStorageTest,
+           DestroysRemovedAndRemainingElementsExactlyOnce) {
   int first_destroyed = 0;
   int second_destroyed = 0;
   {
@@ -260,9 +268,10 @@ TEST(ElementContainerTest, MixedInsertionsAndRemovalsMatchLiveElements) {
   for (int step = 0; step < 200; ++step) {
     SCOPED_TRACE(step);
     if (ids.empty() || random() % 3 != 0) {
-      Element &element = random() % 2 == 0
-          ? static_cast<Element &>(add_to<Pipe>(container))
-          : static_cast<Element &>(add_to<Reservoir>(container));
+      Element &element =
+          random() % 2 == 0
+              ? static_cast<Element &>(add_to<Pipe>(container))
+              : static_cast<Element &>(add_to<Reservoir>(container));
       ASSERT_TRUE(expected.emplace(element.get_ID(), &element).second);
       ids.push_back(element.get_ID());
     } else {
@@ -273,8 +282,9 @@ TEST(ElementContainerTest, MixedInsertionsAndRemovalsMatchLiveElements) {
 
     const auto actual = container.get_elements();
     ASSERT_EQ(actual.size(), expected.size());
-    EXPECT_EQ(std::unordered_set<Element *>(actual.begin(), actual.end()).size(),
-              actual.size());
+    EXPECT_EQ(
+        std::unordered_set<Element *>(actual.begin(), actual.end()).size(),
+        actual.size());
     EXPECT_EQ(container.get_pipes().size() + container.get_non_pipes().size(),
               expected.size());
     for (auto id : ids) {
@@ -288,5 +298,49 @@ TEST(ElementContainerTest, MixedInsertionsAndRemovalsMatchLiveElements) {
       EXPECT_EQ(expected.at(element->get_ID()), element);
     }
   }
+}
+TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
+  ElementContainer container;
+  auto &reservoir = add_to<Reservoir>(container);
+  auto &valve = container.add_element<Valve>(ValveConfig{});
+  auto &pipe = add_to<Pipe>(container);
+  pipe.connect_left(reservoir);
+  pipe.connect_right(valve);
+  ASSERT_NE(reservoir.get_ports()[PortRight]->connected_to, nullptr);
+  ASSERT_NE(valve.get_ports()[PortLeft]->connected_to, nullptr);
+
+  container.remove_element(pipe.get_ID());
+  EXPECT_EQ(reservoir.get_ports()[PortRight]->connected_to, nullptr);
+  EXPECT_EQ(valve.get_ports()[PortLeft]->connected_to, nullptr);
+  EXPECT_THAT(container.get_elements(),
+              UnorderedElementsAre(&reservoir, &valve));
+
+  auto &replacement = add_to<Pipe>(container);
+  replacement.connect_left(reservoir);
+  replacement.connect_right(valve);
+  EXPECT_EQ(replacement.left_elem(), &reservoir);
+  EXPECT_EQ(replacement.right_elem(), &valve);
+}
+
+TEST(ElementContainerTest,
+     ResettingSparsePortsIsRepeatableAndPreservesOtherConnections) {
+  ElementContainer container;
+  auto &reservoir = add_to<Reservoir>(container);
+  auto &valve = container.add_element<Valve>(ValveConfig{});
+  auto &pipe = add_to<Pipe>(container);
+  pipe.connect_left(reservoir);
+  pipe.connect_right(valve);
+
+  reservoir.reset_ports();
+  reservoir.reset_ports();
+  EXPECT_EQ(reservoir.get_ports()[PortRight]->connected_to, nullptr);
+  EXPECT_EQ(pipe.left_elem(), nullptr);
+  EXPECT_EQ(pipe.right_elem(), &valve);
+
+  pipe.reset_ports();
+  pipe.reset_ports();
+  EXPECT_EQ(pipe.left_elem(), nullptr);
+  EXPECT_EQ(pipe.right_elem(), nullptr);
+  EXPECT_EQ(valve.get_ports()[PortLeft]->connected_to, nullptr);
 }
 } // namespace

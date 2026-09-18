@@ -13,6 +13,7 @@ public:
   ~Port() = default;
   explicit Port(Element &comp) : owner(comp) {}
   void connect(Port *other) { connected_to = other; }
+  void reset() { connected_to = nullptr; }
 };
 
 } // namespace lvtrans

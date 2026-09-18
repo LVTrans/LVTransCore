@@ -30,6 +30,7 @@ public:
   virtual ~Element() = default;
   ElementID get_ID() const { return m_ID; }
   void set_ID(ElementID id) { m_ID = id; }
+  void reset_ports();
 
 protected:
   ElementID m_ID{};

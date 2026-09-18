@@ -1,6 +1,7 @@
 #pragma once
 #include "lvtrans/const.hpp"
 #include "lvtrans/non-pipe.hpp"
+#include <iostream>
 #include <variant>
 #include <vector>
 namespace lvtrans {
@@ -60,13 +61,13 @@ public:
     if (auto *elem = left_elem()) {
       elem->set_port(PortRight, nullptr); // reset theirs
     }
-    m_ports[PortLeft]->connected_to = nullptr; // reset ours
+    m_ports[PortLeft]->reset(); // reset ours
   }
   void remove_right() {
     if (auto *elem = right_elem()) {
       elem->set_port(PortLeft, nullptr);
     }
-    m_ports[PortRight]->connected_to = nullptr;
+    m_ports[PortRight]->reset();
   }
 
   NonPipe *left_elem() {
