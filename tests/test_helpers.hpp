@@ -21,7 +21,7 @@ inline bool compare_csv_files(std::string path1, std::string path2) {
     return false;
   }
 
-  int line{0};
+  int line{1};
   for (std::string line1, line2;
        std::getline(f1, line1) && std::getline(f2, line2);) {
     if (line1 != line2) {
