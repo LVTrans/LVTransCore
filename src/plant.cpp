@@ -12,7 +12,7 @@ Plant::Plant(std::string_view, double dt) : Plant(dt) {}
 
 void Plant::step() {
 
-  m_state.curent_time += m_state.time_step;
+  m_state.current_time += m_state.time_step;
 
   for (auto &pipe : m_element_container.get_pipes()) {
     pipe->iterate();
@@ -20,7 +20,7 @@ void Plant::step() {
 
   for (auto &non_pipe : m_element_container.get_non_pipes()) {
     IterateInput input{};
-    input.t = m_state.curent_time;
+    input.t = m_state.current_time;
     non_pipe->iterate(input);
   }
 }

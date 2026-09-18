@@ -8,10 +8,9 @@ namespace lvtrans {
 
 struct PlantState {
   double time_step{0.1};
-  double curent_time{0};
+  double current_time{0};
   int num_iterations{0};
 };
-
 
 class Plant {
 public:
@@ -40,8 +39,7 @@ public:
   void step();
   void run_steps(size_t num_steps);
   void display();
-  double get_current_time() const { return m_state.curent_time; }
-
+  double get_current_time() const { return m_state.current_time; }
 
 private:
   PlantState m_state;
