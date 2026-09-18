@@ -5,7 +5,7 @@
 
 namespace lvtrans {
 
-using Ports = std::vector<std::shared_ptr<Port>>;
+using Ports = std::vector<std::unique_ptr<Port>>;
 using ElementID = int;
 
 struct IterateOutput {

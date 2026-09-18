@@ -47,12 +47,26 @@ public:
   const std::vector<double> &get_Q() const { return m_Q; }
 
   void connect_left(NonPipe &elem) {
-    m_ports[PortLeft]->connect(elem.get_ports()[PortRight]); // connect ours
-    elem.set_port(PortRight, m_ports[PortLeft]);             // connect theirs
+    m_ports[PortLeft]->connect(
+        elem.get_ports()[PortRight].get());            // connect ours
+    elem.set_port(PortRight, m_ports[PortLeft].get()); // connect theirs
   }
   void connect_right(NonPipe &elem) {
-    m_ports[PortRight]->connect(elem.get_ports()[PortLeft]);
-    elem.set_port(PortLeft, m_ports[PortRight]);
+    m_ports[PortRight]->connect(elem.get_ports()[PortLeft].get());
+    elem.set_port(PortLeft, m_ports[PortRight].get());
+  }
+
+  void remove_left() {
+    if (auto *elem = left_elem()) {
+      elem->set_port(PortRight, nullptr); // reset theirs
+    }
+    m_ports[PortLeft]->connected_to = nullptr; // reset ours
+  }
+  void remove_right() {
+    if (auto *elem = right_elem()) {
+      elem->set_port(PortLeft, nullptr);
+    }
+    m_ports[PortRight]->connected_to = nullptr;
   }
 
   NonPipe *left_elem() {
