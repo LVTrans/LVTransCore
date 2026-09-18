@@ -3,8 +3,6 @@
 #include <lvtrans/reservoir.hpp>
 #include <memory>
 
-TEST(PipeTest, Pipe) { std::cout << "Hello, World!" << std::endl; }
-
 TEST(PipeTest, ConnectsToUpstreamReservoir) {
   using namespace lvtrans;
   auto reservoir = std::make_shared<Reservoir>(150.0);
@@ -21,6 +19,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   EXPECT_EQ(&reserovoir_port->connected_to->owner, &pipe);
   EXPECT_EQ(reserovoir_port->connected_to->connected_to, reserovoir_port);
   EXPECT_NE(pipe.left_elem(), nullptr);
+  EXPECT_EQ(pipe.right_elem(), nullptr);
 
   pipe.iterate();
   EXPECT_DOUBLE_EQ(pipe.get_H().front(), 150.0);
