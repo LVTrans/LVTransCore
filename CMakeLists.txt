@@ -10,7 +10,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
-option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" ON)
+option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
 option(LVTRANS_ENABLE_OPENMP "Enable OpenMP" ON)
 
 add_library(lvtrans_core)
