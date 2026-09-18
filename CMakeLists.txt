@@ -21,6 +21,7 @@ target_sources(
         src/pipe.cpp
         src/valve.cpp
         src/reservoir.cpp
+        src/element.cpp
         src/plant.cpp
         src/element_container.cpp
 )

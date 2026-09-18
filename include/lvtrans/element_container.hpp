@@ -41,6 +41,7 @@ public:
 
     if (index < elements.size()) {
       m_element_indices.erase(elements[index]->get_ID());
+      elements[index]->reset_ports();
 
       if (index != elements.size() - 1) {
         std::swap(elements[index], elements.back());
