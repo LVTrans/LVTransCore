@@ -18,7 +18,7 @@ public:
   template <typename T, typename... Args> T &add_element(Args &&...args) {
     auto element = std::make_unique<T>(std::forward<Args>(args)...);
 
-    element->set_ID(s_element_id);
+    element->set_ID(m_element_id);
     T &ref = *element;
 
     if constexpr (std::is_base_of_v<Pipe, T>) {
@@ -31,7 +31,7 @@ public:
                                          m_non_pipes.size() - 1};
     }
 
-    s_element_id++;
+    m_element_id++;
     return ref;
   }
 
@@ -63,7 +63,7 @@ public:
   void remove_element(ElementID id);
 
 private:
-  inline static ElementID s_element_id{0};
+  ElementID m_element_id{0};
   std::vector<std::unique_ptr<Pipe>> m_pipes;
   std::vector<std::unique_ptr<NonPipe>> m_non_pipes;
   std::unordered_map<ElementID, std::pair<ElementBaseType, size_t>>

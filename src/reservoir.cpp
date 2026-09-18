@@ -5,9 +5,8 @@
 namespace lvtrans {
 
 Reservoir::Reservoir(const double elevation) : m_elevation(elevation) {
-  auto port = std::make_shared<Port>(*this);
   m_ports.resize(PortRight + 1);
-  m_ports[PortRight] = port;
+  m_ports[PortRight] = std::make_unique<Port>(*this);
 }
 Reservoir::~Reservoir() {}
 

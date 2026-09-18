@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <lvtrans/pipe.hpp>
+#include <memory>
 
 namespace lvtrans {
 
@@ -18,13 +19,10 @@ Pipe::Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0)
     ++conf.num_reaches;
   }
 
-  auto port1 = std::make_shared<Port>(*this);
-  auto port2 = std::make_shared<Port>(*this);
-
   m_ports.resize(2);
 
-  m_ports[PortLeft] = port1;
-  m_ports[PortRight] = port2;
+  m_ports[PortLeft] = std::make_unique<Port>(*this);
+  m_ports[PortRight] = std::make_unique<Port>(*this);
 
   initialize_h_q(H0, Q0);
 
