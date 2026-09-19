@@ -1,0 +1,8 @@
+Checks: >
+  modernize-*,
+  misc-definitions-in-headers,
+  readability-braces-around-statements,
+  performance-*,
+  -modernize-use-trailing-return-type
+WarningsAsErrors: ""
+HeaderFilterRegex: ".*"
