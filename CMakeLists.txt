@@ -75,7 +75,7 @@ if(LVTRANS_BUILD_EXAMPLES)
     add_subdirectory(examples)
 endif()
 
-if(LVTRANS_BUILD_BENCHMARKS)
+if(LVTRANS_BUILD_BENCHMARKS AND CMAKE_BUILD_TYPE STREQUAL "Release")
     MESSAGE("Building benchmarks...")
     add_subdirectory(benchmarks)
 endif()
