@@ -2,8 +2,7 @@
 #include <cmath>
 namespace lvtrans {
 
-Valve::Valve(const ValveConfig &conf) : m_config(conf), m_tau(conf.tau_i) {
-
+Valve::Valve(const ValveConfig& conf) : m_config(conf), m_tau(conf.tau_i) {
   m_ports.resize(2);
 
   m_ports[PortLeft] = std::make_unique<Port>(*this);
@@ -21,4 +20,4 @@ void Valve::iterate(const IterateInput input, IterateOutput) {
   }
 }
 
-} // namespace lvtrans
+}  // namespace lvtrans

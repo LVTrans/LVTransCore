@@ -14,32 +14,32 @@ int main() {
   // Pipe parameters
   // ------------------------------------------------------------
 
-  const double a = 1200.0; // Wave speed [m/s]
-  const double L = 400.0;  // Pipe length [m]
-  const double D = 0.25;   // Inside diameter [m]
-  const double f = 0.018;  // Darcy-Weisbach friction factor
-  const double g = 9.806;  // Gravitational acceleration [m/s^2]
+  const double a = 1200.0;  // Wave speed [m/s]
+  const double L = 400.0;   // Pipe length [m]
+  const double D = 0.25;    // Inside diameter [m]
+  const double f = 0.018;   // Darcy-Weisbach friction factor
+  const double g = 9.806;   // Gravitational acceleration [m/s^2]
 
   // ------------------------------------------------------------
   // Initial operating point from Example 3-3
   // ------------------------------------------------------------
 
-  const double Q0 = 0.1;       // Initial flow [m^3/s]
-  const double H_pump0 = 50.0; // Initial pump head [m]
-  const double Hs = 70.0;      // Pump shutoff head [m]
+  const double Q0 = 0.1;        // Initial flow [m^3/s]
+  const double H_pump0 = 50.0;  // Initial pump head [m]
+  const double Hs = 70.0;       // Pump shutoff head [m]
 
   // Pump characteristic:
   //
   // H = Hs + a2 * Q^2
   //
   // Using the known operating point H=50 m, Q=0.1 m^3/s:
-  const double a2 = (H_pump0 - Hs) / (Q0 * Q0); // = -2000
+  const double a2 = (H_pump0 - Hs) / (Q0 * Q0);  // = -2000
 
   // ------------------------------------------------------------
   // Valve event
   // ------------------------------------------------------------
 
-  const double tc = 2.1; // Time at which valve position changes [s]
+  const double tc = 2.1;  // Time at which valve position changes [s]
 
   const double tau_before = 1.0;
   const double tau_after = 0.5;
@@ -52,7 +52,7 @@ int main() {
   // MOC grid
   // ------------------------------------------------------------
 
-  int N = 100; // Number of pipe reaches; must be even
+  int N = 100;  // Number of pipe reaches; must be even
 
   if (N % 2 != 0) {
     ++N;
@@ -182,7 +182,6 @@ int main() {
   // ============================================================
 
   for (int k = 1; k < Kmax; ++k) {
-
     const double t = system_dt * static_cast<double>(k);
 
     // ==========================================================
@@ -196,7 +195,6 @@ int main() {
     // ==========================================================
 
     for (int i = 1; i < N; i += 2) {
-
       // Positive characteristic arriving from the left
       const double Cp = H[i - 1] + B * Q[i - 1];
 
@@ -229,7 +227,6 @@ int main() {
     // ==========================================================
 
     for (int i = 2; i < N; i += 2) {
-
       const double Cp = H[i - 1] + B * Q[i - 1];
 
       const double Cm = H[i + 1] - B * Q[i + 1];

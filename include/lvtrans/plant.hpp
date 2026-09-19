@@ -1,9 +1,9 @@
 #pragma once
+#include <string_view>
 #include "lvtrans/element.hpp"
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/non-pipe.hpp"
 #include "lvtrans/pipe.hpp"
-#include <string_view>
 namespace lvtrans {
 
 struct PlantState {
@@ -13,23 +13,24 @@ struct PlantState {
 };
 
 class Plant {
-public:
+ public:
   Plant(double dt);
   Plant(std::string_view file_path, double dt);
 
-  template <typename T, typename... Args> T &add_element(Args &&...args) {
+  template <typename T, typename... Args>
+  T& add_element(Args&&... args) {
     return m_element_container.add_element<T>(std::forward<Args>(args)...);
   }
-  const std::vector<std::unique_ptr<Pipe>> &get_pipes() const {
+  const std::vector<std::unique_ptr<Pipe>>& get_pipes() const {
     return m_element_container.get_pipes();
   }
-  const std::vector<std::unique_ptr<NonPipe>> &get_non_pipes() const {
+  const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
     return m_element_container.get_non_pipes();
   }
-  std::vector<Element *> get_elements() const {
+  std::vector<Element*> get_elements() const {
     return m_element_container.get_elements();
   }
-  Element *get_element_by_id(ElementID id) {
+  Element* get_element_by_id(ElementID id) {
     return m_element_container.get_element_by_id(id);
   }
   void remove_element(ElementID id) {
@@ -41,8 +42,8 @@ public:
   void display();
   double get_current_time() const { return m_state.current_time; }
 
-private:
+ private:
   PlantState m_state;
   ElementContainer m_element_container;
 };
-} // namespace lvtrans
+}  // namespace lvtrans

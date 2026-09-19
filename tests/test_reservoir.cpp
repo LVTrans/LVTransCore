@@ -7,7 +7,7 @@ using namespace lvtrans;
 TEST(ReservoirTest, InitializesRightPort) {
   auto reservoir = std::make_shared<Reservoir>(150.0);
   ASSERT_GT(reservoir->get_ports().size(), static_cast<size_t>(PortRight));
-  const auto &port = reservoir->get_ports()[PortRight];
+  const auto& port = reservoir->get_ports()[PortRight];
   ASSERT_NE(port, nullptr);
   EXPECT_EQ(&port->owner, reservoir.get());
   EXPECT_EQ(port->connected_to, nullptr);

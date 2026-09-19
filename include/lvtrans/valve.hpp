@@ -1,6 +1,6 @@
 #pragma once
-#include "lvtrans/non-pipe.hpp"
 #include <cmath>
+#include "lvtrans/non-pipe.hpp"
 
 namespace lvtrans {
 
@@ -13,8 +13,8 @@ struct ValveConfig {
 };
 
 class Valve : public NonPipe {
-public:
-  Valve(const ValveConfig &conf);
+ public:
+  Valve(const ValveConfig& conf);
   ~Valve();
   void iterate(const IterateInput input, IterateOutput output) override;
   double get_H() const override {
@@ -24,7 +24,7 @@ public:
 
   double get_tau() const { return m_tau; }
 
-private:
+ private:
   double calculate_q() const {
     const double CV = m_tau * m_tau * m_config.cvp;
     return -CV * m_b_characteristics +
@@ -37,4 +37,4 @@ private:
   double m_CV{};
 };
 
-} // namespace lvtrans
+}  // namespace lvtrans

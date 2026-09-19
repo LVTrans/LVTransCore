@@ -1,9 +1,9 @@
 #pragma once
 
-#include "lvtrans/pipe.hpp"
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include "lvtrans/pipe.hpp"
 namespace lvtrans {
 
 enum class ElementBaseType {
@@ -11,15 +11,16 @@ enum class ElementBaseType {
   NonPipe,
 };
 class ElementContainer {
-public:
+ public:
   ElementContainer() = default;
   ~ElementContainer() = default;
 
-  template <typename T, typename... Args> T &add_element(Args &&...args) {
+  template <typename T, typename... Args>
+  T& add_element(Args&&... args) {
     auto element = std::make_unique<T>(std::forward<Args>(args)...);
 
     element->set_ID(m_element_id);
-    T &ref = *element;
+    T& ref = *element;
 
     if constexpr (std::is_base_of_v<Pipe, T>) {
       m_pipes.push_back(std::move(element));
@@ -36,9 +37,8 @@ public:
   }
 
   template <typename T>
-  void remove_element_from(std::vector<std::unique_ptr<T>> &elements,
+  void remove_element_from(std::vector<std::unique_ptr<T>>& elements,
                            size_t index) {
-
     if (index < elements.size()) {
       m_element_indices.erase(elements[index]->get_ID());
       elements[index]->reset_ports();
@@ -52,22 +52,22 @@ public:
     }
   }
 
-  const std::vector<std::unique_ptr<Pipe>> &get_pipes() const {
+  const std::vector<std::unique_ptr<Pipe>>& get_pipes() const {
     return m_pipes;
   }
-  const std::vector<std::unique_ptr<NonPipe>> &get_non_pipes() const {
+  const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
     return m_non_pipes;
   }
 
-  std::vector<Element *> get_elements() const;
-  Element *get_element_by_id(ElementID id);
+  std::vector<Element*> get_elements() const;
+  Element* get_element_by_id(ElementID id);
   void remove_element(ElementID id);
 
-private:
+ private:
   ElementID m_element_id{0};
   std::vector<std::unique_ptr<Pipe>> m_pipes;
   std::vector<std::unique_ptr<NonPipe>> m_non_pipes;
   std::unordered_map<ElementID, std::pair<ElementBaseType, size_t>>
       m_element_indices;
 };
-} // namespace lvtrans
+}  // namespace lvtrans

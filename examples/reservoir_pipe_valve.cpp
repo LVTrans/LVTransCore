@@ -1,5 +1,3 @@
-#include "lvtrans/const.hpp"
-#include "lvtrans/element.hpp"
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -8,21 +6,23 @@
 #include <lvtrans/reservoir.hpp>
 #include <lvtrans/valve.hpp>
 #include <memory>
+#include "lvtrans/const.hpp"
+#include "lvtrans/element.hpp"
 
-inline double a = 1200.0;  // Wave propagation velocity [m/s]
-inline double f = 0.018;   // Darcy-Weisbach friction factor
-inline double tau_i = 1.0; // Initial valve position
-inline double tau_f = 0.0; // Final valve position
-inline double tc = 2.1;    // Valve operating/closure time [s]
-inline double em = 0.75;   // Exponent defining valve motion
+inline double a = 1200.0;   // Wave propagation velocity [m/s]
+inline double f = 0.018;    // Darcy-Weisbach friction factor
+inline double tau_i = 1.0;  // Initial valve position
+inline double tau_f = 0.0;  // Final valve position
+inline double tc = 2.1;     // Valve operating/closure time [s]
+inline double em = 0.75;    // Exponent defining valve motion
 
 using namespace lvtrans;
 using SystemElemnts = std::vector<std::shared_ptr<Element>>;
 
 int main() {
-  double HR = 150.0;   // Reservoir head above datum [m]
-  double Tmax = 4.3;   // Duration of transient [s]
-  double CdA0 = 0.009; // Valve coefficient/opening parameter
+  double HR = 150.0;    // Reservoir head above datum [m]
+  double Tmax = 4.3;    // Duration of transient [s]
+  double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
   PipeConfig pipe_config = {
       600.0, 0.5, f, a, 10, 10, 15,
@@ -112,7 +112,7 @@ int main() {
     //    the A in (PID) for T1 based on T0
     //    2. Send C+, C- and A to each connected NP element
 
-    for (const auto &pipe : pipes) {
+    for (const auto& pipe : pipes) {
       pipe->iterate();
     }
 
@@ -129,7 +129,7 @@ int main() {
     // // Pipe
     IterateInput input{};
     input.t = t;
-    for (const auto &non_pipe : non_pipes) {
+    for (const auto& non_pipe : non_pipes) {
       non_pipe->iterate(input);
     }
 

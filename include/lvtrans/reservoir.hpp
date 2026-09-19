@@ -3,7 +3,7 @@
 namespace lvtrans {
 
 class Reservoir : public NonPipe {
-public:
+ public:
   Reservoir(const double elevation);
   void iterate(const IterateInput = {}, IterateOutput = {}) override {};
   ~Reservoir();
@@ -12,7 +12,7 @@ public:
     return (m_elevation - m_c_characteristics) / m_b_characteristics;
   }
 
-private:
+ private:
   double m_elevation{};
 };
-} // namespace lvtrans
+}  // namespace lvtrans

@@ -8,7 +8,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   auto reservoir = std::make_shared<Reservoir>(150.0);
   ASSERT_GT(reservoir->get_ports().size(), static_cast<size_t>(PortRight));
 
-  auto *reserovoir_port = reservoir->get_ports()[PortRight].get();
+  auto* reserovoir_port = reservoir->get_ports()[PortRight].get();
   ASSERT_NE(reserovoir_port, nullptr);
   EXPECT_EQ(&reserovoir_port->owner, reservoir.get());
 

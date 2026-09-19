@@ -1,7 +1,7 @@
 #pragma once
-#include "lvtrans/port.hpp"
 #include <memory>
 #include <vector>
+#include "lvtrans/port.hpp"
 
 namespace lvtrans {
 
@@ -24,16 +24,15 @@ struct IterateInput {
 enum PortIndex { PortLeft, PortRight, PortUp, PortDown };
 
 class Element {
-
-public:
+ public:
   virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
   virtual ~Element() = default;
   ElementID get_ID() const { return m_ID; }
   void set_ID(ElementID id) { m_ID = id; }
   void reset_ports();
 
-protected:
+ protected:
   ElementID m_ID{};
   Ports m_ports;
 };
-} // namespace lvtrans
+}  // namespace lvtrans

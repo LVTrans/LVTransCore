@@ -1,8 +1,8 @@
-#include "lvtrans/const.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "lvtrans/const.hpp"
 
 using namespace lvtrans;
 
@@ -11,26 +11,26 @@ int main() {
   // Input data from SINGLE.DAT
   // ------------------------------------------------------------
 
-  double a = 1200.0; // Wave propagation velocity [m/s]
-  double L = 600.0;  // Pipeline length [m]
-  double D = 0.5;    // Inside diameter [m]
-  double f = 0.018;  // Darcy-Weisbach friction factor
+  double a = 1200.0;  // Wave propagation velocity [m/s]
+  double L = 600.0;   // Pipeline length [m]
+  double D = 0.5;     // Inside diameter [m]
+  double f = 0.018;   // Darcy-Weisbach friction factor
 
-  double g = 9.806;    // Gravitational acceleration [m/s^2]
-  double HR = 150.0;   // Reservoir head above datum [m]
-  double Tmax = 20.3;  // Duration of transient [s]
-  double CdA0 = 0.009; // Valve coefficient/opening parameter
+  double g = 9.806;     // Gravitational acceleration [m/s^2]
+  double HR = 150.0;    // Reservoir head above datum [m]
+  double Tmax = 20.3;   // Duration of transient [s]
+  double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
-  double tau_i = 1.0; // Initial valve position
-  double tau_f = 0.0; // Final valve position
-  double tc = 4.1;    // Valve operating/closure time [s]
-  double em = 0.75;   // Exponent defining valve motion
+  double tau_i = 1.0;  // Initial valve position
+  double tau_f = 0.0;  // Final valve position
+  double tc = 4.1;     // Valve operating/closure time [s]
+  double em = 0.75;    // Exponent defining valve motion
 
-  int N = 10;     // Number of pipe reaches; must be even
-  int IPR = 1;    // Output interval
-  int IGRAF = 11; // Original FORTRAN graph location
-                  //
-                  //
+  int N = 10;      // Number of pipe reaches; must be even
+  int IPR = 1;     // Output interval
+  int IGRAF = 11;  // Original FORTRAN graph location
+                   //
+                   //
   std::ofstream output_file("output.csv");
 
   if (!output_file) {
@@ -42,8 +42,7 @@ int main() {
   // Grid setup
   // ------------------------------------------------------------
 
-  if (N % 2 != 0)
-    ++N;
+  if (N % 2 != 0) ++N;
 
   const int nodes = N + 1;
 
@@ -116,7 +115,6 @@ int main() {
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 
   for (int k = 1; k < Kmax; ++k) {
-
     // FORTRAN:
     //
     // T = 2.*DT*K
@@ -130,7 +128,6 @@ int main() {
     // ========================================================
 
     for (int i = 1; i < N; i += 2) {
-
       const double Cp = H[i - 1] + B * Q[i - 1];
 
       const double Cm = H[i + 1] - B * Q[i + 1];
@@ -150,7 +147,6 @@ int main() {
     // ========================================================
 
     for (int i = 2; i < N; i += 2) {
-
       const double Cp = H[i - 1] + B * Q[i - 1];
 
       const double Cm = H[i + 1] - B * Q[i + 1];

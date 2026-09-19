@@ -1,30 +1,30 @@
-#include "lvtrans/const.hpp"
-#include "lvtrans/element.hpp"
-#include "lvtrans/plant.hpp"
-#include "test_helpers.hpp"
+#include <gtest/gtest.h>
 #include <cassert>
 #include <cmath>
 #include <fstream>
-#include <gtest/gtest.h>
 #include <iostream>
 #include <lvtrans/pipe.hpp>
 #include <lvtrans/reservoir.hpp>
 #include <lvtrans/valve.hpp>
 #include <memory>
+#include "lvtrans/const.hpp"
+#include "lvtrans/element.hpp"
+#include "lvtrans/plant.hpp"
+#include "test_helpers.hpp"
 
 TEST(MultiElementsTest, ReservoirPipeValve) {
-  double a = 1200.0;  // Wave propagation velocity [m/s]
-  double f = 0.018;   // Darcy-Weisbach friction factor
-  double tau_i = 1.0; // Initial valve position
-  double tau_f = 0.0; // Final valve position
-  double tc = 2.1;    // Valve operating/closure time [s]
-  double em = 0.75;   // Exponent defining valve motion
+  double a = 1200.0;   // Wave propagation velocity [m/s]
+  double f = 0.018;    // Darcy-Weisbach friction factor
+  double tau_i = 1.0;  // Initial valve position
+  double tau_f = 0.0;  // Final valve position
+  double tc = 2.1;     // Valve operating/closure time [s]
+  double em = 0.75;    // Exponent defining valve motion
 
   using namespace lvtrans;
 
-  double HR = 150.0;   // Reservoir head above datum [m]
-  double Tmax = 4.3;   // Duration of transient [s]
-  double CdA0 = 0.009; // Valve coefficient/opening parameter
+  double HR = 150.0;    // Reservoir head above datum [m]
+  double Tmax = 4.3;    // Duration of transient [s]
+  double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
   PipeConfig pipe_config = {
       600.0, 0.5, f, a, 10, 10, 15,
@@ -78,11 +78,11 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   Plant plant(system_dt);
 
-  auto &pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
+  auto& pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
 
-  auto &valve = plant.add_element<Valve>(valve_config);
+  auto& valve = plant.add_element<Valve>(valve_config);
 
-  auto &reservoir = plant.add_element<Reservoir>(HR);
+  auto& reservoir = plant.add_element<Reservoir>(HR);
 
   pipe.connect_left(reservoir);
   pipe.connect_right(valve);
