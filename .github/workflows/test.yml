@@ -16,7 +16,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            ccache cmake ninja-build libgtest-dev libgmock-dev google-benchmark-devel
+            ccache cmake ninja-build libgtest-dev libgmock-dev
 
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
@@ -29,7 +29,9 @@ jobs:
           cmake -S . -B build \
             -DCMAKE_BUILD_TYPE=Debug \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DLVTRANS_BUILD_BENCHMARKS=OFF \
+            -DLVTRANS_BUILD_EXAMPLES=OFF
 
       - name: Build
         run: cmake --build build --target tests -- -j $(nproc)
