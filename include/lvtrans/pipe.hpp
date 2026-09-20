@@ -85,7 +85,7 @@ class Pipe : public Element {
   }
 
  private:
-  void initialize_h_q(InitialValues H0, InitialValues Q0);
+  void initialize_h_q(InitialValues& H0, InitialValues& Q0);
 
   PipeConfig m_config{};
   const double m_area{};

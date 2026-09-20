@@ -37,7 +37,7 @@ Pipe::Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0)
 
 Pipe::~Pipe() {}
 
-void Pipe::initialize_h_q(InitialValues H0, InitialValues Q0) {
+void Pipe::initialize_h_q(InitialValues& H0, InitialValues& Q0) {
   if (auto* val = std::get_if<double>(&H0)) {
     m_H.assign(static_cast<size_t>(m_num_nodes), *val);
   } else {
@@ -70,7 +70,6 @@ void Pipe::iterate(const IterateInput, IterateOutput) {
     const double Cm = m_H[i + 1] - m_B * m_Q[i + 1];
     const double Bp = m_B + m_R * std::abs(m_Q[i - 1]);
     const double Bm = m_B + m_R * std::abs(m_Q[i + 1]);
-    std::cout << ((i == L1) ? "REACHED END " : "");
 
     m_H[i] = (Cp * Bm + Cm * Bp) / (Bp + Bm);
     m_Q[i] = (m_H[i] - Cm) / Bm;
