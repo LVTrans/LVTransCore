@@ -10,8 +10,8 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
 option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
-option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
-option(LVTRANS_ENABLE_OPENMP "Enable OpenMP" ON)
+option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" ON)
+option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
 
 add_library(lvtrans_core)
 
@@ -42,37 +42,40 @@ target_compile_features(
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-  target_compile_options(lvtrans_core PRIVATE
+    target_compile_options(lvtrans_core PRIVATE
         -Wall -Wextra -Wpedantic -Wconversion
-        $<$<CONFIG:Release>:-O2>
-        $<$<CONFIG:Debug>:-O0 -g3>
     )
 elseif(MSVC)
-  target_compile_options(lvtrans_core PRIVATE
+    target_compile_options(lvtrans_core PRIVATE
         /W4 /permissive- /GS
-        $<$<CONFIG:Release>:/O2>
-        $<$<CONFIG:Debug>:/Od /Zi /RTC1>
     )
 endif()
 
-if(LVTRANS_ENABLE_OPENMP)
-  find_package(OpenMP)
-
-  if(OpenMP_CXX_FOUND)
-    target_link_libraries(
-            lvtrans_core
-            PUBLIC
-                OpenMP::OpenMP_CXX
-        )
-  endif()
-endif()
+# if(LVTRANS_ENABLE_OPENMP)
+#     find_package(OpenMP)
+#
+#     if(OpenMP_CXX_FOUND)
+#         target_link_libraries(
+#             lvtrans_core
+#             PUBLIC
+#                 OpenMP::OpenMP_CXX
+#         )
+#     endif()
+# endif()
 
 if(LVTRANS_BUILD_TESTS)
-  include(CTest)
-  enable_testing()
-  add_subdirectory(tests)
+    MESSAGE("Building tests...")
+    include(CTest)
+    enable_testing()
+    add_subdirectory(tests)
 endif()
 
 if(LVTRANS_BUILD_EXAMPLES)
-  add_subdirectory(examples)
+    MESSAGE("Building examples...")
+    add_subdirectory(examples)
+endif()
+
+if(LVTRANS_BUILD_BENCHMARKS AND CMAKE_BUILD_TYPE STREQUAL "Release")
+    MESSAGE("Building benchmarks...")
+    add_subdirectory(benchmarks)
 endif()

@@ -10,7 +10,7 @@ TEST(ValveTest, InitializesPortsAndOpening) {
   EXPECT_DOUBLE_EQ(valve->get_tau(), 0.8);
   ASSERT_GT(valve->get_ports().size(), static_cast<size_t>(PortRight));
   for (auto index : {PortLeft, PortRight}) {
-    const auto &port = valve->get_ports()[index];
+    const auto& port = valve->get_ports()[index];
     ASSERT_NE(port, nullptr);
     EXPECT_EQ(&port->owner, valve.get());
     EXPECT_EQ(port->connected_to, nullptr);

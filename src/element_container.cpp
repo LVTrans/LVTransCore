@@ -4,22 +4,22 @@
 #include <vector>
 namespace lvtrans {
 
-std::vector<Element *> ElementContainer::get_elements() const {
-  std::vector<Element *> elements{};
+std::vector<Element*> ElementContainer::get_elements() const {
+  std::vector<Element*> elements{};
   elements.reserve(m_pipes.size() + m_non_pipes.size());
 
-  for (const auto &pipe : m_pipes) {
+  for (const auto& pipe : m_pipes) {
     elements.push_back(pipe.get());
   }
 
-  for (const auto &non_pipe : m_non_pipes) {
+  for (const auto& non_pipe : m_non_pipes) {
     elements.push_back(non_pipe.get());
   }
 
   return elements;
 }
 
-Element *ElementContainer::get_element_by_id(ElementID id) {
+Element* ElementContainer::get_element_by_id(ElementID id) {
   auto it = m_element_indices.find(id);
 
   if (it == m_element_indices.end()) {
@@ -45,4 +45,4 @@ void ElementContainer::remove_element(ElementID id) {
     remove_element_from(m_non_pipes, it->second.second);
   }
 }
-} // namespace lvtrans
+}  // namespace lvtrans

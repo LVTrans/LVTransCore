@@ -1,38 +1,40 @@
 name: Run tests
 
 on:
-    push:
+  push:
 
 jobs:
-    build:
-        name: Build on Ubuntu
-        runs-on: ubuntu-latest
+  build:
+    name: Build on Ubuntu
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-            - name: Install system dependencies
-              run: |
-                  sudo apt-get update
-                  sudo apt-get install -y \
-                    ccache cmake ninja-build libgtest-dev libgmock-dev
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ccache cmake ninja-build libgtest-dev libgmock-dev
 
-            - name: Setup ccache
-              uses: hendrikmuhs/ccache-action@v1
-              with:
-                  key: ${{ runner.os }}-ccache
-                  max-size: 500M
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: ${{ runner.os }}-ccache
+          max-size: 500M
 
-            - name: Configure
-              run: |
-                  cmake -S . -B build \
-                    -DCMAKE_BUILD_TYPE=Debug \
-                    -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-                    -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+      - name: Configure
+        run: |
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DLVTRANS_BUILD_BENCHMARKS=OFF \
+            -DLVTRANS_BUILD_EXAMPLES=OFF
 
-            - name: Build
-              run: cmake --build build --target tests -- -j $(nproc)
+      - name: Build
+        run: cmake --build build --target tests -- -j $(nproc)
 
-            - name: Run test
-              run: ctest --test-dir build --output-on-failure -j $(nproc)
+      - name: Run test
+        run: ctest --test-dir build --output-on-failure -j $(nproc)

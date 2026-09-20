@@ -5,15 +5,15 @@ namespace lvtrans {
 class Element;
 
 class Port {
-public:
-  Element &owner;
-  Port *connected_to{nullptr};
+ public:
+  Element& owner;
+  Port* connected_to{nullptr};
 
   Port() = delete;
   ~Port() = default;
-  explicit Port(Element &comp) : owner(comp) {}
-  void connect(Port *other) { connected_to = other; }
+  explicit Port(Element& comp) : owner(comp) {}
+  void connect(Port* other) { connected_to = other; }
   void reset() { connected_to = nullptr; }
 };
 
-} // namespace lvtrans
+}  // namespace lvtrans

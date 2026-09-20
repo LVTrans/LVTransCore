@@ -1,10 +1,10 @@
+#include <gtest/gtest.h>
 #include "lvtrans/pipe.hpp"
 #include "lvtrans/plant.hpp"
 #include "lvtrans/reservoir.hpp"
-#include <gtest/gtest.h>
 
-void print_elements(const lvtrans::Plant &plant) {
-  for (const auto *element : plant.get_elements()) {
+void print_elements(const lvtrans::Plant& plant) {
+  for (const auto* element : plant.get_elements()) {
     std::cout << "Element " << element->get_ID() << std::endl;
     std::cout << "Type: " << typeid(*element).name() << std::endl;
   }
@@ -18,7 +18,7 @@ TEST(PlantTest, AddElements) {
 
   PipeConfig pipeConfig{600.0, 0.5, 0.018, 1200.0, 10, 10.0, 15.0};
 
-  auto &pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0);
+  auto& pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0);
   ASSERT_EQ(plant.get_elements().size(), 1u);
   EXPECT_EQ(pipe.get_ID(), 0);
 }

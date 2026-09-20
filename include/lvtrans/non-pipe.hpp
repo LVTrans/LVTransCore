@@ -1,11 +1,11 @@
 #pragma once
-#include "element.hpp"
 #include <memory>
+#include "element.hpp"
 
 namespace lvtrans {
 
 class NonPipe : public Element {
-public:
+ public:
   virtual double get_H() const = 0;
   virtual double get_Q(const IterateInput input = {}) const = 0;
   void set_left(std::shared_ptr<Element> elem) { m_left_elem = elem; }
@@ -13,13 +13,13 @@ public:
   void set_c_characteristics(double c) { m_c_characteristics = c; }
   void set_b_characteristics(double b) { m_b_characteristics = b; }
 
-  Ports &get_ports() { return m_ports; }
-  void set_port(PortIndex index, Port *port) { m_ports[index]->connect(port); }
+  Ports& get_ports() { return m_ports; }
+  void set_port(PortIndex index, Port* port) { m_ports[index]->connect(port); }
 
-protected:
+ protected:
   std::shared_ptr<Element> m_left_elem;
   std::shared_ptr<Element> m_right_elem;
   double m_c_characteristics;
   double m_b_characteristics;
 };
-} // namespace lvtrans
+}  // namespace lvtrans

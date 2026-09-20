@@ -1,6 +1,6 @@
 #include "lvtrans/reservoir.hpp"
-#include "lvtrans/element.hpp"
 #include <memory>
+#include "lvtrans/element.hpp"
 
 namespace lvtrans {
 
@@ -10,4 +10,4 @@ Reservoir::Reservoir(const double elevation) : m_elevation(elevation) {
 }
 Reservoir::~Reservoir() {}
 
-} // namespace lvtrans
+}  // namespace lvtrans

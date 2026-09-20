@@ -1,22 +1,21 @@
-#include "lvtrans/const.hpp"
 #include <cmath>
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include "lvtrans/const.hpp"
 
 using namespace lvtrans;
 
 int main() {
-
   // ============================================================
   // Pipe data
   // ============================================================
 
-  const double a = 1200.0; // Wave propagation velocity [m/s]
-  const double L = 400.0;  // Pipe length [m]
-  const double D = 0.25;   // Pipe inside diameter [m]
-  const double f = 0.018;  // Darcy-Weisbach friction factor
-  const double g = 9.806;  // Gravity [m/s^2]
+  const double a = 1200.0;  // Wave propagation velocity [m/s]
+  const double L = 400.0;   // Pipe length [m]
+  const double D = 0.25;    // Pipe inside diameter [m]
+  const double f = 0.018;   // Darcy-Weisbach friction factor
+  const double g = 9.806;   // Gravity [m/s^2]
 
   // ============================================================
   // Pump / check-valve data from Example 3-4 formulation
@@ -30,11 +29,11 @@ int main() {
   //
   // H = alpha^2*Hs + alpha*a1*Q + a2*Q^2
 
-  const double Hs = 70.0;    // Rated-speed shutoff head [m]
-  const double a1 = 0.0;     // Linear pump curve coefficient
-  const double a2 = -2000.0; // Quadratic pump curve coefficient
+  const double Hs = 70.0;     // Rated-speed shutoff head [m]
+  const double a1 = 0.0;      // Linear pump curve coefficient
+  const double a2 = -2000.0;  // Quadratic pump curve coefficient
 
-  const double Hc = 50.0; // Static head downstream of check valve [m]
+  const double Hc = 50.0;  // Static head downstream of check valve [m]
 
   // Pump reaches rated speed after ts seconds.
   const double ts = 2.0;
@@ -65,8 +64,7 @@ int main() {
 
   int N = 10;
 
-  if (N % 2 != 0)
-    ++N;
+  if (N % 2 != 0) ++N;
 
   const int nodes = N + 1;
 
@@ -132,7 +130,6 @@ int main() {
   // ============================================================
 
   for (int k = 1; k < Kmax; ++k) {
-
     const double t = system_dt * static_cast<double>(k);
 
     // ==========================================================
@@ -141,7 +138,6 @@ int main() {
     // ==========================================================
 
     for (int i = 1; i < N; i += 2) {
-
       const double Cp = H[i - 1] + B * Q[i - 1];
 
       const double Cm = H[i + 1] - B * Q[i + 1];
@@ -161,7 +157,6 @@ int main() {
     // ==========================================================
 
     for (int i = 2; i < N; i += 2) {
-
       const double Cp = H[i - 1] + B * Q[i - 1];
 
       const double Cm = H[i + 1] - B * Q[i + 1];
@@ -214,7 +209,6 @@ int main() {
     // ----------------------------------------------------------
 
     if (alpha * alpha * Hs <= Hc) {
-
       Q[0] = 0.0;
 
       // From:
@@ -225,7 +219,6 @@ int main() {
       H[0] = Cm;
 
     } else {
-
       // --------------------------------------------------------
       // Check valve open
       //
@@ -270,7 +263,6 @@ int main() {
     double tau;
 
     if (t <= tc) {
-
       tau = tau_before;
 
       // Keeping initial downstream condition
@@ -278,7 +270,6 @@ int main() {
       H[N] = H0;
 
     } else {
-
       tau = tau_after;
 
       // This becomes problematic if Q0 = 0,
