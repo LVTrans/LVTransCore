@@ -1,10 +1,11 @@
 #pragma once
 #include <cmath>
+#include "lvtrans/element.hpp"
 #include "lvtrans/non-pipe.hpp"
 
 namespace lvtrans {
 
-struct ValveConfig {
+struct ValveConfig : LossCoefficients {
   double tau_i{};
   double tau_f{};
   double tc{};

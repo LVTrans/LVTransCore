@@ -10,8 +10,17 @@ static void BM_PipeIterate(benchmark::State& state) {
   auto reservoir = std::make_shared<Reservoir>(150.0);
   auto valve = std::make_shared<Valve>(ValveConfig{});
 
-  Pipe pipe(PipeConfig{600.0, 0.5, 0.018, 1200.0, reaches, 10.0, 15.0}, 150.0,
-            0.0);
+  Pipe pipe(
+      PipeConfig{
+          .length = 600.0,
+          .diameter = 0.5,
+          .f = 0.018,
+          .a = 1200.0,
+          .z0 = 0.0,
+          .z1 = 0.0,
+          .num_reaches = reaches,
+      },
+      150.0, 0.0);
 
   pipe.connect_left(*reservoir);
   pipe.connect_right(*valve);

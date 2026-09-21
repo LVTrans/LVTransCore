@@ -4,22 +4,20 @@
 
 namespace lvtrans {
 
-Plant::Plant(double dt) : m_state{}, m_element_container{} {
-  m_state.time_step = dt;
-}
+Plant::Plant(double dt) : m_data{} { m_data.state.time_step = dt; }
 
 Plant::Plant(std::string_view, double dt) : Plant(dt) {}
 
 void Plant::step() {
-  m_state.current_time += m_state.time_step;
+  m_data.state.current_time += m_data.state.time_step;
 
-  for (auto& pipe : m_element_container.get_pipes()) {
+  for (auto& pipe : m_data.element_container.get_pipes()) {
     pipe->iterate();
   }
 
-  for (auto& non_pipe : m_element_container.get_non_pipes()) {
+  for (auto& non_pipe : m_data.element_container.get_non_pipes()) {
     IterateInput input{};
-    input.t = m_state.current_time;
+    input.t = m_data.state.current_time;
     non_pipe->iterate(input);
   }
 }
@@ -37,7 +35,7 @@ void Plant::display() {
   }
 
   std::cout << "\n------\n";
-  for (auto& pipe : m_element_container.get_pipes()) {
+  for (auto& pipe : m_data.element_container.get_pipes()) {
     auto* left_elem = pipe->left_elem();
     if (left_elem) {
       std::cout << "R(" << left_elem->get_ID() << ")<---->";

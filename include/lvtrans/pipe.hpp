@@ -27,9 +27,18 @@ struct PipeConfig {
   double diameter{};
   double f{};
   double a{};
-  size_t num_reaches{};
   double z0{};
   double z1{};
+  double lambda{};
+  double f_max{};
+  size_t num_reaches{};
+  bool use_diameter{};
+  bool use_full_moody{};
+};
+
+struct PipeState {
+  std::vector<double> H{};
+  std::vector<double> Q{};
 };
 
 class Pipe : public Element {
@@ -44,40 +53,40 @@ class Pipe : public Element {
   const PipeConfig& config() const { return m_config; }
   double get_R() const { return m_R; }
   double get_B() const { return m_B; }
-  const std::vector<double>& get_H() const { return m_H; }
-  const std::vector<double>& get_Q() const { return m_Q; }
+  const std::vector<double>& get_H() const { return m_state.H; }
+  const std::vector<double>& get_Q() const { return m_state.Q; }
 
-  void connect_left(NonPipe& elem) {
+  void connect_left(NonPipe& elem) const {
     m_ports[PortLeft]->connect(
         elem.get_ports()[PortRight].get());             // connect ours
     elem.set_port(PortRight, m_ports[PortLeft].get());  // connect theirs
   }
-  void connect_right(NonPipe& elem) {
+  void connect_right(NonPipe& elem) const {
     m_ports[PortRight]->connect(elem.get_ports()[PortLeft].get());
     elem.set_port(PortLeft, m_ports[PortRight].get());
   }
 
-  void remove_left() {
+  void remove_left() const {
     if (auto* elem = left_elem()) {
       elem->set_port(PortRight, nullptr);  // reset theirs
     }
     m_ports[PortLeft]->reset();  // reset ours
   }
-  void remove_right() {
+  void remove_right() const {
     if (auto* elem = right_elem()) {
       elem->set_port(PortLeft, nullptr);
     }
     m_ports[PortRight]->reset();
   }
 
-  NonPipe* left_elem() {
+  NonPipe* left_elem() const {
     if (m_ports[PortLeft]->connected_to) {
       return dynamic_cast<NonPipe*>(&m_ports[PortLeft]->connected_to->owner);
     }
     return nullptr;
   }
 
-  NonPipe* right_elem() {
+  NonPipe* right_elem() const {
     if (m_ports[PortRight]->connected_to) {
       return dynamic_cast<NonPipe*>(&m_ports[PortRight]->connected_to->owner);
     }
@@ -88,14 +97,14 @@ class Pipe : public Element {
   void initialize_h_q(InitialValues& H0, InitialValues& Q0);
 
   PipeConfig m_config{};
+
   const double m_area{};
   const double m_dx{};
   const double m_R{};
   const double m_B{};
   const size_t m_num_nodes{};
 
-  std::vector<double> m_H{};
-  std::vector<double> m_Q{};
   std::vector<double> m_Z{};
+  PipeState m_state{};
 };
 }  // namespace lvtrans
