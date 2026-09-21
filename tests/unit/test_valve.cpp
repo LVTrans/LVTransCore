@@ -6,7 +6,13 @@
 using namespace lvtrans;
 
 TEST(ValveTest, InitializesPortsAndOpening) {
-  auto valve = std::make_shared<Valve>(ValveConfig{0.8, 0.0, 4.0, 1.0, 0.5});
+  auto valve = std::make_shared<Valve>(ValveConfig{
+      .tau_i = 0.8,
+      .tau_f = 0.0,
+      .tc = 4.0,
+      .em = 1.0,
+      .cvp = 0.5,
+  });
   EXPECT_DOUBLE_EQ(valve->get_tau(), 0.8);
   ASSERT_GT(valve->get_ports().size(), static_cast<size_t>(PortRight));
   for (auto index : {PortLeft, PortRight}) {
@@ -19,7 +25,13 @@ TEST(ValveTest, InitializesPortsAndOpening) {
 }
 
 TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
-  Valve valve(ValveConfig{0.8, 0.2, 4.0, 2.0, 0.5});
+  Valve valve(ValveConfig{
+      .tau_i = 0.8,
+      .tau_f = 0.2,
+      .tc = 4.0,
+      .em = 2.0,
+      .cvp = 0.5,
+  });
   IterateInput input{};
   valve.iterate(input, {});
   EXPECT_DOUBLE_EQ(valve.get_tau(), 0.8);
@@ -36,7 +48,13 @@ TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
 }
 
 TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
-  Valve valve(ValveConfig{1.0, 0.0, 4.0, 1.0, 0.5});
+  Valve valve(ValveConfig{
+      .tau_i = 1.0,
+      .tau_f = 0.0,
+      .tc = 4.0,
+      .em = 1.0,
+      .cvp = 0.5,
+  });
   valve.set_c_characteristics(8.0);
   valve.set_b_characteristics(2.0);
 
@@ -46,7 +64,13 @@ TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
 }
 
 TEST(ValveTest, FullyClosedBoundaryStopsFlow) {
-  Valve valve(ValveConfig{1.0, 0.0, 4.0, 1.0, 0.5});
+  Valve valve(ValveConfig{
+      .tau_i = 1.0,
+      .tau_f = 0.0,
+      .tc = 4.0,
+      .em = 1.0,
+      .cvp = 0.5,
+  });
   valve.set_c_characteristics(8.0);
   valve.set_b_characteristics(2.0);
 

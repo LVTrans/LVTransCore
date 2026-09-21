@@ -1,12 +1,13 @@
 find_package(GTest CONFIG REQUIRED)
 
 set(TEST_SOURCES
-  test_pipe.cpp
-  test_reservoir.cpp
-  test_valve.cpp
+  unit/test_pipe.cpp
+  unit/test_reservoir.cpp
+  unit/test_valve.cpp
+  unit/test_element_container.cpp
+  unit/test_plant.cpp
+  unit/test_plant_config_repo.cpp
   test_multi_elements.cpp
-  test_plant.cpp
-  test_element_container.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})

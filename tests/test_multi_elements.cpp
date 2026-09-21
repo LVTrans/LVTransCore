@@ -27,7 +27,13 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
   PipeConfig pipe_config = {
-      600.0, 0.5, f, a, 10, 10, 15,
+      .length = 600.0,
+      .diameter = 0.5,
+      .f = f,
+      .a = a,
+      .z0 = 10,
+      .z1 = 15,
+      .num_reaches = 10,
   };
 
   const auto test_file_path =
@@ -74,7 +80,13 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
-  ValveConfig valve_config{tau_i, tau_f, tc, em, CVP};
+  ValveConfig valve_config{
+      .tau_i = tau_i,
+      .tau_f = tau_f,
+      .tc = tc,
+      .em = em,
+      .cvp = CVP,
+  };
 
   Plant plant(system_dt);
 

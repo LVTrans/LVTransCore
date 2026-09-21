@@ -12,7 +12,17 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   ASSERT_NE(reserovoir_port, nullptr);
   EXPECT_EQ(&reserovoir_port->owner, reservoir.get());
 
-  Pipe pipe(PipeConfig{600.0, 0.5, 0.018, 1200.0, 10, 10.0, 15.0}, 150.0, 0.0);
+  Pipe pipe(
+      PipeConfig{
+          .length = 600.0,
+          .diameter = 0.5,
+          .f = 0.018,
+          .a = 1200.0,
+          .z0 = 10.0,
+          .z1 = 15.0,
+          .num_reaches = 10,
+      },
+      150.0, 0.0);
   pipe.connect_left(*reservoir);
 
   ASSERT_NE(reserovoir_port->connected_to, nullptr);
