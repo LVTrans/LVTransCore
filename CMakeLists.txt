@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(
     LVTransCore
-    VERSION 0.0.0
+    VERSION 0.1.0
     LANGUAGES CXX
 )
 
@@ -9,9 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 
-option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
-option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" ON)
-option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
+option(LVTRANS_BUILD_TESTS "Build LVTrans tests" OFF)
+option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
+option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" OFF)
 
 add_library(lvtrans_core)
 
@@ -24,6 +24,7 @@ target_sources(
         src/element.cpp
         src/plant.cpp
         src/element_container.cpp
+        src/plant_config_repo.cpp
 )
 
 
@@ -38,7 +39,7 @@ target_include_directories(
 target_compile_features(
     lvtrans_core
     PUBLIC
-        cxx_std_17
+    cxx_std_20
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
