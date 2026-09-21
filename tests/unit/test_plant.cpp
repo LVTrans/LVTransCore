@@ -16,7 +16,15 @@ TEST(PlantTest, AddElements) {
 
   ASSERT_TRUE(plant.get_elements().empty());
 
-  PipeConfig pipeConfig{600.0, 0.5, 0.018, 1200.0, 10, 10.0, 15.0};
+  PipeConfig pipeConfig{
+      .length = 600.0,
+      .diameter = 0.5,
+      .f = 0.018,
+      .a = 1200.0,
+      .z0 = 10.0,
+      .z1 = 15.0,
+      .num_reaches = 10,
+  };
 
   auto& pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0);
   ASSERT_EQ(plant.get_elements().size(), 1u);

@@ -16,7 +16,15 @@ namespace {
 using namespace lvtrans;
 using ::testing::UnorderedElementsAre;
 
-const PipeConfig pipe_config{600.0, 0.5, 0.018, 1200.0, 10, 10.0, 15.0};
+const PipeConfig pipe_config{
+    .length = 600.0,
+    .diameter = 0.5,
+    .f = 0.018,
+    .a = 1200.0,
+    .z0 = 10.0,
+    .z1 = 15.0,
+    .num_reaches = 10,
+};
 
 template <typename T>
 T& add_to(ElementContainer& container) {
@@ -43,8 +51,13 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
   auto& reservoir = add_to<Reservoir>(container);
   auto& pipe = add_to<Pipe>(container);
-  auto& valve =
-      container.add_element<Valve>(ValveConfig{0.8, 0.0, 4.0, 1.0, 0.5});
+  auto& valve = container.add_element<Valve>(ValveConfig{
+      .tau_i = 0.8,
+      .tau_f = 0.0,
+      .tc = 4.0,
+      .em = 1.0,
+      .cvp = 0.5,
+  });
 
   EXPECT_NE(reservoir.get_ID(), pipe.get_ID());
   EXPECT_NE(reservoir.get_ID(), valve.get_ID());
