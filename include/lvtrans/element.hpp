@@ -8,6 +8,11 @@ namespace lvtrans {
 using Ports = std::vector<std::unique_ptr<Port>>;
 using ElementID = int;
 
+struct LossCoefficients {
+  double cvp{};  // Loss coefficient with positive flow relative to element
+  double cvm{};  // Loss coefficient with negative flow relative to element
+};
+
 struct IterateOutput {
   double H{};
   double Q{};

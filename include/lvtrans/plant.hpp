@@ -12,6 +12,11 @@ struct PlantState {
   int num_iterations{0};
 };
 
+struct PlantData {
+  PlantState state{};
+  ElementContainer element_container{};
+};
+
 class Plant {
  public:
   Plant(double dt);
@@ -19,31 +24,30 @@ class Plant {
 
   template <typename T, typename... Args>
   T& add_element(Args&&... args) {
-    return m_element_container.add_element<T>(std::forward<Args>(args)...);
+    return m_data.element_container.add_element<T>(std::forward<Args>(args)...);
   }
   const std::vector<std::unique_ptr<Pipe>>& get_pipes() const {
-    return m_element_container.get_pipes();
+    return m_data.element_container.get_pipes();
   }
   const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
-    return m_element_container.get_non_pipes();
+    return m_data.element_container.get_non_pipes();
   }
   std::vector<Element*> get_elements() const {
-    return m_element_container.get_elements();
+    return m_data.element_container.get_elements();
   }
   Element* get_element_by_id(ElementID id) {
-    return m_element_container.get_element_by_id(id);
+    return m_data.element_container.get_element_by_id(id);
   }
   void remove_element(ElementID id) {
-    return m_element_container.remove_element(id);
+    return m_data.element_container.remove_element(id);
   }
 
   void step();
   void run_steps(size_t num_steps);
   void display();
-  double get_current_time() const { return m_state.current_time; }
+  double get_current_time() const { return m_data.state.current_time; }
 
  private:
-  PlantState m_state;
-  ElementContainer m_element_container;
+  PlantData m_data;
 };
 }  // namespace lvtrans

@@ -39,56 +39,58 @@ Pipe::~Pipe() {}
 
 void Pipe::initialize_h_q(InitialValues& H0, InitialValues& Q0) {
   if (auto* val = std::get_if<double>(&H0)) {
-    m_H.assign(static_cast<size_t>(m_num_nodes), *val);
+    m_state.H.assign(static_cast<size_t>(m_num_nodes), *val);
   } else {
-    m_H = std::move(std::get<std::vector<double>>(H0));
+    m_state.H = std::move(std::get<std::vector<double>>(H0));
   }
 
   if (auto* val = std::get_if<double>(&Q0)) {
-    m_Q.assign(static_cast<size_t>(m_num_nodes), *val);
+    m_state.Q.assign(static_cast<size_t>(m_num_nodes), *val);
   } else {
-    m_Q = std::move(std::get<std::vector<double>>(Q0));
+    m_state.Q = std::move(std::get<std::vector<double>>(Q0));
   }
 }
 
 void Pipe::iterate(const IterateInput, IterateOutput) {
-  size_t L0 = 0;
-  size_t L1 = m_config.num_reaches;
+  const size_t L0 = 0;
+  const size_t L1 = m_config.num_reaches;
+  auto& H = m_state.H;
+  auto& Q = m_state.Q;
 
   for (size_t i{1}; i < L1; i += 2) {
-    const double Cp = m_H[i - 1] + m_B * m_Q[i - 1];
-    const double Cm = m_H[i + 1] - m_B * m_Q[i + 1];
-    const double Bp = m_B + m_R * std::abs(m_Q[i - 1]);
-    const double Bm = m_B + m_R * std::abs(m_Q[i + 1]);
+    const double Cp = H[i - 1] + m_B * Q[i - 1];
+    const double Cm = H[i + 1] - m_B * Q[i + 1];
+    const double Bp = m_B + m_R * std::abs(Q[i - 1]);
+    const double Bm = m_B + m_R * std::abs(Q[i + 1]);
 
-    m_H[i] = (Cp * Bm + Cm * Bp) / (Bp + Bm);
-    m_Q[i] = (m_H[i] - Cm) / Bm;
+    H[i] = (Cp * Bm + Cm * Bp) / (Bp + Bm);
+    Q[i] = (H[i] - Cm) / Bm;
   }
 
   for (size_t i{2}; i < L1; i += 2) {
-    const double Cp = m_H[i - 1] + m_B * m_Q[i - 1];
-    const double Cm = m_H[i + 1] - m_B * m_Q[i + 1];
-    const double Bp = m_B + m_R * std::abs(m_Q[i - 1]);
-    const double Bm = m_B + m_R * std::abs(m_Q[i + 1]);
+    const double Cp = H[i - 1] + m_B * Q[i - 1];
+    const double Cm = H[i + 1] - m_B * Q[i + 1];
+    const double Bp = m_B + m_R * std::abs(Q[i - 1]);
+    const double Bm = m_B + m_R * std::abs(Q[i + 1]);
 
-    m_H[i] = (Cp * Bm + Cm * Bp) / (Bp + Bm);
-    m_Q[i] = (m_H[i] - Cm) / Bm;
+    H[i] = (Cp * Bm + Cm * Bp) / (Bp + Bm);
+    Q[i] = (H[i] - Cm) / Bm;
   }
 
   // C- characteristic
   if (auto* left_elem = this->left_elem()) {
-    left_elem->set_c_characteristics(m_H[L0 + 1] - m_B * m_Q[L0 + 1]);
-    left_elem->set_b_characteristics(m_R * std::abs(m_Q[L0 + 1]) + m_B);
-    m_H[0] = left_elem->get_H();
-    m_Q[0] = left_elem->get_Q();
+    left_elem->set_c_characteristics(H[L0 + 1] - m_B * Q[L0 + 1]);
+    left_elem->set_b_characteristics(m_R * std::abs(Q[L0 + 1]) + m_B);
+    H[0] = left_elem->get_H();
+    Q[0] = left_elem->get_Q();
   }
 
   // C+ characteristic
   if (auto* right_elem = this->right_elem()) {
-    right_elem->set_c_characteristics(m_H[L1 - 1] + m_B * m_Q[L1 - 1]);
-    right_elem->set_b_characteristics(m_B + m_R * std::abs(m_Q[L1 - 1]));
-    m_H[m_config.num_reaches] = right_elem->get_H();
-    m_Q[m_config.num_reaches] = right_elem->get_Q();
+    right_elem->set_c_characteristics(H[L1 - 1] + m_B * Q[L1 - 1]);
+    right_elem->set_b_characteristics(m_B + m_R * std::abs(Q[L1 - 1]));
+    H[m_config.num_reaches] = right_elem->get_H();
+    Q[m_config.num_reaches] = right_elem->get_Q();
   }
 }
 }  // namespace lvtrans
