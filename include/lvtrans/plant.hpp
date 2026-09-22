@@ -1,26 +1,23 @@
 #pragma once
-#include <string_view>
+#include <string>
 #include "lvtrans/element.hpp"
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/non-pipe.hpp"
 #include "lvtrans/pipe.hpp"
+#include "lvtrans/plant_types.hpp"
 namespace lvtrans {
 
-struct PlantState {
-  double time_step{0.1};
-  double current_time{0};
-  int num_iterations{0};
-};
-
 struct PlantData {
-  PlantState state{};
   ElementContainer element_container{};
+  PlantState state{};
+  SimulationConfig config{};
 };
 
 class Plant {
  public:
-  Plant(double dt);
-  Plant(std::string_view file_path, double dt);
+  Plant(double step_size);
+  // explicit Plant(const PlantConfiguration& config);
+  explicit Plant(const std::string& file_path);
 
   template <typename T, typename... Args>
   T& add_element(Args&&... args) {
@@ -38,6 +35,12 @@ class Plant {
   Element* get_element_by_id(ElementID id) {
     return m_data.element_container.get_element_by_id(id);
   }
+
+  template <typename T>
+  T* get_element_by_id(ElementID id) {
+    return m_data.element_container.get_element_by_id<T>(id);
+  }
+
   void remove_element(ElementID id) {
     return m_data.element_container.remove_element(id);
   }

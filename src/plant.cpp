@@ -1,15 +1,27 @@
 #include "lvtrans/plant.hpp"
 #include <iostream>
+#include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element.hpp"
 
 namespace lvtrans {
 
-Plant::Plant(double dt) : m_data{} { m_data.state.time_step = dt; }
+Plant::Plant(double step_size) : m_data{} {
+  m_data.config.step_size = step_size;
+}
 
-Plant::Plant(std::string_view, double dt) : Plant(dt) {}
+Plant::Plant(const std::string& file_path) : m_data{} {
+  PlantConfigRepository repo;
+  auto path = std::filesystem::path(file_path);
+  auto res = repo.load(path, m_data);
+
+  if (res != PlantRepositoryResult::Ok) {
+    std::cerr << "Failed to load plant config\n";
+    return;
+  }
+}
 
 void Plant::step() {
-  m_data.state.current_time += m_data.state.time_step;
+  m_data.state.current_time += m_data.config.step_size;
 
   for (auto& pipe : m_data.element_container.get_pipes()) {
     pipe->iterate();
@@ -19,6 +31,12 @@ void Plant::step() {
     IterateInput input{};
     input.t = m_data.state.current_time;
     non_pipe->iterate(input);
+  }
+
+  PlantConfigRepository repo;
+  auto res = repo.save("plant_config.json", m_data);
+  if (res != PlantRepositoryResult::Ok) {
+    std::cerr << "Failed to save plant config\n";
   }
 }
 

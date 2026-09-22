@@ -1,31 +1,31 @@
 {
+  "format_version": 1,
+  "plant_meta": {
+    "name": "Plant 1"
+  },
+  "simulation": {
+    "step_size": 0.5
+  },
   "plant_state": {
-    "name": "Plant 1",
-    "dt": 0.1,
-    "current_time": 0.0,
-    "num_iterations": 0
+    "current_time": 10.0,
+    "num_iterations": 2
   },
   "elements": [
     {
       "id": 1,
       "name": "Reservoir 1",
       "type": "Reservoir",
-      "params": {
-        "HR": 100.0,
-        "Cvp": 0.0,
-        "Cvm": 0.0
-      },
-      "connections": [
-        {
-          "right": "pipe_1"
-        }
-      ]
+      "parameters": {
+        "H0": 100.0,
+        "cvp": 0,
+        "cvm": 0
+      }
     },
     {
       "id": 2,
       "name": "Pipe 1",
       "type": "NormalPipe",
-      "params": {
+      "parameters": {
         "length": 100.0,
         "diameter": 1.0,
         "f": 1.0,
@@ -38,32 +38,50 @@
         "use_diameter": false,
         "use_full_moody": false
       },
-      "connections": [
-        {
-          "left": "reservoir_1"
-        },
-        {
-          "right": "valve_1"
-        }
-      ]
+      "state": {
+        "H": [1,2,3,4,5,6,7,8,9,10,11],
+        "Q": [2,3,4,5,6,7,8,9,10,11,12]
+      }
     },
     {
       "id": 3,
       "name": "Valve 1",
       "type": "Valve",
-      "params": {
-        "CdA0": 1.0,
+      "parameters": {
+        "cda0": 1.0,
         "tau_i": 0,
         "tau_f": 0,
         "tc": 0,
         "em": 0,
-        "cvp": 0
+        "cvp": 0,
+        "cvm": 0
       },
-      "connections": [
-        {
-          "left": "pipe_1"
-        }
-      ]
+      "state": {
+        "tau": 1.0
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": {
+        "element": 1,
+        "port": "right"
+      },
+      "to": {
+        "element": 2,
+        "port": "left"
+      }
+    },
+
+    {
+      "from": {
+        "element": 2,
+        "port": "right"
+      },
+      "to": {
+        "element": 3,
+        "port": "left"
+      }
     }
   ]
 }
