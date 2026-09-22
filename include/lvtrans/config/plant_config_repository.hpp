@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <memory>
 namespace lvtrans {
 struct PlantData;
 struct ElementConfig;
@@ -13,7 +12,7 @@ enum class PlantRepositoryResult : std::uint8_t { Ok, Error };
 
 class PlantConfigRepository {
  public:
-  PlantConfigRepository();
+  PlantConfigRepository() = default;
   ~PlantConfigRepository() = default;
 
   [[nodiscard]] PlantRepositoryResult load(const std::filesystem::path& path,

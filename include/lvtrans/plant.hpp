@@ -8,15 +8,15 @@
 namespace lvtrans {
 
 struct PlantData {
-  ElementContainer element_container{};
-  PlantState state{};
-  SimulationConfig config{};
+  ElementContainer element_container;
+  PlantState state;
+  SimulationConfig config;
 };
 
 class Plant {
  public:
-  Plant(double step_size);
-  // explicit Plant(const PlantConfiguration& config);
+  explicit Plant(double step_size);
+  explicit Plant(PlantData& data);
   explicit Plant(const std::string& file_path);
 
   template <typename T, typename... Args>

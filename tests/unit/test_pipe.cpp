@@ -24,7 +24,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
           .num_reaches = 10,
       },
       150.0, 0.0);
-  pipe.connect_left(*reservoir);
+  pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
 
   ASSERT_NE(reserovoir_port->connected_to, nullptr);
   EXPECT_EQ(&reserovoir_port->connected_to->owner, &pipe);

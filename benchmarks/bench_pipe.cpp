@@ -22,8 +22,8 @@ static void BM_PipeIterate(benchmark::State& state) {
       },
       150.0, 0.0);
 
-  pipe.connect_left(*reservoir);
-  pipe.connect_right(*valve);
+  pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
+  pipe.connect_to(valve.get(), PortType::Right, PortType::Left);
 
   for (auto _ : state) {
     pipe.iterate();

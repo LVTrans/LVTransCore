@@ -318,8 +318,8 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   auto& reservoir = add_to<Reservoir>(container);
   auto& valve = container.add_element<Valve>(ValveConfig{});
   auto& pipe = add_to<Pipe>(container);
-  pipe.connect_left(reservoir);
-  pipe.connect_right(valve);
+  pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
+  pipe.connect_to(&valve, PortType::Right, PortType::Left);
   ASSERT_NE(reservoir.get_ports()[PortType::Right]->connected_to, nullptr);
   ASSERT_NE(valve.get_ports()[PortType::Left]->connected_to, nullptr);
 
@@ -330,8 +330,8 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
               UnorderedElementsAre(&reservoir, &valve));
 
   auto& replacement = add_to<Pipe>(container);
-  replacement.connect_left(reservoir);
-  replacement.connect_right(valve);
+  replacement.connect_to(&reservoir, PortType::Left, PortType::Right);
+  replacement.connect_to(&valve, PortType::Right, PortType::Left);
   EXPECT_EQ(replacement.left_elem(), &reservoir);
   EXPECT_EQ(replacement.right_elem(), &valve);
 }
@@ -342,8 +342,8 @@ TEST(ElementContainerTest,
   auto& reservoir = add_to<Reservoir>(container);
   auto& valve = container.add_element<Valve>(ValveConfig{});
   auto& pipe = add_to<Pipe>(container);
-  pipe.connect_left(reservoir);
-  pipe.connect_right(valve);
+  pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
+  pipe.connect_to(&valve, PortType::Right, PortType::Left);
 
   reservoir.reset_ports();
   reservoir.reset_ports();

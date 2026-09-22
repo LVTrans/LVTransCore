@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include "element.hpp"
+#include "lvtrans/port.hpp"
 
 namespace lvtrans {
 
@@ -12,9 +13,6 @@ class NonPipe : public Element {
   void set_right(std::shared_ptr<Element> elem) { m_right_elem = elem; }
   void set_c_characteristics(double c) { m_c_characteristics = c; }
   void set_b_characteristics(double b) { m_b_characteristics = b; }
-
-  Ports& get_ports() { return m_ports; }
-  void set_port(PortType index, Port* port) { m_ports[index]->connect(port); }
 
  protected:
   std::shared_ptr<Element> m_left_elem;
