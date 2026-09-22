@@ -16,7 +16,7 @@ TEST(PlantTest, AddElements) {
 
   ASSERT_TRUE(plant.get_elements().empty());
 
-  PipeConfig pipeConfig{
+  PipeParameters pipeConfig{
       .length = 600.0,
       .diameter = 0.5,
       .f = 0.018,

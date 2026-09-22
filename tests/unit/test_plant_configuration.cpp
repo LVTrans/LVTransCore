@@ -23,20 +23,20 @@
 //   ASSERT_EQ(config.elements.size(), 3u);
 //   EXPECT_EQ(config.elements[0].type, ElementType::Reservoir);
 //   EXPECT_TRUE(
-//       std::holds_alternative<ReservoirConfig>(config.elements[0].parameters));
+//       std::holds_alternative<ReservoirParameters>(config.elements[0].parameters));
 //   EXPECT_FALSE(config.elements[0].state.has_value());
 //   EXPECT_EQ(config.elements[1].type, ElementType::Pipe);
 //   EXPECT_TRUE(
-//       std::holds_alternative<PipeConfig>(config.elements[1].parameters));
+//       std::holds_alternative<PipeParameters>(config.elements[1].parameters));
 //   ASSERT_TRUE(config.elements[1].state.has_value());
 //   EXPECT_TRUE(std::holds_alternative<PipeState>(*config.elements[1].state));
 //   EXPECT_EQ(config.elements[2].type, ElementType::Valve);
 //   EXPECT_TRUE(
-//       std::holds_alternative<ValveConfig>(config.elements[2].parameters));
+//       std::holds_alternative<ValveParameters>(config.elements[2].parameters));
 //   ASSERT_TRUE(config.elements[2].state.has_value());
 //   EXPECT_TRUE(std::holds_alternative<ValveState>(*config.elements[2].state));
 
-//   // CdA0 is not represented by ValveConfig. Optional inherited losses
+//   // CdA0 is not represented by ValveParameters. Optional inherited losses
 //   default
 //   // to zero, but are explicitly written on serialization.
 //   input["elements"][2]["parameters"].erase("CdA0");
@@ -79,7 +79,7 @@
 //   parameters["Cvm"] = 2.5;
 //   parameters["cvp"] = 3.5;
 //   const auto config = input.get<PlantConfiguration>();
-//   const auto& valve = std::get<ValveConfig>(config.elements[2].parameters);
+//   const auto& valve = std::get<ValveParameters>(config.elements[2].parameters);
 //   EXPECT_DOUBLE_EQ(valve.LossCoefficients::cvp, 1.5);
 //   EXPECT_DOUBLE_EQ(valve.cvm, 2.5);
 //   EXPECT_DOUBLE_EQ(valve.cvp, 3.5);
@@ -119,7 +119,7 @@
 //   EXPECT_THROW(input.get<PlantConfiguration>(), std::invalid_argument);
 
 //   auto config = read_fixture().get<PlantConfiguration>();
-//   config.elements[1].parameters = ValveConfig{};
+//   config.elements[1].parameters = ValveParameters{};
 //   EXPECT_THROW(static_cast<void>(json(config)), std::bad_variant_access);
 //   config = read_fixture().get<PlantConfiguration>();
 //   config.elements[1].state = ValveState{};

@@ -5,7 +5,7 @@
 
 namespace lvtrans {
 
-struct ValveConfig : public LossCoefficients {
+struct ValveParameters : public LossCoefficients {
   double tau_i{};
   double tau_f{};
   double tc{};
@@ -18,8 +18,8 @@ struct ValveState {
 
 class Valve : public NonPipe {
  public:
-  Valve(const ValveConfig& conf);
-  Valve(const ValveConfig& conf, ValveState state);
+  Valve(const ValveParameters& conf);
+  Valve(const ValveParameters& conf, ValveState state);
   ~Valve();
   void iterate(const IterateInput input, IterateOutput output) override;
   double get_H() const override {
@@ -37,7 +37,7 @@ class Valve : public NonPipe {
                      2.0 * CV * m_c_characteristics);
   }
 
-  ValveConfig m_config{};
+  ValveParameters m_config{};
   ValveState m_state{};
 };
 

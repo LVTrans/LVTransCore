@@ -93,9 +93,9 @@ _Add elements to a plant_
 ```cpp
 int main(){
 
-    Reservoir reservoir1(ReservoirConfig{....});
-    Pipe pipe1(PipeConfig{....});
-    Valve valve1(ValveConfig{....});
+    Reservoir reservoir1(ReservoirParameters{....});
+    Pipe pipe1(PipeParameters{....});
+    Valve valve1(ValveParameters{....});
 
 
     PlantConfiguration plant_config{...};

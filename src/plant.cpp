@@ -13,9 +13,8 @@ Plant::Plant(double step_size) : m_data{} {
 Plant::Plant(PlantData& data) : m_data(std::move(data)) {}
 
 Plant::Plant(const std::string& file_path) : m_data{} {
-  PlantConfigRepository repo;
   auto path = std::filesystem::path(file_path);
-  auto res = repo.load(path, m_data);
+  auto res = PlantConfigRepository::load(path, m_data);
 
   if (res != PlantRepositoryResult::Ok) {
     std::cerr << "Failed to load plant config\n";
@@ -36,8 +35,7 @@ void Plant::step() {
     non_pipe->iterate(input);
   }
 
-  PlantConfigRepository repo;
-  auto res = repo.save("plant_config.json", m_data);
+  auto res = PlantConfigRepository::save("plant_config.json", m_data);
   if (res != PlantRepositoryResult::Ok) {
     std::cerr << "Failed to save plant config\n";
   }

@@ -8,10 +8,10 @@ static void BM_PipeIterate(benchmark::State& state) {
 
   const size_t reaches = static_cast<int>(state.range(0));
   auto reservoir = std::make_shared<Reservoir>(150.0);
-  auto valve = std::make_shared<Valve>(ValveConfig{});
+  auto valve = std::make_shared<Valve>(ValveParameters{});
 
   Pipe pipe(
-      PipeConfig{
+      PipeParameters{
           .length = 600.0,
           .diameter = 0.5,
           .f = 0.018,

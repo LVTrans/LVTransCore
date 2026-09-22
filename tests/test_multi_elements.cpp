@@ -24,7 +24,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   double Tmax = 4.3;    // Duration of transient [s]
   double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
-  PipeConfig pipe_config = {
+  PipeParameters pipe_config = {
       .length = 600.0,
       .diameter = 0.5,
       .f = f,
@@ -78,7 +78,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
-  ValveConfig valve_config{};
+  ValveParameters valve_config{};
   valve_config.tau_i = tau_i;
   valve_config.tau_f = tau_f;
   valve_config.tc = tc;

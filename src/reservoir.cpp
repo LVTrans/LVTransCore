@@ -10,7 +10,7 @@ Reservoir::Reservoir(const double elevation) {
   m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
 }
 
-Reservoir::Reservoir(const ReservoirConfig& config) : Reservoir(config.H0) {
+Reservoir::Reservoir(const ReservoirParameters& config) : Reservoir(config.H0) {
   m_config = config;
 }
 

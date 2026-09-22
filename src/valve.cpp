@@ -2,9 +2,9 @@
 #include <cmath>
 namespace lvtrans {
 
-Valve::Valve(const ValveConfig& conf) : Valve(conf, ValveState{conf.tau_i}) {}
+Valve::Valve(const ValveParameters& conf) : Valve(conf, ValveState{conf.tau_i}) {}
 
-Valve::Valve(const ValveConfig& conf, ValveState state)
+Valve::Valve(const ValveParameters& conf, ValveState state)
     : m_config{conf}, m_state{state} {
   m_ports.resize(2);
 

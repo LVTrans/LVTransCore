@@ -12,12 +12,12 @@ enum class PlantRepositoryResult : std::uint8_t { Ok, Error };
 
 class PlantConfigRepository {
  public:
-  PlantConfigRepository() = default;
-  ~PlantConfigRepository() = default;
+  PlantConfigRepository() = delete;
+  ~PlantConfigRepository() = delete;
 
-  [[nodiscard]] PlantRepositoryResult load(const std::filesystem::path& path,
-                                           PlantData& plant);
-  [[nodiscard]] PlantRepositoryResult save(const std::filesystem::path& path,
-                                           const PlantData& plant);
+  static PlantRepositoryResult load(const std::filesystem::path& path,
+                                    PlantData& plant);
+  static PlantRepositoryResult save(const std::filesystem::path& path,
+                                    const PlantData& plant);
 };
 }  // namespace lvtrans

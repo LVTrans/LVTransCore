@@ -22,7 +22,7 @@ struct PlantMetaData {
 
 using ElementState = std::variant<ValveState, PipeState>;
 using ElementParameters =
-    std::variant<ValveConfig, PipeConfig, ReservoirConfig>;
+    std::variant<ValveParameters, PipeParameters, ReservoirParameters>;
 
 struct ElementConfig {
   int id;
@@ -55,11 +55,11 @@ struct PlantConfiguration {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeConfig, length, diameter, f, a, z0, z1,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0, z1,
                                    lambda, f_max, num_reaches, use_diameter,
                                    use_full_moody)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirConfig, H0)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
@@ -67,7 +67,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LossCoefficients, cvp, cvm)
 
-NLOHMANN_DEFINE_DERIVED_TYPE_NON_INTRUSIVE(ValveConfig, LossCoefficients, tau_i,
+NLOHMANN_DEFINE_DERIVED_TYPE_NON_INTRUSIVE(ValveParameters, LossCoefficients, tau_i,
                                            tau_f, tc, em)
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ElementType,
@@ -88,15 +88,15 @@ inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
   switch (value.type) {
     case ElementType::Pipe:
-      j["parameters"] = std::get<PipeConfig>(value.parameters);
+      j["parameters"] = std::get<PipeParameters>(value.parameters);
       if (value.state) j["state"] = std::get<PipeState>(*value.state);
       break;
     case ElementType::Valve:
-      j["parameters"] = std::get<ValveConfig>(value.parameters);
+      j["parameters"] = std::get<ValveParameters>(value.parameters);
       if (value.state) j["state"] = std::get<ValveState>(*value.state);
       break;
     case ElementType::Reservoir:
-      j["parameters"] = std::get<ReservoirConfig>(value.parameters);
+      j["parameters"] = std::get<ReservoirParameters>(value.parameters);
       if (value.state)
         throw std::invalid_argument("Reservoir has no saved state");
       break;
@@ -111,15 +111,15 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   const bool has_state = j.contains("state") && !j.at("state").is_null();
   switch (value.type) {
     case ElementType::Pipe:
-      value.parameters = j.at("parameters").get<PipeConfig>();
+      value.parameters = j.at("parameters").get<PipeParameters>();
       if (has_state) value.state = j.at("state").get<PipeState>();
       break;
     case ElementType::Valve:
-      value.parameters = j.at("parameters").get<ValveConfig>();
+      value.parameters = j.at("parameters").get<ValveParameters>();
       if (has_state) value.state = j.at("state").get<ValveState>();
       break;
     case ElementType::Reservoir:
-      value.parameters = j.at("parameters").get<ReservoirConfig>();
+      value.parameters = j.at("parameters").get<ReservoirParameters>();
       if (has_state)
         throw std::invalid_argument("Reservoir has no saved state");
       break;
