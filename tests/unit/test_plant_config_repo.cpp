@@ -1,5 +1,4 @@
 #include <gtest/gtest.h>
-#include <iostream>
 #include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/config/plant_config_repository.hpp"
@@ -11,20 +10,19 @@ TEST(PlantConfigRepositoryTest, LoadPlantConfig) {
   using namespace lvtrans;
   const auto file_path = get_mock_data_file_path("plant_config_1.json");
   PlantConfigRepository repo;
-  PlantData plant;
+  PlantData plant_data;
 
-  ASSERT_EQ(repo.load(file_path, plant), PlantRepositoryResult::Ok);
+  ASSERT_EQ(repo.load(file_path, plant_data), PlantRepositoryResult::Ok);
 
-  EXPECT_DOUBLE_EQ(plant.config.step_size, 0.5);
-  EXPECT_DOUBLE_EQ(plant.state.current_time, 10.0);
-  EXPECT_EQ(plant.state.num_iterations, 2);
+  EXPECT_DOUBLE_EQ(plant_data.config.step_size, 0.5);
+  EXPECT_DOUBLE_EQ(plant_data.state.current_time, 10.0);
+  EXPECT_EQ(plant_data.state.num_iterations, 2);
 
-  auto& elements = plant.element_container;
+  auto& elements = plant_data.element_container;
   ASSERT_EQ(elements.get_elements().size(), 3u);
   ASSERT_EQ(elements.get_pipes().size(), 1u);
   ASSERT_EQ(elements.get_non_pipes().size(), 2u);
 
-  // Look up by the saved IDs rather than relying on container ordering.
   const auto* reservoir = elements.get_element_by_id<Reservoir>(1);
   const auto* pipe = elements.get_element_by_id<Pipe>(2);
   auto* valve = elements.get_element_by_id<Valve>(3);
@@ -76,4 +74,10 @@ TEST(PlantConfigRepositoryTest, LoadPlantConfig) {
   ASSERT_NE(valve_left->connected_to, nullptr);
   EXPECT_EQ(&valve_left->connected_to->owner, pipe);
   EXPECT_EQ(valve_left->connected_to->connected_to, valve_left);
+
+  Plant plant(plant_data);
+  EXPECT_DOUBLE_EQ(plant.get_current_time(), 10.0);
+  EXPECT_EQ(plant.get_element_by_id<Reservoir>(1), reservoir);
+  EXPECT_EQ(plant.get_element_by_id<Pipe>(2), pipe);
+  EXPECT_EQ(plant.get_element_by_id<Valve>(3), valve);
 }
