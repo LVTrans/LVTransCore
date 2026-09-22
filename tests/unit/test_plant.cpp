@@ -26,9 +26,9 @@ TEST(PlantTest, AddElements) {
       .num_reaches = 10,
   };
 
-  auto& pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0);
+  auto pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0);
   ASSERT_EQ(plant.get_elements().size(), 1u);
-  EXPECT_EQ(pipe.get_ID(), 0);
+  EXPECT_EQ(pipe->get_ID(), 0);
 }
 
 TEST(PlantTest, LooksUpAndRemovesElementsById) {

@@ -20,7 +20,7 @@ class Plant {
   explicit Plant(const std::string& file_path);
 
   template <typename T, typename... Args>
-  T& add_element(Args&&... args) {
+  T* add_element(Args&&... args) {
     return m_data.element_container.add_element<T>(std::forward<Args>(args)...);
   }
   const std::vector<std::unique_ptr<Pipe>>& get_pipes() const {

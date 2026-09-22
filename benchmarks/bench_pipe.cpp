@@ -6,7 +6,7 @@
 static void BM_PipeIterate(benchmark::State& state) {
   using namespace lvtrans;
 
-  const size_t reaches = static_cast<int>(state.range(0));
+  const size_t reaches = static_cast<size_t>(state.range(0));
   auto reservoir = std::make_shared<Reservoir>(150.0);
   auto valve = std::make_shared<Valve>(ValveParameters{});
 

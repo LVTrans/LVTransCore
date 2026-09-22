@@ -21,33 +21,31 @@ class ElementContainer {
   ElementContainer& operator=(ElementContainer&&) = default;
 
   template <typename T, typename... Args>
-  T& add_element(Args&&... args) {
+  T* add_element(Args&&... args) {
     return add_element_with_id<T>(m_element_id, std::forward<Args>(args)...);
   }
 
   template <typename T, typename... Args>
-  T& add_element_with_id(ElementID id, Args&&... args) {
+  T* add_element_with_id(ElementID id, Args&&... args) {
     if (id < 0 || m_element_indices.contains(id)) {
-      std::cerr << "Invalid or duplicate element ID: " << id << '\n';
-      return *static_cast<T*>(nullptr);
+      return nullptr;
     }
     auto element = std::make_unique<T>(std::forward<Args>(args)...);
+    auto* ptr = element.get();
 
     element->set_ID(id);
-    T& ref = *element;
 
     if constexpr (std::is_base_of_v<Pipe, T>) {
       m_pipes.push_back(std::move(element));
-      m_element_indices[ref.get_ID()] = {ElementAbstractType::Pipe,
-                                         m_pipes.size() - 1};
+      m_element_indices[id] = {ElementAbstractType::Pipe, m_pipes.size() - 1};
     } else {
       m_non_pipes.push_back(std::move(element));
-      m_element_indices[ref.get_ID()] = {ElementAbstractType::NonPipe,
-                                         m_non_pipes.size() - 1};
+      m_element_indices[id] = {ElementAbstractType::NonPipe,
+                               m_non_pipes.size() - 1};
     }
 
     m_element_id = std::max(m_element_id, id + 1);
-    return ref;
+    return ptr;
   }
 
   template <typename T>
@@ -73,12 +71,12 @@ class ElementContainer {
     return m_non_pipes;
   }
   template <typename T>
-  T* get_element_by_id(ElementID id) {
+  T* get_element_by_id(ElementID id) const {
     return dynamic_cast<T*>(get_element_by_id(id));
   }
 
   std::vector<Element*> get_elements() const;
-  Element* get_element_by_id(ElementID id);
+  Element* get_element_by_id(ElementID id) const;
   void remove_element(ElementID id);
 
  private:

@@ -39,7 +39,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   std::ofstream output_file(test_file_path);
 
   if (!output_file) {
-    std::cerr << "Error opening output file." << std::endl;
+    std::cerr << "Error opening output file.\n";
     ASSERT_FALSE(output_file);
   }
 
@@ -87,22 +87,22 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   Plant plant(system_dt);
 
-  auto& pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
 
-  auto& valve = plant.add_element<Valve>(valve_config);
+  auto valve = plant.add_element<Valve>(valve_config);
 
-  auto& reservoir = plant.add_element<Reservoir>(HR);
+  auto reservoir = plant.add_element<Reservoir>(HR);
 
-  pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
-  pipe.connect_to(&valve, PortType::Right, PortType::Left);
+  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
+  pipe->connect_to(valve, PortType::Right, PortType::Left);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
   for (int k = 1; k < Kmax; ++k) {
     plant.step();
 
-    output_file << plant.get_current_time() << "," << valve.get_tau() << ","
-                << pipe.get_H()[pipe_config.num_reaches] << ","
-                << pipe.get_Q()[pipe_config.num_reaches] << '\n';
+    output_file << plant.get_current_time() << "," << valve->get_tau() << ","
+                << pipe->get_H()[pipe_config.num_reaches] << ","
+                << pipe->get_Q()[pipe_config.num_reaches] << '\n';
   }
 
   output_file.close();

@@ -55,8 +55,8 @@ struct PlantConfiguration {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0, z1,
-                                   lambda, f_max, num_reaches, use_diameter,
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0,
+                                   z1, lambda, f_max, num_reaches, use_diameter,
                                    use_full_moody)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0)
@@ -67,8 +67,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LossCoefficients, cvp, cvm)
 
-NLOHMANN_DEFINE_DERIVED_TYPE_NON_INTRUSIVE(ValveParameters, LossCoefficients, tau_i,
-                                           tau_f, tc, em)
+NLOHMANN_DEFINE_DERIVED_TYPE_NON_INTRUSIVE(ValveParameters, LossCoefficients,
+                                           tau_i, tau_f, tc, em)
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ElementType,
                              {{ElementType::Pipe, "Pipe"},
@@ -97,8 +97,6 @@ inline void to_json(nlohmann::json& j, const ElementConfig& value) {
       break;
     case ElementType::Reservoir:
       j["parameters"] = std::get<ReservoirParameters>(value.parameters);
-      if (value.state)
-        throw std::invalid_argument("Reservoir has no saved state");
       break;
   }
 }
@@ -120,8 +118,6 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       break;
     case ElementType::Reservoir:
       value.parameters = j.at("parameters").get<ReservoirParameters>();
-      if (has_state)
-        throw std::invalid_argument("Reservoir has no saved state");
       break;
   }
 }

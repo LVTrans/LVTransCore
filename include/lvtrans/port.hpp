@@ -8,16 +8,16 @@ class Element;
 
 class Port {
  public:
-  Element& owner;
-  Port* connected_to{nullptr};
-  PortType type;
+  Element& m_owner;
+  Port* m_connected_to{nullptr};
+  PortType m_type;
 
   Port() = delete;
   ~Port() = default;
-  Port(Element& comp, PortType type) : owner(comp), type(type) {}
-  PortType get_port_type() const { return type; }
-  void connect(Port* other) { connected_to = other; }
-  void reset() { connected_to = nullptr; }
+  Port(Element& comp, PortType type) : m_owner(comp), m_type(type) {}
+  PortType get_port_type() const { return m_type; }
+  void connect(Port* other) { m_connected_to = other; }
+  void reset() { m_connected_to = nullptr; }
 };
 
 }  // namespace lvtrans

@@ -63,17 +63,17 @@ TEST(PlantConfigRepositoryTest, LoadPlantConfig) {
   ASSERT_GT(reservoir_ports.size(), static_cast<size_t>(PortType::Right));
   const auto* reservoir_right = reservoir_ports[PortType::Right].get();
   ASSERT_NE(reservoir_right, nullptr);
-  ASSERT_NE(reservoir_right->connected_to, nullptr);
-  EXPECT_EQ(&reservoir_right->connected_to->owner, pipe);
-  EXPECT_EQ(reservoir_right->connected_to->connected_to, reservoir_right);
+  ASSERT_NE(reservoir_right->m_connected_to, nullptr);
+  EXPECT_EQ(&reservoir_right->m_connected_to->m_owner, pipe);
+  EXPECT_EQ(reservoir_right->m_connected_to->m_connected_to, reservoir_right);
 
   const auto& valve_ports = valve->get_ports();
   ASSERT_GT(valve_ports.size(), static_cast<size_t>(PortType::Left));
   const auto* valve_left = valve_ports[PortType::Left].get();
   ASSERT_NE(valve_left, nullptr);
-  ASSERT_NE(valve_left->connected_to, nullptr);
-  EXPECT_EQ(&valve_left->connected_to->owner, pipe);
-  EXPECT_EQ(valve_left->connected_to->connected_to, valve_left);
+  ASSERT_NE(valve_left->m_connected_to, nullptr);
+  EXPECT_EQ(&valve_left->m_connected_to->m_owner, pipe);
+  EXPECT_EQ(valve_left->m_connected_to->m_connected_to, valve_left);
 
   Plant plant(plant_data);
   EXPECT_DOUBLE_EQ(plant.get_current_time(), 10.0);
