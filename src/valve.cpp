@@ -2,21 +2,25 @@
 #include <cmath>
 namespace lvtrans {
 
-Valve::Valve(const ValveConfig& conf) : m_config(conf), m_tau(conf.tau_i) {
+Valve::Valve(const ValveConfig& conf) : Valve(conf, ValveState{conf.tau_i}) {}
+
+Valve::Valve(const ValveConfig& conf, ValveState state)
+    : m_config{conf}, m_state{state} {
   m_ports.resize(2);
 
-  m_ports[PortLeft] = std::make_unique<Port>(*this);
-  m_ports[PortRight] = std::make_unique<Port>(*this);
+  m_ports[PortType::Left] = std::make_unique<Port>(*this);
+  m_ports[PortType::Right] = std::make_unique<Port>(*this);
 }
 
 Valve::~Valve() {}
 
 void Valve::iterate(const IterateInput input, IterateOutput) {
   if (input.t < m_config.tc) {
-    m_tau = m_config.tau_i - (m_config.tau_i - m_config.tau_f) *
-                                 std::pow(input.t / m_config.tc, m_config.em);
+    m_state.tau =
+        m_config.tau_i - (m_config.tau_i - m_config.tau_f) *
+                             std::pow(input.t / m_config.tc, m_config.em);
   } else {
-    m_tau = m_config.tau_f;
+    m_state.tau = m_config.tau_f;
   }
 }
 

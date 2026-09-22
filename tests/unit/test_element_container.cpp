@@ -51,13 +51,13 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
   auto& reservoir = add_to<Reservoir>(container);
   auto& pipe = add_to<Pipe>(container);
-  auto& valve = container.add_element<Valve>(ValveConfig{
-      .tau_i = 0.8,
-      .tau_f = 0.0,
-      .tc = 4.0,
-      .em = 1.0,
-      .cvp = 0.5,
-  });
+  ValveConfig valve_config{};
+  valve_config.tau_i = 0.8;
+  valve_config.tau_f = 0.0;
+  valve_config.tc = 4.0;
+  valve_config.em = 1.0;
+  valve_config.cvp = 0.5;
+  auto& valve = container.add_element<Valve>(valve_config);
 
   EXPECT_NE(reservoir.get_ID(), pipe.get_ID());
   EXPECT_NE(reservoir.get_ID(), valve.get_ID());
@@ -320,12 +320,12 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   auto& pipe = add_to<Pipe>(container);
   pipe.connect_left(reservoir);
   pipe.connect_right(valve);
-  ASSERT_NE(reservoir.get_ports()[PortRight]->connected_to, nullptr);
-  ASSERT_NE(valve.get_ports()[PortLeft]->connected_to, nullptr);
+  ASSERT_NE(reservoir.get_ports()[PortType::Right]->connected_to, nullptr);
+  ASSERT_NE(valve.get_ports()[PortType::Left]->connected_to, nullptr);
 
   container.remove_element(pipe.get_ID());
-  EXPECT_EQ(reservoir.get_ports()[PortRight]->connected_to, nullptr);
-  EXPECT_EQ(valve.get_ports()[PortLeft]->connected_to, nullptr);
+  EXPECT_EQ(reservoir.get_ports()[PortType::Right]->connected_to, nullptr);
+  EXPECT_EQ(valve.get_ports()[PortType::Left]->connected_to, nullptr);
   EXPECT_THAT(container.get_elements(),
               UnorderedElementsAre(&reservoir, &valve));
 
@@ -347,7 +347,7 @@ TEST(ElementContainerTest,
 
   reservoir.reset_ports();
   reservoir.reset_ports();
-  EXPECT_EQ(reservoir.get_ports()[PortRight]->connected_to, nullptr);
+  EXPECT_EQ(reservoir.get_ports()[PortType::Right]->connected_to, nullptr);
   EXPECT_EQ(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), &valve);
 
@@ -355,6 +355,6 @@ TEST(ElementContainerTest,
   pipe.reset_ports();
   EXPECT_EQ(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), nullptr);
-  EXPECT_EQ(valve.get_ports()[PortLeft]->connected_to, nullptr);
+  EXPECT_EQ(valve.get_ports()[PortType::Left]->connected_to, nullptr);
 }
 }  // namespace

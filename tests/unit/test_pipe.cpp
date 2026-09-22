@@ -6,9 +6,10 @@
 TEST(PipeTest, ConnectsToUpstreamReservoir) {
   using namespace lvtrans;
   auto reservoir = std::make_shared<Reservoir>(150.0);
-  ASSERT_GT(reservoir->get_ports().size(), static_cast<size_t>(PortRight));
+  ASSERT_GT(reservoir->get_ports().size(),
+            static_cast<size_t>(PortType::Right));
 
-  auto* reserovoir_port = reservoir->get_ports()[PortRight].get();
+  auto* reserovoir_port = reservoir->get_ports()[PortType::Right].get();
   ASSERT_NE(reserovoir_port, nullptr);
   EXPECT_EQ(&reserovoir_port->owner, reservoir.get());
 

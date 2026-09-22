@@ -26,7 +26,7 @@ Element* ElementContainer::get_element_by_id(ElementID id) {
     return nullptr;
   }
 
-  if (it->second.first == ElementBaseType::Pipe) {
+  if (it->second.first == ElementAbstractType::Pipe) {
     return m_pipes[it->second.second].get();
   } else {
     return m_non_pipes[it->second.second].get();
@@ -39,7 +39,7 @@ void ElementContainer::remove_element(ElementID id) {
     return;
   }
 
-  if (it->second.first == ElementBaseType::Pipe) {
+  if (it->second.first == ElementAbstractType::Pipe) {
     remove_element_from(m_pipes, it->second.second);
   } else {
     remove_element_from(m_non_pipes, it->second.second);
