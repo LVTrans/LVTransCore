@@ -1,3 +1,4 @@
+include(FetchContent)
 cmake_minimum_required(VERSION 3.16)
 project(
     LVTransCore
@@ -8,10 +9,13 @@ project(
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+FetchContent_Declare(json URL https://github.com/nlohmann/json/releases/download/v3.12.0/json.tar.xz)
+FetchContent_MakeAvailable(json)
 
-option(LVTRANS_BUILD_TESTS "Build LVTrans tests" OFF)
+
+option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
 option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
-option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" OFF)
+option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
 
 add_library(lvtrans_core)
 
@@ -24,7 +28,8 @@ target_sources(
         src/element.cpp
         src/plant.cpp
         src/element_container.cpp
-        src/plant_config_repo.cpp
+        src/config/plant_config_repository.cpp
+        src/config/element_parsers.cpp
 )
 
 
@@ -34,7 +39,6 @@ target_include_directories(
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
 )
-
 
 target_compile_features(
     lvtrans_core
@@ -51,6 +55,8 @@ elseif(MSVC)
         /W4 /permissive- /GS
     )
 endif()
+
+target_link_libraries(lvtrans_core PUBLIC nlohmann_json::nlohmann_json)
 
 # if(LVTRANS_ENABLE_OPENMP)
 #     find_package(OpenMP)
