@@ -14,7 +14,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   EXPECT_EQ(&reserovoir_port->owner, reservoir.get());
 
   Pipe pipe(
-      PipeConfig{
+      PipeParameters{
           .length = 600.0,
           .diameter = 0.5,
           .f = 0.018,

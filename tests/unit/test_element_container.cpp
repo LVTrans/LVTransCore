@@ -16,7 +16,7 @@ namespace {
 using namespace lvtrans;
 using ::testing::UnorderedElementsAre;
 
-const PipeConfig pipe_config{
+const PipeParameters pipe_config{
     .length = 600.0,
     .diameter = 0.5,
     .f = 0.018,
@@ -51,7 +51,7 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
   auto& reservoir = add_to<Reservoir>(container);
   auto& pipe = add_to<Pipe>(container);
-  ValveConfig valve_config{};
+  ValveParameters valve_config{};
   valve_config.tau_i = 0.8;
   valve_config.tau_f = 0.0;
   valve_config.tc = 4.0;
@@ -316,7 +316,7 @@ TEST(ElementContainerTest, MixedInsertionsAndRemovalsMatchLiveElements) {
 TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   ElementContainer container;
   auto& reservoir = add_to<Reservoir>(container);
-  auto& valve = container.add_element<Valve>(ValveConfig{});
+  auto& valve = container.add_element<Valve>(ValveParameters{});
   auto& pipe = add_to<Pipe>(container);
   pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
   pipe.connect_to(&valve, PortType::Right, PortType::Left);
@@ -340,7 +340,7 @@ TEST(ElementContainerTest,
      ResettingSparsePortsIsRepeatableAndPreservesOtherConnections) {
   ElementContainer container;
   auto& reservoir = add_to<Reservoir>(container);
-  auto& valve = container.add_element<Valve>(ValveConfig{});
+  auto& valve = container.add_element<Valve>(ValveParameters{});
   auto& pipe = add_to<Pipe>(container);
   pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
   pipe.connect_to(&valve, PortType::Right, PortType::Left);

@@ -9,10 +9,10 @@
 TEST(PlantConfigRepositoryTest, LoadPlantConfig) {
   using namespace lvtrans;
   const auto file_path = get_mock_data_file_path("plant_config_1.json");
-  PlantConfigRepository repo;
   PlantData plant_data;
 
-  ASSERT_EQ(repo.load(file_path, plant_data), PlantRepositoryResult::Ok);
+  ASSERT_EQ(PlantConfigRepository::load(file_path, plant_data),
+            PlantRepositoryResult::Ok);
 
   EXPECT_DOUBLE_EQ(plant_data.config.step_size, 0.5);
   EXPECT_DOUBLE_EQ(plant_data.state.current_time, 10.0);

@@ -22,7 +22,7 @@ inline constexpr double calculate_B(double a, double area) {
   return a / (consts::g * area);
 }
 
-struct PipeConfig {
+struct PipeParameters {
   double length{};
   double diameter{};
   double f{};
@@ -45,12 +45,12 @@ class Pipe : public Element {
   using InitialValues = std::variant<double, std::vector<double>>;
 
  public:
-  Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0);
+  Pipe(PipeParameters conf, InitialValues H0, InitialValues Q0);
   ~Pipe();
   void iterate(const IterateInput input = {},
                IterateOutput output = {}) override;
 
-  const PipeConfig& config() const { return m_config; }
+  const PipeParameters& config() const { return m_config; }
   double get_R() const { return m_R; }
   double get_B() const { return m_B; }
   const std::vector<double>& get_H() const { return m_state.H; }
@@ -93,7 +93,7 @@ class Pipe : public Element {
  private:
   void initialize_h_q(InitialValues& H0, InitialValues& Q0);
 
-  PipeConfig m_config{};
+  PipeParameters m_config{};
 
   const double m_area{};
   const double m_dx{};

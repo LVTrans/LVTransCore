@@ -2,7 +2,7 @@
 namespace lvtrans {
 void ValveParser::parse(ElementContainer& container,
                         const ElementConfig& element) {
-  const auto& config = std::get<ValveConfig>(element.parameters);
+  const auto& config = std::get<ValveParameters>(element.parameters);
   const auto state = element.state ? std::get<ValveState>(*element.state)
                                    : ValveState{config.tau_i};
   container.add_element_with_id<Valve>(element.id, config, state);
@@ -10,7 +10,7 @@ void ValveParser::parse(ElementContainer& container,
 
 void PipeParser::parse(ElementContainer& container,
                        const ElementConfig& element) {
-  const auto& config = std::get<PipeConfig>(element.parameters);
+  const auto& config = std::get<PipeParameters>(element.parameters);
   if (config.num_reaches < 2 || config.num_reaches % 2 != 0 ||
       !std::isfinite(config.length) || config.length <= 0 ||
       !std::isfinite(config.diameter) || config.diameter <= 0 ||
@@ -34,7 +34,7 @@ void PipeParser::parse(ElementContainer& container,
 void ReservoirParser::parse(ElementContainer& container,
                             const ElementConfig& element) {
   container.add_element_with_id<Reservoir>(
-      element.id, std::get<ReservoirConfig>(element.parameters));
+      element.id, std::get<ReservoirParameters>(element.parameters));
 }
 
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {

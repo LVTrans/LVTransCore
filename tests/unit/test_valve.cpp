@@ -6,7 +6,7 @@
 using namespace lvtrans;
 
 TEST(ValveTest, InitializesPortsAndOpening) {
-  ValveConfig config{};
+  ValveParameters config{};
   config.tau_i = 0.8;
   config.tau_f = 0.0;
   config.tc = 4.0;
@@ -27,7 +27,7 @@ TEST(ValveTest, InitializesPortsAndOpening) {
 }
 
 TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
-  ValveConfig config{};
+  ValveParameters config{};
   config.tau_i = 0.8;
   config.tau_f = 0.2;
   config.tc = 4.0;
@@ -50,7 +50,7 @@ TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
 }
 
 TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
-  ValveConfig config{};
+  ValveParameters config{};
   config.tau_i = 1.0;
   config.tau_f = 0.0;
   config.tc = 4.0;
@@ -66,7 +66,7 @@ TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
 }
 
 TEST(ValveTest, FullyClosedBoundaryStopsFlow) {
-  ValveConfig config{};
+  ValveParameters config{};
   config.tau_i = 1.0;
   config.tau_f = 0.0;
   config.tc = 4.0;

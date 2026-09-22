@@ -8,6 +8,7 @@
 #include <memory>
 #include "lvtrans/const.hpp"
 #include "lvtrans/element.hpp"
+#include "lvtrans/port.hpp"
 
 inline double a = 1200.0;   // Wave propagation velocity [m/s]
 inline double f = 0.018;    // Darcy-Weisbach friction factor
@@ -24,7 +25,7 @@ int main() {
   double Tmax = 4.3;    // Duration of transient [s]
   double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
-  PipeConfig pipe_config = {
+  PipeParameters pipe_config = {
       .length = 600.0,
       .diameter = 0.5,
       .f = f,
@@ -90,7 +91,7 @@ int main() {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
-  ValveConfig valve_config{};
+  ValveParameters valve_config{};
   valve_config.tau_i = tau_i;
   valve_config.tau_f = tau_f;
   valve_config.tc = tc;
@@ -99,8 +100,8 @@ int main() {
 
   auto valve = std::make_shared<Valve>(valve_config);
 
-  pipe->connect_left(*reservoir);
-  pipe->connect_right(*valve);
+  pipe->connect_to(reservoir.get(), PortType::Left, PortType::Right);
+  pipe->connect_to(valve.get(), PortType::Right, PortType::Left);
 
   // TODO: Make system elements a class that includes all elements
   SystemElemnts system_elements{};

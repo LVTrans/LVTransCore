@@ -7,7 +7,7 @@
 
 namespace lvtrans {
 
-Pipe::Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0)
+Pipe::Pipe(PipeParameters conf, InitialValues H0, InitialValues Q0)
     : m_config(conf),
       m_area(calculate_pipe_area(conf.diameter)),
       m_dx(calculate_dx(conf.length, conf.num_reaches)),
