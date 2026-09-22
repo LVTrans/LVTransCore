@@ -7,7 +7,7 @@ namespace lvtrans {
 Reservoir::Reservoir(const double elevation) {
   m_config.H0 = elevation;
   m_ports.resize(PortType::Right + 1);
-  m_ports[PortType::Right] = std::make_unique<Port>(*this);
+  m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
 }
 
 Reservoir::Reservoir(const ReservoirConfig& config) : Reservoir(config.H0) {

@@ -8,8 +8,8 @@ Valve::Valve(const ValveConfig& conf, ValveState state)
     : m_config{conf}, m_state{state} {
   m_ports.resize(2);
 
-  m_ports[PortType::Left] = std::make_unique<Port>(*this);
-  m_ports[PortType::Right] = std::make_unique<Port>(*this);
+  m_ports[PortType::Left] = std::make_unique<Port>(*this, PortType::Left);
+  m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
 }
 
 Valve::~Valve() {}

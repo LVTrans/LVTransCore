@@ -1,5 +1,6 @@
 #include "lvtrans/plant.hpp"
 #include <iostream>
+#include <utility>
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element.hpp"
 
@@ -8,6 +9,8 @@ namespace lvtrans {
 Plant::Plant(double step_size) : m_data{} {
   m_data.config.step_size = step_size;
 }
+
+Plant::Plant(PlantData& data) : m_data(std::move(data)) {}
 
 Plant::Plant(const std::string& file_path) : m_data{} {
   PlantConfigRepository repo;

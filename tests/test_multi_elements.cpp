@@ -93,8 +93,8 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   auto& reservoir = plant.add_element<Reservoir>(HR);
 
-  pipe.connect_left(reservoir);
-  pipe.connect_right(valve);
+  pipe.connect_to(&reservoir, PortType::Left, PortType::Right);
+  pipe.connect_to(&valve, PortType::Right, PortType::Left);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
   for (int k = 1; k < Kmax; ++k) {

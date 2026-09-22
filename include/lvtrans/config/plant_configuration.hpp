@@ -86,8 +86,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
 
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
-  // Select both variants by the discriminator; mismatches fail instead of
-  // emitting a configuration with contradictory type and parameter data.
   switch (value.type) {
     case ElementType::Pipe:
       j["parameters"] = std::get<PipeConfig>(value.parameters);

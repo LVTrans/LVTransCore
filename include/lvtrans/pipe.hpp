@@ -56,26 +56,20 @@ class Pipe : public Element {
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
 
-  void connect_left(NonPipe& elem) const {
-    m_ports[PortType::Left]->connect(
-        elem.get_ports()[PortType::Right].get());  // connect ours
-    elem.set_port(PortType::Right,
-                  m_ports[PortType::Left].get());  // connect theirs
-  }
-  void connect_right(NonPipe& elem) const {
-    m_ports[PortType::Right]->connect(elem.get_ports()[PortType::Left].get());
-    elem.set_port(PortType::Left, m_ports[PortType::Right].get());
-  }
-
   void remove_left() const {
     if (auto* elem = left_elem()) {
-      elem->set_port(PortType::Right, nullptr);  // reset theirs
+      auto their_port_type =
+          m_ports[PortType::Left]->connected_to->get_port_type();
+      elem->set_port(their_port_type, nullptr);
     }
-    m_ports[PortType::Left]->reset();  // reset ours
+    m_ports[PortType::Left]->reset();
   }
+
   void remove_right() const {
     if (auto* elem = right_elem()) {
-      elem->set_port(PortType::Left, nullptr);
+      auto their_port_type =
+          m_ports[PortType::Right]->connected_to->get_port_type();
+      elem->set_port(their_port_type, nullptr);
     }
     m_ports[PortType::Right]->reset();
   }

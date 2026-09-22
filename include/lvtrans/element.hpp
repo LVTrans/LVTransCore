@@ -27,15 +27,25 @@ struct IterateInput {
   double R{};
 };
 
-enum PortType : std::uint8_t { Left, Right, Up, Down };
 
 class Element {
  public:
-  virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
   virtual ~Element() = default;
+  virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
+  void connect_to(Element* other, PortType from, PortType to) const;
   ElementID get_ID() const { return m_ID; }
   void set_ID(ElementID id) { m_ID = id; }
   void reset_ports();
+  void set_port(PortType index, Port* port) { m_ports[index]->connect(port); }
+  Ports& get_ports() { return m_ports; }
+  Port* get_available_port() {
+    for (auto& port : m_ports) {
+      if (!port->connected_to) {
+        return port.get();
+      }
+    }
+    return nullptr;
+  }
 
  protected:
   ElementID m_ID{};
