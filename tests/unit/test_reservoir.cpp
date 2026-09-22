@@ -10,8 +10,8 @@ TEST(ReservoirTest, InitializesRightPort) {
             static_cast<size_t>(PortType::Right));
   const auto& port = reservoir->get_ports()[PortType::Right];
   ASSERT_NE(port, nullptr);
-  EXPECT_EQ(&port->owner, reservoir.get());
-  EXPECT_EQ(port->connected_to, nullptr);
+  EXPECT_EQ(&port->m_owner, reservoir.get());
+  EXPECT_EQ(port->m_connected_to, nullptr);
 }
 
 TEST(ReservoirTest, KeepsHeadConstantAcrossIterations) {

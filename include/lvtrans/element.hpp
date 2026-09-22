@@ -27,7 +27,6 @@ struct IterateInput {
   double R{};
 };
 
-
 class Element {
  public:
   virtual ~Element() = default;
@@ -35,12 +34,12 @@ class Element {
   void connect_to(Element* other, PortType from, PortType to) const;
   ElementID get_ID() const { return m_ID; }
   void set_ID(ElementID id) { m_ID = id; }
-  void reset_ports();
+  void reset_ports() const;
   void set_port(PortType index, Port* port) { m_ports[index]->connect(port); }
   Ports& get_ports() { return m_ports; }
   Port* get_available_port() {
     for (auto& port : m_ports) {
-      if (!port->connected_to) {
+      if (!port->m_connected_to) {
         return port.get();
       }
     }

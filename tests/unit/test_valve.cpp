@@ -19,8 +19,8 @@ TEST(ValveTest, InitializesPortsAndOpening) {
   for (auto index : {PortType::Left, PortType::Right}) {
     const auto& port = valve->get_ports()[index];
     ASSERT_NE(port, nullptr);
-    EXPECT_EQ(&port->owner, valve.get());
-    EXPECT_EQ(port->connected_to, nullptr);
+    EXPECT_EQ(&port->m_owner, valve.get());
+    EXPECT_EQ(port->m_connected_to, nullptr);
   }
   EXPECT_NE(valve->get_ports()[PortType::Left],
             valve->get_ports()[PortType::Right]);

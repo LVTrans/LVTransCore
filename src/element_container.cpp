@@ -19,7 +19,7 @@ std::vector<Element*> ElementContainer::get_elements() const {
   return elements;
 }
 
-Element* ElementContainer::get_element_by_id(ElementID id) {
+Element* ElementContainer::get_element_by_id(ElementID id) const {
   auto it = m_element_indices.find(id);
 
   if (it == m_element_indices.end()) {

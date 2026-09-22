@@ -59,7 +59,7 @@ class Pipe : public Element {
   void remove_left() const {
     if (auto* elem = left_elem()) {
       auto their_port_type =
-          m_ports[PortType::Left]->connected_to->get_port_type();
+          m_ports[PortType::Left]->m_connected_to->get_port_type();
       elem->set_port(their_port_type, nullptr);
     }
     m_ports[PortType::Left]->reset();
@@ -68,24 +68,24 @@ class Pipe : public Element {
   void remove_right() const {
     if (auto* elem = right_elem()) {
       auto their_port_type =
-          m_ports[PortType::Right]->connected_to->get_port_type();
+          m_ports[PortType::Right]->m_connected_to->get_port_type();
       elem->set_port(their_port_type, nullptr);
     }
     m_ports[PortType::Right]->reset();
   }
 
   NonPipe* left_elem() const {
-    if (m_ports[PortType::Left]->connected_to) {
+    if (m_ports[PortType::Left]->m_connected_to) {
       return dynamic_cast<NonPipe*>(
-          &m_ports[PortType::Left]->connected_to->owner);
+          &m_ports[PortType::Left]->m_connected_to->m_owner);
     }
     return nullptr;
   }
 
   NonPipe* right_elem() const {
-    if (m_ports[PortType::Right]->connected_to) {
+    if (m_ports[PortType::Right]->m_connected_to) {
       return dynamic_cast<NonPipe*>(
-          &m_ports[PortType::Right]->connected_to->owner);
+          &m_ports[PortType::Right]->m_connected_to->m_owner);
     }
     return nullptr;
   }
