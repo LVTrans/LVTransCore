@@ -9,8 +9,6 @@
 
 namespace lvtrans {
 
-PlantConfigRepository::PlantConfigRepository() {}
-
 PlantRepositoryResult PlantConfigRepository::load(
     const std::filesystem::path& path, PlantData& plant) {
   using namespace nlohmann;
@@ -41,6 +39,15 @@ PlantRepositoryResult PlantConfigRepository::load(
     // etc.
     auto parser = ParserFactory::create(element.type);
     parser->parse(element_container, element);
+  }
+  // connect elements
+  for (const auto& connection : config.connections) {
+    auto from_elem =
+        element_container.get_element_by_id(connection.from.element);
+    auto to_elem = element_container.get_element_by_id(connection.to.element);
+    if (from_elem && to_elem) {
+      from_elem->connect_to(to_elem, connection.from.port, connection.to.port);
+    }
   }
 
   return PlantRepositoryResult::Ok;
