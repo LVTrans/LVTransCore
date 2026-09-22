@@ -57,38 +57,41 @@ class Pipe : public Element {
   const std::vector<double>& get_Q() const { return m_state.Q; }
 
   void connect_left(NonPipe& elem) const {
-    m_ports[PortLeft]->connect(
-        elem.get_ports()[PortRight].get());             // connect ours
-    elem.set_port(PortRight, m_ports[PortLeft].get());  // connect theirs
+    m_ports[PortType::Left]->connect(
+        elem.get_ports()[PortType::Right].get());  // connect ours
+    elem.set_port(PortType::Right,
+                  m_ports[PortType::Left].get());  // connect theirs
   }
   void connect_right(NonPipe& elem) const {
-    m_ports[PortRight]->connect(elem.get_ports()[PortLeft].get());
-    elem.set_port(PortLeft, m_ports[PortRight].get());
+    m_ports[PortType::Right]->connect(elem.get_ports()[PortType::Left].get());
+    elem.set_port(PortType::Left, m_ports[PortType::Right].get());
   }
 
   void remove_left() const {
     if (auto* elem = left_elem()) {
-      elem->set_port(PortRight, nullptr);  // reset theirs
+      elem->set_port(PortType::Right, nullptr);  // reset theirs
     }
-    m_ports[PortLeft]->reset();  // reset ours
+    m_ports[PortType::Left]->reset();  // reset ours
   }
   void remove_right() const {
     if (auto* elem = right_elem()) {
-      elem->set_port(PortLeft, nullptr);
+      elem->set_port(PortType::Left, nullptr);
     }
-    m_ports[PortRight]->reset();
+    m_ports[PortType::Right]->reset();
   }
 
   NonPipe* left_elem() const {
-    if (m_ports[PortLeft]->connected_to) {
-      return dynamic_cast<NonPipe*>(&m_ports[PortLeft]->connected_to->owner);
+    if (m_ports[PortType::Left]->connected_to) {
+      return dynamic_cast<NonPipe*>(
+          &m_ports[PortType::Left]->connected_to->owner);
     }
     return nullptr;
   }
 
   NonPipe* right_elem() const {
-    if (m_ports[PortRight]->connected_to) {
-      return dynamic_cast<NonPipe*>(&m_ports[PortRight]->connected_to->owner);
+    if (m_ports[PortType::Right]->connected_to) {
+      return dynamic_cast<NonPipe*>(
+          &m_ports[PortType::Right]->connected_to->owner);
     }
     return nullptr;
   }

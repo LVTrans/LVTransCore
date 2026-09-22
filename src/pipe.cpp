@@ -22,8 +22,8 @@ Pipe::Pipe(PipeConfig conf, InitialValues H0, InitialValues Q0)
 
   m_ports.resize(2);
 
-  m_ports[PortLeft] = std::make_unique<Port>(*this);
-  m_ports[PortRight] = std::make_unique<Port>(*this);
+  m_ports[PortType::Left] = std::make_unique<Port>(*this);
+  m_ports[PortType::Right] = std::make_unique<Port>(*this);
 
   initialize_h_q(H0, Q0);
 

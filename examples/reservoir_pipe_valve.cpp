@@ -90,13 +90,12 @@ int main() {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
-  ValveConfig valve_config{
-      .tau_i = tau_i,
-      .tau_f = tau_f,
-      .tc = tc,
-      .em = em,
-      .cvp = CVP,
-  };
+  ValveConfig valve_config{};
+  valve_config.tau_i = tau_i;
+  valve_config.tau_f = tau_f;
+  valve_config.tc = tc;
+  valve_config.em = em;
+  valve_config.cvp = CVP;
 
   auto valve = std::make_shared<Valve>(valve_config);
 

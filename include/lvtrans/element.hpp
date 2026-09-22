@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include "lvtrans/port.hpp"
@@ -26,7 +27,7 @@ struct IterateInput {
   double R{};
 };
 
-enum PortIndex { PortLeft, PortRight, PortUp, PortDown };
+enum PortType : std::uint8_t { Left, Right, Up, Down };
 
 class Element {
  public:

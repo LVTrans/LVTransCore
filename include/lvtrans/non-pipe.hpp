@@ -14,7 +14,7 @@ class NonPipe : public Element {
   void set_b_characteristics(double b) { m_b_characteristics = b; }
 
   Ports& get_ports() { return m_ports; }
-  void set_port(PortIndex index, Port* port) { m_ports[index]->connect(port); }
+  void set_port(PortType index, Port* port) { m_ports[index]->connect(port); }
 
  protected:
   std::shared_ptr<Element> m_left_elem;

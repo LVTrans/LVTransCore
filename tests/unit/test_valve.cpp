@@ -6,32 +6,34 @@
 using namespace lvtrans;
 
 TEST(ValveTest, InitializesPortsAndOpening) {
-  auto valve = std::make_shared<Valve>(ValveConfig{
-      .tau_i = 0.8,
-      .tau_f = 0.0,
-      .tc = 4.0,
-      .em = 1.0,
-      .cvp = 0.5,
-  });
+  ValveConfig config{};
+  config.tau_i = 0.8;
+  config.tau_f = 0.0;
+  config.tc = 4.0;
+  config.em = 1.0;
+  config.cvp = 0.5;
+  auto valve = std::make_shared<Valve>(config);
+
   EXPECT_DOUBLE_EQ(valve->get_tau(), 0.8);
-  ASSERT_GT(valve->get_ports().size(), static_cast<size_t>(PortRight));
-  for (auto index : {PortLeft, PortRight}) {
+  ASSERT_GT(valve->get_ports().size(), static_cast<size_t>(PortType::Right));
+  for (auto index : {PortType::Left, PortType::Right}) {
     const auto& port = valve->get_ports()[index];
     ASSERT_NE(port, nullptr);
     EXPECT_EQ(&port->owner, valve.get());
     EXPECT_EQ(port->connected_to, nullptr);
   }
-  EXPECT_NE(valve->get_ports()[PortLeft], valve->get_ports()[PortRight]);
+  EXPECT_NE(valve->get_ports()[PortType::Left],
+            valve->get_ports()[PortType::Right]);
 }
 
 TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
-  Valve valve(ValveConfig{
-      .tau_i = 0.8,
-      .tau_f = 0.2,
-      .tc = 4.0,
-      .em = 2.0,
-      .cvp = 0.5,
-  });
+  ValveConfig config{};
+  config.tau_i = 0.8;
+  config.tau_f = 0.2;
+  config.tc = 4.0;
+  config.em = 2.0;
+  config.cvp = 0.5;
+  Valve valve(config);
   IterateInput input{};
   valve.iterate(input, {});
   EXPECT_DOUBLE_EQ(valve.get_tau(), 0.8);
@@ -48,13 +50,13 @@ TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
 }
 
 TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
-  Valve valve(ValveConfig{
-      .tau_i = 1.0,
-      .tau_f = 0.0,
-      .tc = 4.0,
-      .em = 1.0,
-      .cvp = 0.5,
-  });
+  ValveConfig config{};
+  config.tau_i = 1.0;
+  config.tau_f = 0.0;
+  config.tc = 4.0;
+  config.em = 1.0;
+  config.cvp = 0.5;
+  Valve valve(config);
   valve.set_c_characteristics(8.0);
   valve.set_b_characteristics(2.0);
 
@@ -64,13 +66,13 @@ TEST(ValveTest, OpenBoundarySatisfiesHeadAndFlowEquations) {
 }
 
 TEST(ValveTest, FullyClosedBoundaryStopsFlow) {
-  Valve valve(ValveConfig{
-      .tau_i = 1.0,
-      .tau_f = 0.0,
-      .tc = 4.0,
-      .em = 1.0,
-      .cvp = 0.5,
-  });
+  ValveConfig config{};
+  config.tau_i = 1.0;
+  config.tau_f = 0.0;
+  config.tc = 4.0;
+  config.em = 1.0;
+  config.cvp = 0.5;
+  Valve valve(config);
   valve.set_c_characteristics(8.0);
   valve.set_b_characteristics(2.0);
 
