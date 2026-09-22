@@ -47,10 +47,16 @@ target_compile_features(
 )
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    MESSAGE("Using GNU/Clang compiler")
     target_compile_options(lvtrans_core PRIVATE
-        -Wall -Wextra -Wpedantic -Wconversion
+        -Wall -Werror -Wextra -Wpedantic -Wconversion -Wcast-align
+        -Wunused
+        -Wshadow
+        -Wold-style-cast
+        -Wpointer-arith -Wcast-qual -Wmissing-prototypes -Wno-missing-braces
     )
 elseif(MSVC)
+    MESSAGE("Using MSVC compiler")
     target_compile_options(lvtrans_core PRIVATE
         /W4 /permissive- /GS
     )
