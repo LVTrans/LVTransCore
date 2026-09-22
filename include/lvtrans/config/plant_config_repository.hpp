@@ -2,8 +2,12 @@
 
 #include <cstdint>
 #include <filesystem>
-#include "lvtrans/plant.hpp"
+#include <memory>
 namespace lvtrans {
+struct PlantData;
+struct ElementConfig;
+class ElementContainer;
+enum class ElementType : std::uint8_t;
 
 enum class PlantRepositoryResult : std::uint8_t { Ok, Error };
 

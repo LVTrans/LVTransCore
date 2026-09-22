@@ -7,6 +7,7 @@ set(TEST_SOURCES
   unit/test_element_container.cpp
   unit/test_plant.cpp
   unit/test_plant_config_repo.cpp
+  unit/test_plant_configuration.cpp
   test_multi_elements.cpp
 )
 
