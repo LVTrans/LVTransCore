@@ -8,7 +8,8 @@ inline std::string get_mock_data_file_path(std::string_view path) {
 }
 
 // Returns true if both file contents are line-for-line equal.
-inline bool compare_csv_files(std::string path1, std::string path2) {
+inline bool compare_csv_files(const std::string& path1,
+                              const std::string& path2) {
   std::ifstream f1(path1);
   std::ifstream f2(path2);
 
