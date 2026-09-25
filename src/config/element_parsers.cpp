@@ -1,47 +1,61 @@
 #include "lvtrans/config/element_parsers.hpp"
 namespace lvtrans {
 
-void ValveParser::parse(ElementContainer& container,
-                        const ElementConfig& element) {
+ElementParseResult ValveParser::parse(ElementContainer& container,
+                                      const ElementConfig& element) {
   const auto& config = std::get<ValveParameters>(element.parameters);
   const auto state = element.state ? std::get<ValveState>(*element.state)
                                    : ValveState{config.tau_i};
   auto valve = container.add_element_with_id<Valve>(element.id, config, state);
-  if (valve.has_value()) {
-    valve.value()->set_name(element.name);
+
+  if (!valve.has_value()) {
+    return ElementParseResult::Error;
   }
+
+  valve.value()->set_name(element.name);
+
+  return ElementParseResult::Success;
 }
 
-void PipeParser::parse(ElementContainer& container,
-                       const ElementConfig& element) {
+ElementParseResult PipeParser::parse(ElementContainer& container,
+                                     const ElementConfig& element) {
   const auto& config = std::get<PipeParameters>(element.parameters);
 
-  assert(check_parameters(config) && "Invalid pipe geometry or reach count");
+  if (!check_parameters(config)) {
+    return ElementParseResult::Error;
+  }
+
+  InitialPipeParams H0 = 0.0;
+  InitialPipeParams Q0 = 0.0;
 
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);
-    assert(check_state(state, config) && "Invalid pipe state");
-    auto pipe = container.add_element_with_id<Pipe>(element.id, config, state.H,
-                                                    state.Q);
-    if (pipe.has_value()) {
-      pipe.value()->set_name(element.name);
+    if (!check_state(state, config)) {
+      return ElementParseResult::Error;
     }
-  } else {
-    auto pipe =
-        container.add_element_with_id<Pipe>(element.id, config, 0.0, 0.0);
-    if (pipe.has_value()) {
-      pipe.value()->set_name(element.name);
-    }
+    H0 = state.H;
+    Q0 = state.Q;
   }
+
+  auto pipe = container.add_element_with_id<Pipe>(element.id, config, H0, Q0);
+  if (!pipe.has_value()) {
+    return ElementParseResult::Error;
+  }
+  pipe.value()->set_name(element.name);
+
+  return ElementParseResult::Success;
 }
 
-void ReservoirParser::parse(ElementContainer& container,
-                            const ElementConfig& element) {
+ElementParseResult ReservoirParser::parse(ElementContainer& container,
+                                          const ElementConfig& element) {
   auto reservoir = container.add_element_with_id<Reservoir>(
-    element.id, std::get<ReservoirParameters>(element.parameters));
-  if (reservoir.has_value()) {
-    reservoir.value()->set_name(element.name);
+      element.id, std::get<ReservoirParameters>(element.parameters));
+  if (!reservoir.has_value()) {
+    return ElementParseResult::Error;
   }
+
+  reservoir.value()->set_name(element.name);
+  return ElementParseResult::Success;
 }
 
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {

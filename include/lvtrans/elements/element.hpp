@@ -31,7 +31,7 @@ class Element {
   virtual ElementType get_type() = 0;
   void connect_to(Element* other, PortType from, PortType to) const;
   void reset_ports() const;
-  Port* get_available_port() const;
+  Port* get_first_available_port() const;
 
   void set_name(const std::string& name) { m_name = name; }
   std::string get_name() const { return m_name; }
