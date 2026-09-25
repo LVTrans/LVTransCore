@@ -1,4 +1,5 @@
 #pragma once
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -19,6 +20,16 @@ inline bool compare_csv_files(const std::string& path1,
   }
   if (f2.fail()) {
     std::cout << "compare_csv_files failed: " << path2 << " not found\n";
+    return false;
+  }
+
+  int line_count1 = std::count(std::istreambuf_iterator<char>(f1),
+                               std::istreambuf_iterator<char>(), '\n');
+  int line_count2 = std::count(std::istreambuf_iterator<char>(f2),
+                               std::istreambuf_iterator<char>(), '\n');
+
+  if (line_count1 != line_count2) {
+    std::cout << "compare_csv_files failed: line count mismatch\n";
     return false;
   }
 

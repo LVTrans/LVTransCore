@@ -14,7 +14,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   using namespace lvtrans;
 
   const auto file_path =
-      get_mock_data_file_path("plant_config_1_expected.json");
+      get_mock_data_file_path("expected/plant_config_1_expected.json");
   PlantData plant_data;
 
   ASSERT_EQ(PlantConfigRepository::load(file_path, plant_data),
@@ -82,7 +82,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(valve_left->m_connected_to->m_connected_to, valve_left);
 
   const auto generated_path =
-      get_mock_data_file_path("plant_config_1_generated.json");
+      get_mock_data_file_path("generated/plant_config_1_generated.json");
   ASSERT_EQ(PlantConfigRepository::save(generated_path, plant_data),
             PlantRepositoryResult::Ok);
 
@@ -108,10 +108,11 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   using namespace lvtrans;
   PlantData loaded, reloaded;
   ASSERT_EQ(PlantConfigRepository::load(
-                get_mock_data_file_path("plant_config_complex.json"), loaded),
+                get_mock_data_file_path("expected/plant_config_complex.json"),
+                loaded),
             PlantRepositoryResult::Ok);
   const auto saved_path =
-      get_mock_data_file_path("plant_config_complex_generated.json");
+      get_mock_data_file_path("generated/plant_config_complex_generated.json");
   ASSERT_EQ(PlantConfigRepository::save(saved_path, loaded),
             PlantRepositoryResult::Ok);
   ASSERT_EQ(PlantConfigRepository::load(saved_path, reloaded),
