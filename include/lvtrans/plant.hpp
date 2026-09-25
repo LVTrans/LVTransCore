@@ -26,7 +26,7 @@ class Plant {
   explicit Plant(const std::string& file_path);
 
   template <typename T, typename... Args>
-  T* add_element(Args&&... args) {
+  std::optional<T*> add_element(Args&&... args) {
     return m_data.element_container.add_element<T>(std::forward<Args>(args)...);
   }
   const std::vector<std::unique_ptr<Pipe>>& get_pipes() const {
@@ -38,12 +38,12 @@ class Plant {
   std::vector<Element*> get_elements() const {
     return m_data.element_container.get_elements();
   }
-  Element* get_element_by_id(ElementID id) {
+  std::optional<Element*> get_element_by_id(ElementID id) {
     return m_data.element_container.get_element_by_id(id);
   }
 
   template <typename T>
-  T* get_element_by_id(ElementID id) {
+  std::optional<T*> get_element_by_id(ElementID id) {
     return m_data.element_container.get_element_by_id<T>(id);
   }
 

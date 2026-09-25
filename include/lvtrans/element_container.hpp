@@ -2,13 +2,13 @@
 
 #include <algorithm>
 #include <memory>
-#include <stdexcept>
+#include <optional>
 #include <unordered_map>
 #include <vector>
 #include "lvtrans/elements/pipe.hpp"
 namespace lvtrans {
 
-enum class ElementAbstractType {
+enum class ElementAbstractType : std::uint8_t {
   Pipe,
   NonPipe,
 };
@@ -21,14 +21,14 @@ class ElementContainer {
   ElementContainer& operator=(ElementContainer&&) = default;
 
   template <typename T, typename... Args>
-  T* add_element(Args&&... args) {
+  std::optional<T*> add_element(Args&&... args) {
     return add_element_with_id<T>(m_element_id, std::forward<Args>(args)...);
   }
 
   template <typename T, typename... Args>
-  T* add_element_with_id(ElementID id, Args&&... args) {
+  std::optional<T*> add_element_with_id(ElementID id, Args&&... args) {
     if (id < 0 || m_element_indices.contains(id)) {
-      return nullptr;
+      return std::nullopt;
     }
     auto element = std::make_unique<T>(std::forward<Args>(args)...);
     auto* ptr = element.get();

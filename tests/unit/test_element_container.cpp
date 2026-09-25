@@ -2,10 +2,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <memory>
-#include <random>
 #include <type_traits>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/elements/reservoir.hpp"
@@ -28,9 +25,9 @@ const PipeParameters pipe_config{
 template <typename T>
 T* add_to(ElementContainer& container) {
   if constexpr (std::is_base_of_v<Pipe, T>) {
-    return container.add_element<T>(pipe_config, 150.0, 0.0);
+    return container.add_element<T>(pipe_config, 150.0, 0.0).value();
   } else {
-    return container.add_element<T>(150.0);
+    return container.add_element<T>(150.0).value();
   }
 }
 
@@ -56,7 +53,7 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   valve_config.tc = 4.0;
   valve_config.em = 1.0;
   valve_config.cvp = 0.5;
-  auto valve = container.add_element<Valve>(valve_config);
+  auto valve = container.add_element<Valve>(valve_config).value();
 
   EXPECT_NE(reservoir->get_ID(), pipe->get_ID());
   EXPECT_NE(reservoir->get_ID(), valve->get_ID());
@@ -99,7 +96,7 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
 TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   ElementContainer container;
   auto reservoir = add_to<Reservoir>(container);
-  auto valve = container.add_element<Valve>(ValveParameters{});
+  auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
@@ -122,7 +119,7 @@ TEST(ElementContainerTest,
      ResettingSparsePortsIsRepeatableAndPreservesOtherConnections) {
   ElementContainer container;
   auto reservoir = add_to<Reservoir>(container);
-  auto valve = container.add_element<Valve>(ValveParameters{});
+  auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);

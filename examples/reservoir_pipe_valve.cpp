@@ -66,7 +66,7 @@ int main() {
   const double H0 =
       HR - R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0;
 
-  auto reservoir = plant.add_element<Reservoir>(HR);
+  auto reservoir = plant.add_element<Reservoir>(HR).value();
 
   const double Qi =
       std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
@@ -79,7 +79,7 @@ int main() {
     Q0_[i] = Qi;
   }
 
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
@@ -90,7 +90,7 @@ int main() {
   valve_config.em = em;
   valve_config.cvp = CVP;
 
-  auto valve = plant.add_element<Valve>(valve_config);
+  auto valve = plant.add_element<Valve>(valve_config).value();
 
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
