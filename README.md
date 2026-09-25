@@ -8,16 +8,16 @@ The plant should be able to:
 
 | Done | Requirement                                                     | Designed in architecture? | Notes                                           |
 | ---- | --------------------------------------------------------------- | ------------------------- | ----------------------------------------------- |
-| [ ]  | Load existing plant from file                                   | OK                        |                                                 |
-| [ ]  | Save plant to file                                              | OK                        |                                                 |
+| [x]  | Load existing plant from file                                   | OK                        |                                                 |
+| [x]  | Save plant to file                                              | OK                        |                                                 |
 | [x]  | Step simulation                                                 | OK                        |                                                 |
 | [x]  | Step simulation _N_ times                                       | OK                        |                                                 |
 | [ ]  | Run simulation continuously                                     | OK                        | Maybe the client should be responsible instead? |
 | [ ]  | Stop simulation                                                 | OK                        |                                                 |
 | [ ]  | Pause simulation                                                | OK                        |                                                 |
 | [ ]  | Resume simulation                                               | OK                        |                                                 |
-| [ ]  | Save current simulation state                                   | OK                        |                                                 |
-| [ ]  | Continue simulation from a loaded state                         | OK                        | Via constructor                                 |
+| [x]  | Save current simulation state                                   | OK                        |                                                 |
+| [x]  | Continue simulation from a loaded state                         | OK                        | Via constructor                                 |
 | [ ]  | Read element outputs/state while the simulation is running      | OK                        | Via visitor pattern                             |
 | [ ]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
 | [ ]  | Expose simulation output independently of the user interface    |                           |                                                 |

@@ -35,7 +35,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   };
 
   const auto test_file_path =
-      get_mock_data_file_path("reservoir_pipe_valve.csv");
+      get_mock_data_file_path("generated/reservoir_pipe_valve.csv");
   std::ofstream output_file(test_file_path);
 
   if (!output_file) {
@@ -48,11 +48,6 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   const double dt = dx / a;
 
   const double system_dt = 2.0 * dt;
-
-  std::cout << "dx        = " << dx << " m\n";
-  std::cout << "dt MOC    = " << dt << " s\n";
-  std::cout << "system dt = " << system_dt << " s\n";
-
   output_file << "t,tau,H_valve,Q_valve\n";
 
   std::vector<double> H0_(pipe_config.num_reaches + 1, 0.0);
@@ -97,7 +92,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   pipe->connect_to(valve, PortType::Right, PortType::Left);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
-  for (int k = 1; k < Kmax; ++k) {
+  for (int k = 1; k < Kmax / 2 - 9; ++k) {
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
@@ -105,10 +100,29 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
                 << pipe->get_Q()[pipe_config.num_reaches] << '\n';
   }
 
+  // save state
+  std::cout << "saving state...\n";
+  plant.save(get_mock_data_file_path("generated/temp.json"));
+
+  auto plant2 = Plant(get_mock_data_file_path("generated/temp.json"));
+  std::cout << "loading state...\n";
+  // output_file << "time,tau,H,Q\n";
+
+  auto pipe2 = plant2.get_element_by_id<Pipe>(pipe->get_ID());
+  auto valve2 = plant2.get_element_by_id<Valve>(valve->get_ID());
+
+  for (int k = Kmax / 2 - 9; k < Kmax; ++k) {
+    plant2.step();
+
+    output_file << plant2.get_current_time() << "," << valve2->get_tau() << ","
+                << pipe2->get_H()[pipe_config.num_reaches] << ","
+                << pipe2->get_Q()[pipe_config.num_reaches] << '\n';
+  }
+
   output_file.close();
 
   const auto expected_file_path =
-      get_mock_data_file_path("reservoir_pipe_valve_expected.csv");
+      get_mock_data_file_path("expected/reservoir_pipe_valve_expected.csv");
 
   EXPECT_TRUE(compare_csv_files(test_file_path, expected_file_path));
 }
