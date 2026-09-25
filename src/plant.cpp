@@ -34,11 +34,7 @@ void Plant::step() {
     input.t = m_data.state.current_time;
     non_pipe->iterate(input);
   }
-
-  auto res = PlantConfigRepository::save("plant_config.json", m_data);
-  if (res != PlantRepositoryResult::Ok) {
-    std::cerr << "Failed to save plant config\n";
-  }
+  m_data.state.num_iterations++;
 }
 
 void Plant::run_steps(size_t num_steps) {
