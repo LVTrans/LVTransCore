@@ -2,12 +2,12 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <lvtrans/pipe.hpp>
-#include <lvtrans/reservoir.hpp>
-#include <lvtrans/valve.hpp>
+#include <lvtrans/elements/pipe.hpp>
+#include <lvtrans/elements/reservoir.hpp>
+#include <lvtrans/elements/valve.hpp>
 #include <memory>
 #include "lvtrans/const.hpp"
-#include "lvtrans/element.hpp"
+#include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant.hpp"
 #include "lvtrans/port.hpp"
 
@@ -105,6 +105,7 @@ int main() {
                 << pipe->get_Q()[pipe_config.num_reaches] << '\n';
   }
   output_file.close();
+  plant.display();
 
   return 0;
 }

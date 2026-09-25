@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include <lvtrans/reservoir.hpp>
+#include <lvtrans/elements/reservoir.hpp>
 #include <memory>
 
 using namespace lvtrans;

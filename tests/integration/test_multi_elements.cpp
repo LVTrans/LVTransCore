@@ -3,12 +3,12 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
-#include <lvtrans/pipe.hpp>
-#include <lvtrans/reservoir.hpp>
-#include <lvtrans/valve.hpp>
+#include <lvtrans/elements/pipe.hpp>
+#include <lvtrans/elements/reservoir.hpp>
+#include <lvtrans/elements/valve.hpp>
+#include "../test_helpers.hpp"
 #include "lvtrans/const.hpp"
 #include "lvtrans/plant.hpp"
-#include "test_helpers.hpp"
 
 TEST(MultiElementsTest, ReservoirPipeValve) {
   double a = 1200.0;   // Wave propagation velocity [m/s]

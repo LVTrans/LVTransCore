@@ -3,7 +3,8 @@
 #include <variant>
 #include <vector>
 #include "lvtrans/const.hpp"
-#include "lvtrans/non-pipe.hpp"
+#include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
 namespace lvtrans {
 
 inline constexpr double calculate_R(double f, double dx, double diameter,
@@ -22,25 +23,6 @@ inline constexpr double calculate_B(double a, double area) {
   return a / (consts::g * area);
 }
 
-struct PipeParameters {
-  double length{};
-  double diameter{};
-  double f{};
-  double a{};
-  double z0{};
-  double z1{};
-  double lambda{};
-  double f_max{};
-  size_t num_reaches{};
-  bool use_diameter{};
-  bool use_full_moody{};
-};
-
-struct PipeState {
-  std::vector<double> H{};
-  std::vector<double> Q{};
-};
-
 class Pipe : public Element {
   using InitialValues = std::variant<double, std::vector<double>>;
 
@@ -51,10 +33,15 @@ class Pipe : public Element {
                IterateOutput output = {}) override;
 
   const PipeParameters& config() const { return m_config; }
+  ElementType get_type() override { return ElementType::Pipe; }
   double get_R() const { return m_R; }
   double get_B() const { return m_B; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
+  ElementParameters get_parameters() const override { return m_config; }
+  std::optional<ElementState> get_state() const override {
+    return std::make_optional(m_state);
+  }
 
   void remove_left() const {
     if (auto* elem = left_elem()) {

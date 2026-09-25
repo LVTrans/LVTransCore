@@ -6,24 +6,13 @@
 #include <string>
 #include <variant>
 #include <vector>
-#include "lvtrans/element.hpp"
-#include "lvtrans/pipe.hpp"
+#include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant_types.hpp"
-#include "lvtrans/reservoir.hpp"
-#include "lvtrans/valve.hpp"
 #include "nlohmann/json.hpp"
 namespace lvtrans {
 
-enum class ElementType : std::uint8_t { Pipe, Reservoir, Valve };
 using ParameterValue = std::variant<double, std::string>;
-struct PlantMetaData {
-  std::string name;
-};
-
-using ElementState = std::variant<ValveState, PipeState>;
-using ElementParameters =
-    std::variant<ValveParameters, PipeParameters, ReservoirParameters>;
-
 struct ElementConfig {
   int id;
   std::string name;
@@ -32,12 +21,12 @@ struct ElementConfig {
   std::optional<ElementState> state;
 };
 
-struct ConnectionConfig {
-  struct Connection {
-    PortType port;
-    ElementID element;
-  };
+struct Connection {
+  PortType port_type;
+  ElementID element_id;
+};
 
+struct ConnectionConfig {
   Connection from;
   Connection to;
 };
@@ -50,7 +39,7 @@ struct PlantConfiguration {
   std::vector<ElementConfig> elements;
   std::vector<ConnectionConfig> connections;
   std::optional<PlantState> state;
-  int format_version;
+  int format_version{1};
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
@@ -59,20 +48,19 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0,
                                    z1, lambda, f_max, num_reaches, use_diameter,
                                    use_full_moody)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0)
-
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 // The time step is stored once, in simulation.step_size.
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(LossCoefficients, cvp, cvm)
 
-NLOHMANN_DEFINE_DERIVED_TYPE_NON_INTRUSIVE(ValveParameters, LossCoefficients,
-                                           tau_i, tau_f, tc, em)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0, cvp, cvm)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveParameters, tau_i, tau_f, tc, em, cda0,
+                                   cvp, cvm)
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ElementType,
-                             {{ElementType::Pipe, "Pipe"},
-                              {ElementType::Pipe, "NormalPipe"},
+                             {{ElementType::Pipe, "NormalPipe"},
+                              {ElementType::Pipe, "Pipe"},
                               {ElementType::Reservoir, "Reservoir"},
                               {ElementType::Valve, "Valve"}})
 
@@ -81,7 +69,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PortType, {{PortType::Left, "left"},
                                         {PortType::Up, "up"},
                                         {PortType::Down, "down"}})
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig::Connection, port, element)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Connection, port_type, element_id)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
 
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {

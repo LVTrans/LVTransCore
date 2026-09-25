@@ -1,9 +1,9 @@
 #include <cassert>
 #include <cstdlib>
 #include <iostream>
-#include <lvtrans/pipe.hpp>
+#include <lvtrans/elements/pipe.hpp>
 #include <memory>
-#include "lvtrans/element.hpp"
+#include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
 

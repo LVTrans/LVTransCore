@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <unordered_map>
 #include <vector>
-#include "lvtrans/pipe.hpp"
+#include "lvtrans/elements/pipe.hpp"
 namespace lvtrans {
 
 enum class ElementAbstractType {

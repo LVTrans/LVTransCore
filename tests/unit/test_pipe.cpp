@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <lvtrans/pipe.hpp>
-#include <lvtrans/reservoir.hpp>
+#include <lvtrans/elements/pipe.hpp>
+#include <lvtrans/elements/reservoir.hpp>
 #include <memory>
 
 TEST(PipeTest, ConnectsToUpstreamReservoir) {

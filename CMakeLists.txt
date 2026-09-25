@@ -22,10 +22,10 @@ add_library(lvtrans_core)
 target_sources(
     lvtrans_core
     PRIVATE
-        src/pipe.cpp
-        src/valve.cpp
-        src/reservoir.cpp
-        src/element.cpp
+        src/elements/pipe.cpp
+        src/elements/valve.cpp
+        src/elements/reservoir.cpp
+        src/elements/element.cpp
         src/plant.cpp
         src/element_container.cpp
         src/config/plant_config_repository.cpp
