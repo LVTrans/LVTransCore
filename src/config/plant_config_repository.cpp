@@ -1,11 +1,7 @@
 #include "lvtrans/config/plant_config_repository.hpp"
-#include <algorithm>
-#include <cmath>
 #include <fstream>
 #include <iostream>
-#include <set>
 #include <string>
-#include <tuple>
 #include <unordered_set>
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/config/plant_configuration.hpp"

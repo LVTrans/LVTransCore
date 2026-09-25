@@ -82,11 +82,9 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   Plant plant(system_dt);
 
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_);
-
-  auto valve = plant.add_element<Valve>(valve_config);
-
-  auto reservoir = plant.add_element<Reservoir>(HR);
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
+  auto valve = plant.add_element<Valve>(valve_config).value();
+  auto reservoir = plant.add_element<Reservoir>(HR).value();
 
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
@@ -108,8 +106,8 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   std::cout << "loading state...\n";
   // output_file << "time,tau,H,Q\n";
 
-  auto pipe2 = plant2.get_element_by_id<Pipe>(pipe->get_ID());
-  auto valve2 = plant2.get_element_by_id<Valve>(valve->get_ID());
+  auto pipe2 = plant2.get_element_by_id<Pipe>(pipe->get_ID()).value();
+  auto valve2 = plant2.get_element_by_id<Valve>(valve->get_ID()).value();
 
   for (int k = Kmax / 2 - 9; k < Kmax; ++k) {
     plant2.step();

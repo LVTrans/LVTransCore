@@ -50,7 +50,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0,
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
-// The time step is stored once, in simulation.step_size.
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0, cvp, cvm)
@@ -77,11 +76,15 @@ inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   switch (value.type) {
     case ElementType::Pipe:
       j["parameters"] = std::get<PipeParameters>(value.parameters);
-      if (value.state) j["state"] = std::get<PipeState>(*value.state);
+      if (value.state) {
+        j["state"] = std::get<PipeState>(*value.state);
+      }
       break;
     case ElementType::Valve:
       j["parameters"] = std::get<ValveParameters>(value.parameters);
-      if (value.state) j["state"] = std::get<ValveState>(*value.state);
+      if (value.state) {
+        j["state"] = std::get<ValveState>(*value.state);
+      }
       break;
     case ElementType::Reservoir:
       j["parameters"] = std::get<ReservoirParameters>(value.parameters);
@@ -98,11 +101,15 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   switch (value.type) {
     case ElementType::Pipe:
       value.parameters = j.at("parameters").get<PipeParameters>();
-      if (has_state) value.state = j.at("state").get<PipeState>();
+      if (has_state) {
+        value.state = j.at("state").get<PipeState>();
+      }
       break;
     case ElementType::Valve:
       value.parameters = j.at("parameters").get<ValveParameters>();
-      if (has_state) value.state = j.at("state").get<ValveState>();
+      if (has_state) {
+        value.state = j.at("state").get<ValveState>();
+      }
       break;
     case ElementType::Reservoir:
       value.parameters = j.at("parameters").get<ReservoirParameters>();
@@ -116,7 +123,9 @@ inline void to_json(nlohmann::json& j, const PlantConfiguration& value) {
        {"elements", value.elements},
        {"connections", value.connections},
        {"format_version", value.format_version}};
-  if (value.state) j["plant_state"] = *value.state;
+  if (value.state) {
+    j["plant_state"] = *value.state;
+  }
 }
 
 inline void from_json(const nlohmann::json& j, PlantConfiguration& value) {

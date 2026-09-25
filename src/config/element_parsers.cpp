@@ -6,8 +6,10 @@ void ValveParser::parse(ElementContainer& container,
   const auto& config = std::get<ValveParameters>(element.parameters);
   const auto state = element.state ? std::get<ValveState>(*element.state)
                                    : ValveState{config.tau_i};
-  auto* valve = container.add_element_with_id<Valve>(element.id, config, state);
-  valve->set_name(element.name);
+  auto valve = container.add_element_with_id<Valve>(element.id, config, state);
+  if (valve.has_value()) {
+    valve.value()->set_name(element.name);
+  }
 }
 
 void PipeParser::parse(ElementContainer& container,
@@ -19,21 +21,27 @@ void PipeParser::parse(ElementContainer& container,
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);
     assert(check_state(state, config) && "Invalid pipe state");
-    auto* pipe = container.add_element_with_id<Pipe>(element.id, config,
-                                                     state.H, state.Q);
-    pipe->set_name(element.name);
+    auto pipe = container.add_element_with_id<Pipe>(element.id, config, state.H,
+                                                    state.Q);
+    if (pipe.has_value()) {
+      pipe.value()->set_name(element.name);
+    }
   } else {
-    auto* pipe =
+    auto pipe =
         container.add_element_with_id<Pipe>(element.id, config, 0.0, 0.0);
-    pipe->set_name(element.name);
+    if (pipe.has_value()) {
+      pipe.value()->set_name(element.name);
+    }
   }
 }
 
 void ReservoirParser::parse(ElementContainer& container,
                             const ElementConfig& element) {
-  auto* reservoir = container.add_element_with_id<Reservoir>(
-      element.id, std::get<ReservoirParameters>(element.parameters));
-  reservoir->set_name(element.name);
+  auto reservoir = container.add_element_with_id<Reservoir>(
+    element.id, std::get<ReservoirParameters>(element.parameters));
+  if (reservoir.has_value()) {
+    reservoir.value()->set_name(element.name);
+  }
 }
 
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
