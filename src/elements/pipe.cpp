@@ -7,7 +7,7 @@
 
 namespace lvtrans {
 
-Pipe::Pipe(PipeParameters conf, InitialValues H0, InitialValues Q0)
+Pipe::Pipe(PipeParameters conf, InitialPipeParams H0, InitialPipeParams Q0)
     : m_config(conf),
       m_area(calculate_pipe_area(conf.diameter)),
       m_dx(calculate_dx(conf.length, conf.num_reaches)),
@@ -37,7 +37,7 @@ Pipe::Pipe(PipeParameters conf, InitialValues H0, InitialValues Q0)
 
 Pipe::~Pipe() {}
 
-void Pipe::initialize_h_q(InitialValues& H0, InitialValues& Q0) {
+void Pipe::initialize_h_q(InitialPipeParams& H0, InitialPipeParams& Q0) {
   if (auto* val = std::get_if<double>(&H0)) {
     m_state.H.assign(static_cast<size_t>(m_num_nodes), *val);
   } else {

@@ -20,8 +20,7 @@ class Port {
   void reset() { m_connected_to = nullptr; }
   bool is_connected() const { return m_connected_to != nullptr; }
   bool is_complete() const {
-    return m_connected_to != nullptr &&
-           m_connected_to->m_connected_to->m_connected_to == this;
+    return m_connected_to != nullptr && m_connected_to->m_connected_to == this;
   }
 };
 

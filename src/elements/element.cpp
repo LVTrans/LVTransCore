@@ -1,6 +1,5 @@
 #include "lvtrans/elements/element.hpp"
 #include <cassert>
-#include <iostream>
 
 namespace lvtrans {
 
@@ -16,9 +15,9 @@ void Element::connect_to(Element* other, PortType from, PortType to) const {
   other->m_ports[to]->connect(m_ports[from].get());
 }
 
-Port* Element::get_available_port() const {
+Port* Element::get_first_available_port() const {
   for (auto& port : m_ports) {
-    if (!port->m_connected_to) {
+    if (port && !port->m_connected_to) {
       return port.get();
     }
   }

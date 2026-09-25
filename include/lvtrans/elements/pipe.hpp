@@ -23,11 +23,10 @@ inline constexpr double calculate_B(double a, double area) {
   return a / (consts::g * area);
 }
 
+using InitialPipeParams = std::variant<double, std::vector<double>>;
 class Pipe : public Element {
-  using InitialValues = std::variant<double, std::vector<double>>;
-
  public:
-  Pipe(PipeParameters conf, InitialValues H0, InitialValues Q0);
+  Pipe(PipeParameters conf, InitialPipeParams H0, InitialPipeParams Q0);
   ~Pipe();
   void iterate(const IterateInput input = {},
                IterateOutput output = {}) override;
@@ -78,7 +77,7 @@ class Pipe : public Element {
   }
 
  private:
-  void initialize_h_q(InitialValues& H0, InitialValues& Q0);
+  void initialize_h_q(InitialPipeParams& H0, InitialPipeParams& Q0);
 
   PipeParameters m_config{};
 

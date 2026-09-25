@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <type_traits>
 #include <vector>
 #include "lvtrans/element_container.hpp"
@@ -74,7 +75,7 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
 TEST(ElementContainerTest, DuplicateInsertIDShouldFail) {
   ElementContainer container;
   EXPECT_NE(container.add_element_with_id<Reservoir>(0, 1.0), nullptr);
-  EXPECT_EQ(container.add_element_with_id<Reservoir>(0, 1.0), nullptr);
+  EXPECT_EQ(container.add_element_with_id<Reservoir>(0, 1.0), std::nullopt);
 }
 
 TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
