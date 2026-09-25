@@ -1,7 +1,7 @@
 #include <benchmark/benchmark.h>
-#include "lvtrans/pipe.hpp"
-#include "lvtrans/reservoir.hpp"
-#include "lvtrans/valve.hpp"
+#include "lvtrans/elements/pipe.hpp"
+#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/valve.hpp"
 
 static void BM_PipeIterate(benchmark::State& state) {
   using namespace lvtrans;

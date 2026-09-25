@@ -1,20 +1,10 @@
 #pragma once
 #include <cmath>
-#include "lvtrans/element.hpp"
-#include "lvtrans/non-pipe.hpp"
+#include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
-
-struct ValveParameters : public LossCoefficients {
-  double tau_i{};
-  double tau_f{};
-  double tc{};
-  double em{};
-};
-
-struct ValveState {
-  double tau{};
-};
 
 class Valve : public NonPipe {
  public:
@@ -22,12 +12,15 @@ class Valve : public NonPipe {
   Valve(const ValveParameters& conf, ValveState state);
   ~Valve();
   void iterate(const IterateInput input, IterateOutput output) override;
+  ElementParameters get_parameters() const override { return m_config; }
+  std::optional<ElementState> get_state() const override { return m_state; }
   double get_H() const override {
     return m_c_characteristics - m_b_characteristics * calculate_q();
   }
   double get_Q(const IterateInput) const override { return calculate_q(); }
 
   double get_tau() const { return m_state.tau; }
+  ElementType get_type() override { return ElementType::Valve; }
 
  private:
   double calculate_q() const {

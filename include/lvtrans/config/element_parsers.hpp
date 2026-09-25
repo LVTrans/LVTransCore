@@ -2,6 +2,8 @@
 
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_container.hpp"
+#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
 
 class ElementParser {

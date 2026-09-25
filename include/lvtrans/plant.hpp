@@ -1,9 +1,11 @@
 #pragma once
+#include <iosfwd>
 #include <string>
-#include "lvtrans/element.hpp"
+#include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
-#include "lvtrans/non-pipe.hpp"
-#include "lvtrans/pipe.hpp"
+#include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
+#include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/plant_types.hpp"
 namespace lvtrans {
 
@@ -11,10 +13,14 @@ struct PlantData {
   ElementContainer element_container;
   PlantState state;
   SimulationConfig config;
+  PlantMetaData meta;
+  int format_version{1};
 };
 
 class Plant {
  public:
+  Plant() = default;
+  ~Plant() = default;
   explicit Plant(double step_size);
   explicit Plant(PlantData& data);
   explicit Plant(const std::string& file_path);
@@ -45,9 +51,12 @@ class Plant {
     return m_data.element_container.remove_element(id);
   }
 
+  PlantRepositoryResult save(const std::string& file_path) {
+    return PlantConfigRepository::save(file_path, m_data);
+  }
   void step();
   void run_steps(size_t num_steps);
-  void display();
+  void display() const;
   double get_current_time() const { return m_data.state.current_time; }
 
  private:

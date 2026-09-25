@@ -25,6 +25,8 @@ inline bool compare_csv_files(const std::string& path1,
   int line{1};
   for (std::string line1, line2;
        std::getline(f1, line1) && std::getline(f2, line2);) {
+    std::cout << "comparing line " << line << ": " << line1 << " vs " << line2
+              << '\n';
     if (line1 != line2) {
       std::cout << "failed at line " << line << ": " << line1 << " vs " << line2
                 << '\n';

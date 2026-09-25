@@ -8,8 +8,8 @@
 #include <unordered_set>
 #include <vector>
 #include "lvtrans/element_container.hpp"
-#include "lvtrans/reservoir.hpp"
-#include "lvtrans/valve.hpp"
+#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/valve.hpp"
 
 namespace {
 using namespace lvtrans;

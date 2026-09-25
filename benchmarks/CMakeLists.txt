@@ -16,4 +16,6 @@ target_link_libraries(benchmarks
 )
 
 target_compile_options(benchmarks PRIVATE -Wall -Wextra -Wpedantic)
-
+target_compile_definitions(benchmarks PRIVATE
+    LVTRANS_BENCHMARK_DATA_DIR="${PROJECT_SOURCE_DIR}/tests/test_data"
+)

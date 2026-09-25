@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
-#include "lvtrans/pipe.hpp"
+#include "lvtrans/elements/pipe.hpp"
+#include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/plant.hpp"
-#include "lvtrans/reservoir.hpp"
 
 void print_elements(const lvtrans::Plant& plant) {
   for (const auto* element : plant.get_elements()) {

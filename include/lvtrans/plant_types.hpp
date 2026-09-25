@@ -1,6 +1,12 @@
 #pragma once
 
+#include <string>
+
 namespace lvtrans {
+
+struct PlantMetaData {
+  std::string name;
+};
 
 struct SimulationConfig {
   double step_size{0.1};

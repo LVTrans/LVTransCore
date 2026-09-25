@@ -3,7 +3,7 @@
 #include <cstdint>
 namespace lvtrans {
 
-enum PortType : std::uint8_t { Left, Right, Up, Down };
+enum PortType : std::size_t { Left, Right, Up, Down };
 class Element;
 
 class Port {
@@ -18,6 +18,11 @@ class Port {
   PortType get_port_type() const { return m_type; }
   void connect(Port* other) { m_connected_to = other; }
   void reset() { m_connected_to = nullptr; }
+  bool is_connected() const { return m_connected_to != nullptr; }
+  bool is_complete() const {
+    return m_connected_to != nullptr &&
+           m_connected_to->m_connected_to->m_connected_to == this;
+  }
 };
 
 }  // namespace lvtrans

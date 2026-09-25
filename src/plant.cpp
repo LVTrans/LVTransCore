@@ -2,7 +2,7 @@
 #include <iostream>
 #include <utility>
 #include "lvtrans/config/plant_config_repository.hpp"
-#include "lvtrans/element.hpp"
+#include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
 
@@ -47,13 +47,7 @@ void Plant::run_steps(size_t num_steps) {
   }
 }
 
-void Plant::display() {
-  for (const auto* element : get_elements()) {
-    std::cout << "Element " << element->get_ID();
-    std::cout << " (Type: " << typeid(*element).name() << ")\n";
-  }
-
-  std::cout << "\n------\n";
+void Plant::display() const {
   for (auto& pipe : m_data.element_container.get_pipes()) {
     auto* left_elem = pipe->left_elem();
     if (left_elem) {

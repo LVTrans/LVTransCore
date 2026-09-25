@@ -1,6 +1,6 @@
-#include "lvtrans/reservoir.hpp"
+#include "lvtrans/elements/reservoir.hpp"
 #include <memory>
-#include "lvtrans/element.hpp"
+#include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
 

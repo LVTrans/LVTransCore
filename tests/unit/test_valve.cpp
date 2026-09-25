@@ -1,6 +1,6 @@
 #include <gtest/gtest.h>
-#include <lvtrans/pipe.hpp>
-#include <lvtrans/valve.hpp>
+#include <lvtrans/elements/pipe.hpp>
+#include <lvtrans/elements/valve.hpp>
 #include <memory>
 
 using namespace lvtrans;
