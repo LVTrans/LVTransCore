@@ -17,6 +17,7 @@ class ElementContainer {
  public:
   ElementContainer() = default;
   ~ElementContainer() = default;
+  // Element contains unique pointers so enable default move constructors.
   ElementContainer(ElementContainer&&) = default;
   ElementContainer& operator=(ElementContainer&&) = default;
 

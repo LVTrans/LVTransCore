@@ -10,15 +10,13 @@ Plant::Plant(double step_size) : m_data{} {
   m_data.config.step_size = step_size;
 }
 
-Plant::Plant(PlantData& data) : m_data(std::move(data)) {}
+Plant::Plant(PlantData&& data) : m_data(std::move(data)) {}
 
 Plant::Plant(const std::string& file_path) : m_data{} {
   auto path = std::filesystem::path(file_path);
-  auto res = PlantConfigRepository::load(path, m_data);
 
-  if (res != PlantRepositoryResult::Ok) {
+  if (PlantConfigRepository::load(path, m_data) != PlantRepositoryResult::Ok) {
     std::cerr << "Failed to load plant config\n";
-    return;
   }
 }
 

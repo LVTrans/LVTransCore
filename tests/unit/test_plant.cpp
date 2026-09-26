@@ -3,13 +3,6 @@
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/plant.hpp"
 
-void print_elements(const lvtrans::Plant& plant) {
-  for (const auto* element : plant.get_elements()) {
-    std::cout << "Element " << element->get_ID() << std::endl;
-    std::cout << "Type: " << typeid(*element).name() << std::endl;
-  }
-}
-
 TEST(PlantTest, AddElements) {
   using namespace lvtrans;
   Plant plant(0);

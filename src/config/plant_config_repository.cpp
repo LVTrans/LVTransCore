@@ -32,7 +32,7 @@ PlantRepositoryResult PlantConfigRepository::load(
   try {
     json = json::parse(file);
     config = json.get<PlantConfiguration>();
-  } catch (json::parse_error& ex) {
+  } catch (std::exception& ex) {
     return PlantRepositoryResult::Error;
   }
 
