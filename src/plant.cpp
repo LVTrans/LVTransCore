@@ -22,6 +22,7 @@ Plant::Plant(const std::string& file_path) : m_data{} {
 
 void Plant::step() {
   m_data.state.current_time += m_data.config.step_size;
+  ++m_data.state.num_iterations;
 
   for (auto& pipe : m_data.element_container.get_pipes()) {
     pipe->iterate();
@@ -32,7 +33,6 @@ void Plant::step() {
     input.t = m_data.state.current_time;
     non_pipe->iterate(input);
   }
-  m_data.state.num_iterations++;
 }
 
 void Plant::run_steps(size_t num_steps) {
@@ -53,6 +53,10 @@ void Plant::display() const {
       std::cout << "<---->V(" << right_elem->get_ID() << ")\n";
     }
   }
+}
+
+PlantRepositoryResult Plant::save(const std::string& file_path) {
+  return PlantConfigRepository::save(file_path, m_data);
 }
 
 }  // namespace lvtrans

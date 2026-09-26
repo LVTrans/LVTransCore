@@ -51,9 +51,7 @@ class Plant {
     return m_data.element_container.remove_element(id);
   }
 
-  PlantRepositoryResult save(const std::string& file_path) {
-    return PlantConfigRepository::save(file_path, m_data);
-  }
+  PlantRepositoryResult save(const std::string& file_path);
   void step();
   void run_steps(size_t num_steps);
   void display() const;
