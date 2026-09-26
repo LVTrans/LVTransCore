@@ -1,5 +1,4 @@
 #pragma once
-#include <iosfwd>
 #include <string>
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
@@ -22,8 +21,9 @@ class Plant {
   Plant() = default;
   ~Plant() = default;
   explicit Plant(double step_size);
-  explicit Plant(PlantData& data);
   explicit Plant(const std::string& file_path);
+  // Note: must be called with rvalue reference to avoid copy (std::move)
+  explicit Plant(PlantData&& data);
 
   template <typename T, typename... Args>
   std::optional<T*> add_element(Args&&... args) {

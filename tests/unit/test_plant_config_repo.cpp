@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <array>
 #include <fstream>
+#include <utility>
 #include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/config/plant_config_repository.hpp"
@@ -147,6 +148,6 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   std::ifstream saved_file(saved_path);
   ASSERT_TRUE(saved_file.is_open());
   EXPECT_EQ(nlohmann::json::parse(saved_file).at("connections").size(), 16u);
-  Plant plant(loaded);
+  Plant plant(std::move(loaded));
   plant.display();
 }
