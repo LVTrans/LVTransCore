@@ -10,8 +10,9 @@ class Valve : public NonPipe {
  public:
   Valve(const ValveParameters& conf);
   Valve(const ValveParameters& conf, ValveState state);
-  ~Valve();
+  ~Valve() = default;
   void iterate(const IterateInput input, IterateOutput output) override;
+  ModificationResult modify(const ElementModification& mod) override;
   ElementParameters get_parameters() const override { return m_config; }
   std::optional<ElementState> get_state() const override { return m_state; }
   double get_H() const override {

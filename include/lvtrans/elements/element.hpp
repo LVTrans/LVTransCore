@@ -3,6 +3,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
+#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/port.hpp"
 
@@ -29,6 +30,10 @@ class Element {
   virtual ~Element() = default;
   virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
   virtual ElementType get_type() = 0;
+  virtual ModificationResult modify(const ElementModification&) {
+    return ModificationResult::Ok;
+  }
+
   void connect_to(Element* other, PortType from, PortType to) const;
   void reset_ports() const;
   Port* get_first_available_port() const;

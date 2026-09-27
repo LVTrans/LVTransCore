@@ -1,5 +1,6 @@
 #include "lvtrans/elements/valve.hpp"
 #include <cmath>
+#include "lvtrans/element_modifications.hpp"
 namespace lvtrans {
 
 Valve::Valve(const ValveParameters& conf)
@@ -13,7 +14,12 @@ Valve::Valve(const ValveParameters& conf, ValveState state)
   m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
 }
 
-Valve::~Valve() {}
+ModificationResult Valve::modify(const ElementModification& mod) {
+  if (std::get_if<SetValveOpening>(&mod)) {
+    // m_config.tau_i = std::get<SetValveTauI>(mod).tau_i;
+  }
+  return ModificationResult::Ok;
+}
 
 void Valve::iterate(const IterateInput input, IterateOutput) {
   if (input.t < m_config.tc) {

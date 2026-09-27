@@ -1,0 +1,80 @@
+@startuml
+
+class ElementStateVisitor {
+  + visit(pipe: Pipe): TElementState
+}
+
+class ElementDisplayVisitor {
+  + visit(pipe: Pipe): TElementState
+  + visit(valve: Valve): TElementState
+  + visit(reservoir: Reservoir): TElementState
+}
+
+object ScalarValue {
+  + name: string
+  + symbol: string
+  + unit: string
+
+  + value: double
+}
+
+object SeriesValue {
+  + name: string
+  + symbol: string
+
+  + x_unit: string
+  + y_unit: string
+
+  + x: vector<double>
+  + y: vector<double>
+}
+
+object DisplayValue {
+  + value: ScalarValue | SeriesValue
+}
+
+object ElementView {
+  + id: ElementID
+  + type: ElementType
+
+  + values: vector<DisplayValue>
+}
+
+object ToggleModification {
+  + state1_name: string
+  + state2_name: string
+  + current_state: string
+}
+
+object NumberModification {
+  + value: double
+}
+
+object RangeModification {
+  + min_value: double
+  + max_value: double
+  + step_size: double
+}
+
+object ModificationOption {
+  + type: ToggleModification | NumberModification | RangeModification
+}
+
+object ElementModification {
+  + id: ElementID
+  + type: ElementType
+
+  + options: vector<ModificationOption>
+}
+
+ToggleModification --> ModificationOption
+NumberModification --> ModificationOption
+RangeModification --> ModificationOption
+ModificationOption --> ElementModification
+
+
+SeriesValue --> DisplayValue
+ScalarValue --> DisplayValue
+DisplayValue --> ElementView
+
+@enduml

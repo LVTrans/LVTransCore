@@ -42,3 +42,10 @@ TEST(ReservoirTest, SupportsOutflowEquilibriumAndReverseFlow) {
   EXPECT_DOUBLE_EQ(reservoir.get_Q(), -1.0);
   EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
 }
+
+TEST(ReservoirTest, ModifiesHead) {
+  Reservoir reservoir(150.0);
+  EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
+  reservoir.modify(SetReservoirH0{200.0});
+  EXPECT_DOUBLE_EQ(reservoir.get_H(), 200.0);
+}

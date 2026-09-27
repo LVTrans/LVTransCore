@@ -1,4 +1,5 @@
 #pragma once
+#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -10,6 +11,13 @@ class Reservoir : public NonPipe {
   Reservoir(const ReservoirParameters& config);
   ~Reservoir();
   void iterate(const IterateInput = {}, IterateOutput = {}) override {};
+  ModificationResult modify(const ElementModification& mod) override {
+    if (std::get_if<SetReservoirH0>(&mod)) {
+      m_config.H0 = std::get<SetReservoirH0>(mod).h0;
+      return ModificationResult::Ok;
+    }
+    return ModificationResult::UnsupportedModification;
+  }
   ElementType get_type() override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_config; }
   std::optional<ElementState> get_state() const override { return {}; }

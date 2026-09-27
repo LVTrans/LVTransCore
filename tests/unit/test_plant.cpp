@@ -42,3 +42,13 @@ TEST(PlantTest, LooksUpAndRemovesElementsById) {
   plant.remove_element(1);
   EXPECT_EQ(plant.get_elements().size(), 0u);
 }
+
+TEST(PlantTest, ModifiesElement) {
+  using namespace lvtrans;
+  Plant plant(0);
+  auto reservoir = plant.add_element<Reservoir>(100.0).value();
+  ASSERT_NE(reservoir, nullptr);
+  EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
+  plant.modify_element(0, SetReservoirH0{200.0});
+  EXPECT_DOUBLE_EQ(reservoir->get_H(), 200.0);
+}

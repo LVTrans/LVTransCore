@@ -2,6 +2,7 @@
 #include <string>
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
+#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/elements/pipe.hpp"
@@ -24,6 +25,9 @@ class Plant {
   explicit Plant(const std::string& file_path);
   // Note: must be called with rvalue reference to avoid copy (std::move)
   explicit Plant(PlantData&& data);
+
+  ModificationResult modify_element(ElementID id,
+                                    const ElementModification& mod);
 
   template <typename T, typename... Args>
   std::optional<T*> add_element(Args&&... args) {
