@@ -37,10 +37,10 @@ class ElementContainer {
     element->set_ID(id);
 
     if constexpr (std::is_base_of_v<Pipe, T>) {
-      m_pipes.push_back(std::move(element));
+      m_pipes.emplace_back(std::move(element));
       m_element_indices[id] = {ElementAbstractType::Pipe, m_pipes.size() - 1};
     } else {
-      m_non_pipes.push_back(std::move(element));
+      m_non_pipes.emplace_back(std::move(element));
       m_element_indices[id] = {ElementAbstractType::NonPipe,
                                m_non_pipes.size() - 1};
     }

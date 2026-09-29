@@ -66,8 +66,4 @@ void Plant::display() const {
   }
 }
 
-PlantRepositoryResult Plant::save(const std::string& file_path) {
-  return PlantConfigRepository::save(file_path, m_data);
-}
-
 }  // namespace lvtrans

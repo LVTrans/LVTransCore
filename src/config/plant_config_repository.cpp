@@ -89,7 +89,7 @@ std::vector<ElementConfig> to_element_configs(
     config.type = element->get_type();
     config.parameters = element->get_parameters();
     config.state = element->get_state();
-    configs.push_back(config);
+    configs.emplace_back(config);
   }
 
   return configs;
@@ -118,7 +118,7 @@ std::vector<ConnectionConfig> to_connection_configs(
       config.to = {.port_type = port->m_connected_to->get_port_type(),
                    .element_id = port->m_connected_to->m_owner.get_ID()};
 
-      configs.push_back(config);
+      configs.emplace_back(config);
       seen[config.to.element_id].insert(config.to.port_type);
     }
   }

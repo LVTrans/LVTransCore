@@ -9,11 +9,11 @@ std::vector<Element*> ElementContainer::get_elements() const {
   elements.reserve(m_pipes.size() + m_non_pipes.size());
 
   for (const auto& pipe : m_pipes) {
-    elements.push_back(pipe.get());
+    elements.emplace_back(pipe.get());
   }
 
   for (const auto& non_pipe : m_non_pipes) {
-    elements.push_back(non_pipe.get());
+    elements.emplace_back(non_pipe.get());
   }
 
   return elements;
