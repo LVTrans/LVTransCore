@@ -36,6 +36,8 @@ class Pipe : public Element {
   double get_R() const { return m_R; }
   double get_B() const { return m_B; }
   const std::vector<double>& get_H() const { return m_state.H; }
+  double get_latest_H() const { return m_state.H.back(); }
+  double get_latest_Q() const { return m_state.Q.back(); }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   ElementParameters get_parameters() const override { return m_config; }
   std::optional<ElementState> get_state() const override {

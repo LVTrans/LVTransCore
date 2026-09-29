@@ -31,7 +31,8 @@ ModificationResult Plant::modify_element(ElementID id,
 }
 
 void Plant::step() {
-  m_data.state.current_time += m_data.config.step_size;
+  m_data.state.current_time +=
+      m_data.config.step_size * m_data.config.sim_speed;
   ++m_data.state.num_iterations;
 
   for (auto& pipe : m_data.element_container.get_pipes()) {

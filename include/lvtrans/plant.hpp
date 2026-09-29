@@ -26,9 +26,6 @@ class Plant {
   // Note: must be called with rvalue reference to avoid copy (std::move)
   explicit Plant(PlantData&& data);
 
-  ModificationResult modify_element(ElementID id,
-                                    const ElementModification& mod);
-
   template <typename T, typename... Args>
   std::optional<T*> add_element(Args&&... args) {
     return m_data.element_container.add_element<T>(std::forward<Args>(args)...);
@@ -49,6 +46,12 @@ class Plant {
   template <typename T>
   std::optional<T*> get_element_by_id(ElementID id) {
     return m_data.element_container.get_element_by_id<T>(id);
+  }
+
+  ModificationResult modify_element(ElementID id,
+                                    const ElementModification& mod);
+  void set_sim_speed(double speed) {
+    m_data.config.sim_speed = speed;
   }
 
   void remove_element(ElementID id) {
