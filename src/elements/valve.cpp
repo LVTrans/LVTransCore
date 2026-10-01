@@ -7,11 +7,9 @@ Valve::Valve(const ValveParameters& conf)
     : Valve(conf, ValveState{conf.tau_i}) {}
 
 Valve::Valve(const ValveParameters& conf, ValveState state)
-    : m_config{conf}, m_state{state} {
-  m_ports.resize(2);
-
-  m_ports[PortType::Left] = std::make_unique<Port>(*this, PortType::Left);
-  m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
+    : m_params{conf}, m_state{state} {
+  m_ports[PortType::Left].emplace(*this, PortType::Left);
+  m_ports[PortType::Right].emplace(*this, PortType::Right);
 }
 
 ModificationResult Valve::modify(const ElementModification& mod) {
@@ -22,12 +20,12 @@ ModificationResult Valve::modify(const ElementModification& mod) {
 }
 
 void Valve::iterate(const IterateInput input, IterateOutput) {
-  if (input.t < m_config.tc) {
+  if (input.t < m_params.tc) {
     m_state.tau =
-        m_config.tau_i - (m_config.tau_i - m_config.tau_f) *
-                             std::pow(input.t / m_config.tc, m_config.em);
+        m_params.tau_i - (m_params.tau_i - m_params.tau_f) *
+                             std::pow(input.t / m_params.tc, m_params.em);
   } else {
-    m_state.tau = m_config.tau_f;
+    m_state.tau = m_params.tau_f;
   }
 }
 

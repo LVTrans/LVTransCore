@@ -1,5 +1,4 @@
 #pragma once
-#include <memory>
 #include "element.hpp"
 #include "lvtrans/port.hpp"
 

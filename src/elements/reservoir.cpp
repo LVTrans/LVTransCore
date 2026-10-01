@@ -1,17 +1,15 @@
 #include "lvtrans/elements/reservoir.hpp"
-#include <memory>
 #include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
 
 Reservoir::Reservoir(const double elevation) {
-  m_config.H0 = elevation;
-  m_ports.resize(PortType::Right + 1);
-  m_ports[PortType::Right] = std::make_unique<Port>(*this, PortType::Right);
+  m_params.H0 = elevation;
+  m_ports[PortType::Right].emplace(*this, PortType::Right);
 }
 
-Reservoir::Reservoir(const ReservoirParameters& config) : Reservoir(config.H0) {
-  m_config = config;
+Reservoir::Reservoir(const ReservoirParameters& params) : Reservoir(params.H0) {
+  m_params = params;
 }
 
 Reservoir::~Reservoir() {}

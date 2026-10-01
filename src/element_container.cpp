@@ -33,7 +33,7 @@ Element* ElementContainer::get_element_by_id(ElementID id) const {
   }
 }
 
-void ElementContainer::remove_element(ElementID id) {
+void ElementContainer::remove_element_by_id(ElementID id) {
   auto it = m_element_indices.find(id);
   if (it == m_element_indices.end()) {
     return;

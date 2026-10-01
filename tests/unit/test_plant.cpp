@@ -34,12 +34,12 @@ TEST(PlantTest, LooksUpAndRemovesElementsById) {
   EXPECT_NE(plant.get_element_by_id(0), nullptr);
   EXPECT_NE(plant.get_element_by_id(1), nullptr);
 
-  plant.remove_element(0);
+  plant.remove_element_by_id(0);
   EXPECT_EQ(plant.get_elements().size(), 1u);
   EXPECT_EQ(plant.get_element_by_id(0), nullptr);
 
   EXPECT_NE(plant.get_element_by_id(1), nullptr);
-  plant.remove_element(1);
+  plant.remove_element_by_id(1);
   EXPECT_EQ(plant.get_elements().size(), 0u);
 }
 

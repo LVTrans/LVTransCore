@@ -49,11 +49,11 @@ class Plant {
   }
 
   ModificationResult modify_element(ElementID id,
-                                    const ElementModification& mod);
+                                    const ElementModification& mod) const;
   void set_sim_speed(double speed) { m_data.config.sim_speed = speed; }
 
-  void remove_element(ElementID id) {
-    return m_data.element_container.remove_element(id);
+  void remove_element_by_id(ElementID id) {
+    return m_data.element_container.remove_element_by_id(id);
   }
 
   PlantRepositoryResult save(const std::string& file_path) {

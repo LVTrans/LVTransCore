@@ -21,7 +21,7 @@ Plant::Plant(const std::string& file_path) : m_data{} {
 }
 
 ModificationResult Plant::modify_element(ElementID id,
-                                         const ElementModification& mod) {
+                                         const ElementModification& mod) const {
   auto* elem = m_data.element_container.get_element_by_id(id);
   if (!elem) {
     return ModificationResult::ElementNotFound;

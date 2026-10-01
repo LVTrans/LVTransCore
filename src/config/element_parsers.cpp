@@ -1,4 +1,6 @@
 #include "lvtrans/config/element_parsers.hpp"
+#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
 
 ElementParseResult ValveParser::parse(ElementContainer& container,
@@ -25,8 +27,8 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
     return ElementParseResult::Error;
   }
 
-  InitialPipeParams H0 = 0.0;
-  InitialPipeParams Q0 = 0.0;
+  InitialPipeValue H0 = 0.0;
+  InitialPipeValue Q0 = 0.0;
 
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);

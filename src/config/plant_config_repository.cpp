@@ -6,7 +6,6 @@
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/plant.hpp"
-#include "nlohmann/json.hpp"
 
 namespace lvtrans {
 
@@ -106,17 +105,18 @@ std::vector<ConnectionConfig> to_connection_configs(
       if (!port || !port->is_connected()) {
         continue;
       }
-      if (seen[element->get_ID()].contains(port->get_port_type())) {
+      if (seen[element->get_ID()].contains(port->get_type())) {
         continue;
       }
 
       ConnectionConfig config;
 
-      config.from = {.port_type = port->get_port_type(),
+      config.from = {.port_type = port->get_type(),
                      .element_id = element->get_ID()};
 
-      config.to = {.port_type = port->m_connected_to->get_port_type(),
-                   .element_id = port->m_connected_to->m_owner.get_ID()};
+      config.to = {
+          .port_type = port->get_connected_to()->get_type(),
+          .element_id = port->get_connected_to()->get_owner().get_ID()};
 
       configs.emplace_back(config);
       seen[config.to.element_id].insert(config.to.port_type);

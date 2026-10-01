@@ -13,21 +13,21 @@ class Reservoir : public NonPipe {
   void iterate(const IterateInput = {}, IterateOutput = {}) override {};
   ModificationResult modify(const ElementModification& mod) override {
     if (std::get_if<SetReservoirH0>(&mod)) {
-      m_config.H0 = std::get<SetReservoirH0>(mod).h0;
+      m_params.H0 = std::get<SetReservoirH0>(mod).h0;
       return ModificationResult::Ok;
     }
     return ModificationResult::UnsupportedModification;
   }
   ElementType get_type() override { return ElementType::Reservoir; }
-  ElementParameters get_parameters() const override { return m_config; }
+  ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {}; }
 
-  double get_H() const override { return m_config.H0; }
+  double get_H() const override { return m_params.H0; }
   double get_Q(const IterateInput = {}) const override {
-    return (m_config.H0 - m_c_characteristics) / m_b_characteristics;
+    return (m_params.H0 - m_c_characteristics) / m_b_characteristics;
   }
 
  private:
-  ReservoirParameters m_config;
+  ReservoirParameters m_params;
 };
 }  // namespace lvtrans
