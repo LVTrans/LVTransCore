@@ -1,201 +1,138 @@
 @startuml
 
 class Port {
-  + Port(owner: Element)
-  - connect_to: shared_ptr<Port>
+  + Port(owner, type)
+  + connect(other)
+  + reset()
+  + is_connected()
+  + get_owner(): Element
+  + get_type(): PortType
+  - connected_to: *Port
   - owner: &Element
+  - type: PortType
 }
 
 abstract class Element {
-  + Element(id: int, type: ElementType)
-  - ports: vecotor<Port>
-  + ID: int
-  + type: ElementType
+  # ports: array<optional<Port>, 4>
+  # id: ElementID
+  # type: ElementType
+  + set_port(type, port): void
+  + get_ports(): array<optional<Port>, 4>
+  + set_name(name)
+  + get_name(): string 
   + get_ID(): int
-  + iterate(): void
+  + get_parameters(): void
   + get_state(): ElementState
+  + get_first_available_port(): const Port*
+  + connect_to(other, from, to): void
+  + reset_ports()
+  
 }
 
 abstract class NonPipe {
-  + c_characteristic: double
-  + b_characteristic: double
+  # c_characteristic: double
+  # b_characteristic: double
   + set_c_characteristic(val): void
   + set_b_characteristic(val): void
+  + get_Q(): double
+  + get_H(): double
 
 }
 
-abstract class Pipe {
+abstract class BasePipe {
   - H: vector<double>
   - Q: vector<double>
+  + get_H()
+  + get_Q()
+  + remove_left()
+  + remove_right()
 }
 
-class Reservoir {
-  + Reservoir(id: int, HR: int)
-  + HR: int
+class ConcreteNonPipe  {
+  + ConcreteNonPipe(id: int)
 }
 
-class Valve {
-  - State: Open | Closed
-  + Valve(id: int)
-  + set_state(state): void
-  + is_open(): bool
+class ConcretePipe {
+  + ConcretePipe(id: int)
 }
-
-class Pump {
-  + Pump(id: int)
-}
-
-class AlgebraicPipe {
-  + AlgebraicPipe(id: int)
-}
-
-class NormalPipe {
-  + NormalPipe(id: int)
-}
-
-
-interface ElementVisitor {
-  + visit(pipe: Pipe): void
-  + visit(valve: Valve): void
-  + visit(reservoir: Reservoir): void
-}
-
-
-class ElementStateVisitor {
-  + visit(pipe: Pipe): TElementState
-}
-
-class ElementDisplayVisitor {
-  + visit(pipe: Pipe): TElementState
-  + visit(valve: Valve): TElementState
-  + visit(reservoir: Reservoir): TElementState
-}
-
-object ScalarValue {
-  + name: string
-  + symbol: string
-  + unit: string
-
-  + value: double
-}
-
-object SeriesValue {
-  + name: string
-  + symbol: string
-
-  + x_unit: string
-  + y_unit: string
-
-  + x: vector<double>
-  + y: vector<double>
-}
-
-object DisplayValue {
-  + value: ScalarValue | SeriesValue
-}
-
-object ElementView {
-  + id: ElementID
-  + type: ElementType
-
-  + values: vector<DisplayValue>
-}
-
-object ToggleModification {
-  + state1_name: string
-  + state2_name: string
-  + current_state: string
-}
-
-object NumberModification {
-  + value: double
-}
-
-object RangeModification {
-  + min_value: double
-  + max_value: double
-  + step_size: double
-}
-
-object ModificationOption {
-  + type: ToggleModification | NumberModification | RangeModification
-}
-
-object ElementModification {
-  + id: ElementID
-  + type: ElementType
-
-  + options: vector<ModificationOption>
-}
-
-ToggleModification --> ModificationOption
-NumberModification --> ModificationOption
-RangeModification --> ModificationOption
-ModificationOption --> ElementModification
-
 
 
 class Plant {
-  - container: PlantContainer
-  - state: PlantState
-  + Plant(file_path: string)
-  + get_state(): PlantState
-  + step(): void
-  + run_steps(in: int): void
-  + stop(): void
-  + pause(): void
-  + resume(): void
-  + run(): void
+  - data: PlantData
+  + Plant(file_path)
+  + Plant(plantData)
+  + step() 
+  + run_steps(steps) 
+  + get_state()
+  + save_data(path)
+  + load_data(path)
   + save_state(path)
-  + modify_element(id, mod_type, mod_value): void
+  + modify_element(id, modification)
+  + add_element<T>(args)
+  + add_element_with_id<T>(id, args)
+  + get_element_by_ID(id)
+  + get_pipes() 
+  + get_non_pipes()
+  + get_elements()
+  + remove_element_by_id(id)
 }
 
 
-object PlantState {
-  + time_step: double
-  + current_time: double
-  + num_iterations: int
+object PlantData {
+  + element_container: ElementContainer
+  + state: PlantState
+  + config: SimulationConfig
+  + meta: PlantMetaData
 }
 
 
-class PlantContainer {
-  - elements: map<ElementID, Element>
-  + add_element(Element): void
-  + remove_element(ElementID): boolean
-  + get_element_by_ID(id): Element
+class ElementContainer {
+  - pipes: vector<unique_ptr<BasePipe>>
+  - non_pipes: vector<unique_ptr<NonPipe>>
+  - element_indicies: map<ElementID, pair<ElementAbstractType, int>>
+  + ElementContainer()
+  + add_element<T>(args)
+  + add_element_with_id<T>(id, args)
+  + get_element_by_ID(id)
+  + get_pipes() 
+  + get_non_pipes()
+  + get_elements()
+  + remove_element_by_id(id)
 }
 
 
-class ConfigurationService << (S,#FF7700) Singleton >> {
+class PlantConfigurationRepository << (S,#FF7700) Singleton >> {
   + read_plant_from_file(path): PlantConfiguration
   + save_plant_to_file(path, plant): Result
 }
 
+abstract class ElementParser {
+  + parse(container, element_config)
+}
 
-SeriesValue --> DisplayValue
-ScalarValue --> DisplayValue
-DisplayValue --> ElementView
+class ConcreteElementParser {
+  + parse(container, element_config)
+}
+
+
 
 
 ' Relations
-ElementVisitor <|-- ElementStateVisitor
-ElementVisitor <|-- ElementDisplayVisitor
-Plant -- PlantState
+Plant -- PlantData
 
 Element <|-- NonPipe
-Element <|-- Pipe
-Element -- Port
+Element <|-- BasePipe
+Element ||--o{ Port
 
-NonPipe <|-- Reservoir
-NonPipe <|-- Valve
-NonPipe <|-- Pump
+NonPipe <|-- ConcreteNonPipe
+BasePipe <|-- ConcretePipe
 
-Pipe <|-- AlgebraicPipe
-Pipe <|-- NormalPipe
+ElementParser <|-- ConcreteElementParser
 
-PlantContainer -- Element
 
-Plant -- PlantContainer
-Plant -- ConfigurationService
+ElementContainer -- Element
+
+PlantData -- ElementContainer
+Plant -- PlantConfigurationRepository
 
 @enduml

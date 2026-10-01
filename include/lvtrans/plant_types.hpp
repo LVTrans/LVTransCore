@@ -10,6 +10,7 @@ struct PlantMetaData {
 
 struct SimulationConfig {
   double step_size{0.1};
+  double sim_speed{1.0};
 };
 
 struct PlantState {

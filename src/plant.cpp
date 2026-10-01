@@ -20,8 +20,19 @@ Plant::Plant(const std::string& file_path) : m_data{} {
   }
 }
 
+ModificationResult Plant::modify_element(ElementID id,
+                                         const ElementModification& mod) const {
+  auto* elem = m_data.element_container.get_element_by_id(id);
+  if (!elem) {
+    return ModificationResult::ElementNotFound;
+  }
+
+  return elem->modify(mod);
+}
+
 void Plant::step() {
-  m_data.state.current_time += m_data.config.step_size;
+  m_data.state.current_time +=
+      m_data.config.step_size * m_data.config.sim_speed;
   ++m_data.state.num_iterations;
 
   for (auto& pipe : m_data.element_container.get_pipes()) {
@@ -53,10 +64,6 @@ void Plant::display() const {
       std::cout << "<---->V(" << right_elem->get_ID() << ")\n";
     }
   }
-}
-
-PlantRepositoryResult Plant::save(const std::string& file_path) {
-  return PlantConfigRepository::save(file_path, m_data);
 }
 
 }  // namespace lvtrans

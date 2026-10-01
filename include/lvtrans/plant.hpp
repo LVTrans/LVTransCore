@@ -2,6 +2,7 @@
 #include <string>
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
+#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/elements/pipe.hpp"
@@ -47,11 +48,24 @@ class Plant {
     return m_data.element_container.get_element_by_id<T>(id);
   }
 
-  void remove_element(ElementID id) {
-    return m_data.element_container.remove_element(id);
+  ModificationResult modify_element(ElementID id,
+                                    const ElementModification& mod) const;
+  void set_sim_speed(double speed) { m_data.config.sim_speed = speed; }
+
+  void remove_element_by_id(ElementID id) {
+    return m_data.element_container.remove_element_by_id(id);
   }
 
-  PlantRepositoryResult save(const std::string& file_path);
+  PlantRepositoryResult save(const std::string& file_path) {
+    return PlantConfigRepository::save(file_path, m_data);
+  }
+
+  // @brief Loads a new plant configuration from file.
+  // @remarks Replaces current plant data with the loaded data.
+  PlantRepositoryResult load(const std::string& file_path) {
+    return PlantConfigRepository::load(file_path, m_data);
+  }
+
   void step();
   void run_steps(size_t num_steps);
   void display() const;

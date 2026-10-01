@@ -19,7 +19,7 @@ The plant should be able to:
 | [x]  | Save current simulation state                                   | OK                        |                                                 |
 | [x]  | Continue simulation from a loaded state                         | OK                        | Via constructor                                 |
 | [ ]  | Read element outputs/state while the simulation is running      | OK                        | Via visitor pattern                             |
-| [ ]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
+| [x]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
 | [ ]  | Expose simulation output independently of the user interface    |                           |                                                 |
 | [ ]  | Support execution faster than real time                         | OK                        |                                                 |
 | [ ]  | Support multiple independent simulation instances               | OK?                       |                                                 |
@@ -83,8 +83,43 @@ int main(){
     // modify element checks that
     // 1. the element exists given the id
     // 2. the combination of state type, modification type and modification value is valid for that element
-    plant.modify_element("valve_1", VALVE_STATE, true);
-    plant.modify_element("pelton_1", PELTON_INJECTOR, NON_LINEAR);
+    plant.modify_element(1, SetValveOpening{0.5});
+    plant.modify_element(2, SetReservoirH0{100.0});
+    plant.modify_element(3, SetPeltonInjector{.2});
+
+    struct SetValveOpening {
+        double opening;
+    };
+    struct SetReservoirH0 {
+        double h0;
+    };
+    
+    using ElementModification = std::variant<SetValveOpening, SetReservoirH0, SetPeltonInjector>;
+
+    Plant::modify_element(int id, ElementModification mod) {
+        auto element = get_element(id);
+        if (!element) {
+            return;
+        }
+
+        element->modify(mod);
+    }
+
+    virtual void modify(ElementModification mod) = 0;
+    Pipe::modify(mod) {
+        switch (mod) {
+            case SetValveOpening:
+                break;
+            case SetPeltonInjector:
+            case SetPeltonExtractor:
+            case SetReservoirH0:
+                break;
+        }
+    }
+}
+    
+
+    
 }
 ```
 

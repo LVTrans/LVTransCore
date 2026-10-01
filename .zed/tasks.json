@@ -1,0 +1,13 @@
+[
+  {
+    "label": "Generate GUI Architecture Diagram",
+    "command": "plantuml",
+    "args": ["assets/gui_architecture.puml"]
+  },
+  {
+
+    "label": "Generate System Architecture Diagram",
+    "command": "plantuml",
+    "args": ["assets/system_architecture.puml"]
+  }
+]

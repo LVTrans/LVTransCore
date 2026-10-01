@@ -9,9 +9,12 @@ TEST(ReservoirTest, InitializesRightPort) {
   ASSERT_GT(reservoir->get_ports().size(),
             static_cast<size_t>(PortType::Right));
   const auto& port = reservoir->get_ports()[PortType::Right];
-  ASSERT_NE(port, nullptr);
-  EXPECT_EQ(&port->m_owner, reservoir.get());
-  EXPECT_EQ(port->m_connected_to, nullptr);
+  ASSERT_TRUE(port.has_value());
+  EXPECT_FALSE(reservoir->get_ports()[PortType::Left].has_value());
+  EXPECT_FALSE(reservoir->get_ports()[PortType::Up].has_value());
+  EXPECT_FALSE(reservoir->get_ports()[PortType::Down].has_value());
+  EXPECT_EQ(&port->get_owner(), reservoir.get());
+  EXPECT_EQ(port->get_connected_to(), nullptr);
 }
 
 TEST(ReservoirTest, KeepsHeadConstantAcrossIterations) {
@@ -41,4 +44,11 @@ TEST(ReservoirTest, SupportsOutflowEquilibriumAndReverseFlow) {
   reservoir.set_c_characteristics(200.0);
   EXPECT_DOUBLE_EQ(reservoir.get_Q(), -1.0);
   EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
+}
+
+TEST(ReservoirTest, ModifiesHead) {
+  Reservoir reservoir(150.0);
+  EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
+  reservoir.modify(SetReservoirH0{200.0});
+  EXPECT_DOUBLE_EQ(reservoir.get_H(), 200.0);
 }
