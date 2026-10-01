@@ -14,4 +14,12 @@ Reservoir::Reservoir(const ReservoirParameters& params) : Reservoir(params.H0) {
 
 Reservoir::~Reservoir() {}
 
+ModificationResult Reservoir::modify(const ElementModification& mod) {
+  if (std::get_if<SetReservoirH0>(&mod)) {
+    m_params.H0 = std::get<SetReservoirH0>(mod).h0;
+    return ModificationResult::Ok;
+  }
+  return ModificationResult::UnsupportedModification;
+}
+
 }  // namespace lvtrans

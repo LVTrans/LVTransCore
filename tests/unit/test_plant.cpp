@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/plant.hpp"
@@ -49,6 +50,12 @@ TEST(PlantTest, ModifiesElement) {
   auto reservoir = plant.add_element<Reservoir>(100.0).value();
   ASSERT_NE(reservoir, nullptr);
   EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
-  plant.modify_element(0, SetReservoirH0{200.0});
-  EXPECT_DOUBLE_EQ(reservoir->get_H(), 200.0);
+  EXPECT_EQ(plant.modify_element(0, SetReservoirH0{150.0}),
+            ModificationResult::Ok);
+  EXPECT_DOUBLE_EQ(reservoir->get_H(), 150.0);
+  EXPECT_EQ(plant.modify_element(0, SetPeltonExtractor{200.0}),
+            ModificationResult::UnsupportedModification);
+
+  EXPECT_EQ(plant.modify_element(1, SetPeltonExtractor{200.0}),
+            ModificationResult::ElementNotFound);
 }

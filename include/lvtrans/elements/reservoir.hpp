@@ -11,13 +11,8 @@ class Reservoir : public NonPipe {
   Reservoir(const ReservoirParameters& config);
   ~Reservoir();
   void iterate(const IterateInput = {}, IterateOutput = {}) override {};
-  ModificationResult modify(const ElementModification& mod) override {
-    if (std::get_if<SetReservoirH0>(&mod)) {
-      m_params.H0 = std::get<SetReservoirH0>(mod).h0;
-      return ModificationResult::Ok;
-    }
-    return ModificationResult::UnsupportedModification;
-  }
+  ModificationResult modify(const ElementModification& mod) override;
+
   ElementType get_type() override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {}; }
