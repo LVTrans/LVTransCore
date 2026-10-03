@@ -21,7 +21,7 @@ Plant::Plant(const std::string& file_path) : m_data{} {
 }
 
 ModificationResult Plant::modify_element(ElementID id,
-                                         const ElementModification& mod) {
+                                         const ElementModification& mod) const {
   auto* elem = m_data.element_container.get_element_by_id(id);
   if (!elem) {
     return ModificationResult::ElementNotFound;
@@ -64,10 +64,6 @@ void Plant::display() const {
       std::cout << "<---->V(" << right_elem->get_ID() << ")\n";
     }
   }
-}
-
-PlantRepositoryResult Plant::save(const std::string& file_path) {
-  return PlantConfigRepository::save(file_path, m_data);
 }
 
 }  // namespace lvtrans

@@ -9,9 +9,9 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   ASSERT_GT(reservoir->get_ports().size(),
             static_cast<size_t>(PortType::Right));
 
-  auto* reserovoir_port = reservoir->get_ports()[PortType::Right].get();
-  ASSERT_NE(reserovoir_port, nullptr);
-  EXPECT_EQ(&reserovoir_port->m_owner, reservoir.get());
+  ASSERT_TRUE(reservoir->get_ports()[PortType::Right].has_value());
+  auto* reserovoir_port = &*reservoir->get_ports()[PortType::Right];
+  EXPECT_EQ(&reserovoir_port->get_owner(), reservoir.get());
 
   Pipe pipe(
       PipeParameters{
@@ -26,9 +26,9 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
       150.0, 0.0);
   pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
 
-  ASSERT_NE(reserovoir_port->m_connected_to, nullptr);
-  EXPECT_EQ(&reserovoir_port->m_connected_to->m_owner, &pipe);
-  EXPECT_EQ(reserovoir_port->m_connected_to->m_connected_to, reserovoir_port);
+  ASSERT_NE(reserovoir_port->get_connected_to(), nullptr);
+  EXPECT_EQ(&reserovoir_port->get_connected_to()->get_owner(), &pipe);
+  EXPECT_EQ(reserovoir_port->get_connected_to()->get_connected_to(), reserovoir_port);
   EXPECT_NE(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), nullptr);
 
@@ -38,5 +38,5 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
 
   pipe.remove_left();
   EXPECT_EQ(pipe.left_elem(), nullptr);
-  EXPECT_EQ(reserovoir_port->m_connected_to, nullptr);
+  EXPECT_EQ(reserovoir_port->get_connected_to(), nullptr);
 }

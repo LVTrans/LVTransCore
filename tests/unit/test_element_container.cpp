@@ -1,7 +1,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 #include <limits>
-#include <memory>
 #include <optional>
 #include <type_traits>
 #include <vector>
@@ -37,7 +36,7 @@ TEST(ElementContainerTest, EmptyContainerAcceptsMissingLookupsAndRemovals) {
   for (ElementID id : {std::numeric_limits<ElementID>::min(), -1, 0,
                        std::numeric_limits<ElementID>::max()}) {
     EXPECT_EQ(container.get_element_by_id(id), nullptr);
-    EXPECT_NO_THROW(container.remove_element(id));
+    EXPECT_NO_THROW(container.remove_element_by_id(id));
   }
   EXPECT_TRUE(container.get_elements().empty());
   EXPECT_TRUE(container.get_pipes().empty());
@@ -88,7 +87,7 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
   EXPECT_EQ(b->get_ID(), 0);
   EXPECT_NE(a, b);
 
-  first.remove_element(id);
+  first.remove_element_by_id(id);
   EXPECT_TRUE(first.get_elements().empty());
   EXPECT_EQ(second.get_element_by_id(id), b);
   EXPECT_EQ(second.get_elements().size(), 1u);
@@ -101,12 +100,14 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   auto pipe = add_to<Pipe>(container);
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
-  ASSERT_NE(reservoir->get_ports()[PortType::Right]->m_connected_to, nullptr);
-  ASSERT_NE(valve->get_ports()[PortType::Left]->m_connected_to, nullptr);
+  ASSERT_NE(reservoir->get_ports()[PortType::Right]->get_connected_to(),
+            nullptr);
+  ASSERT_NE(valve->get_ports()[PortType::Left]->get_connected_to(), nullptr);
 
-  container.remove_element(pipe->get_ID());
-  EXPECT_EQ(reservoir->get_ports()[PortType::Right]->m_connected_to, nullptr);
-  EXPECT_EQ(valve->get_ports()[PortType::Left]->m_connected_to, nullptr);
+  container.remove_element_by_id(pipe->get_ID());
+  EXPECT_EQ(reservoir->get_ports()[PortType::Right]->get_connected_to(),
+            nullptr);
+  EXPECT_EQ(valve->get_ports()[PortType::Left]->get_connected_to(), nullptr);
   EXPECT_THAT(container.get_elements(), UnorderedElementsAre(reservoir, valve));
 
   auto replacement = add_to<Pipe>(container);
@@ -127,7 +128,8 @@ TEST(ElementContainerTest,
 
   reservoir->reset_ports();
   reservoir->reset_ports();
-  EXPECT_EQ(reservoir->get_ports()[PortType::Right]->m_connected_to, nullptr);
+  EXPECT_EQ(reservoir->get_ports()[PortType::Right]->get_connected_to(),
+            nullptr);
   EXPECT_EQ(pipe->left_elem(), nullptr);
   EXPECT_EQ(pipe->right_elem(), valve);
 
@@ -135,6 +137,6 @@ TEST(ElementContainerTest,
   pipe->reset_ports();
   EXPECT_EQ(pipe->left_elem(), nullptr);
   EXPECT_EQ(pipe->right_elem(), nullptr);
-  EXPECT_EQ(valve->get_ports()[PortType::Left]->m_connected_to, nullptr);
+  EXPECT_EQ(valve->get_ports()[PortType::Left]->get_connected_to(), nullptr);
 }
 }  // namespace

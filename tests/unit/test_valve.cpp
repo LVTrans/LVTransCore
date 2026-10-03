@@ -18,12 +18,14 @@ TEST(ValveTest, InitializesPortsAndOpening) {
   ASSERT_GT(valve->get_ports().size(), static_cast<size_t>(PortType::Right));
   for (auto index : {PortType::Left, PortType::Right}) {
     const auto& port = valve->get_ports()[index];
-    ASSERT_NE(port, nullptr);
-    EXPECT_EQ(&port->m_owner, valve.get());
-    EXPECT_EQ(port->m_connected_to, nullptr);
+    ASSERT_TRUE(port.has_value());
+    EXPECT_EQ(&port->get_owner(), valve.get());
+    EXPECT_EQ(port->get_connected_to(), nullptr);
   }
-  EXPECT_NE(valve->get_ports()[PortType::Left],
-            valve->get_ports()[PortType::Right]);
+  EXPECT_NE(&*valve->get_ports()[PortType::Left],
+            &*valve->get_ports()[PortType::Right]);
+  EXPECT_FALSE(valve->get_ports()[PortType::Up].has_value());
+  EXPECT_FALSE(valve->get_ports()[PortType::Down].has_value());
 }
 
 TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {

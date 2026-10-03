@@ -13,8 +13,9 @@ class Valve : public NonPipe {
   ~Valve() = default;
   void iterate(const IterateInput input, IterateOutput output) override;
   ModificationResult modify(const ElementModification& mod) override;
-  ElementParameters get_parameters() const override { return m_config; }
+  ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return m_state; }
+
   double get_H() const override {
     return m_c_characteristics - m_b_characteristics * calculate_q();
   }
@@ -25,13 +26,13 @@ class Valve : public NonPipe {
 
  private:
   double calculate_q() const {
-    const double CV = m_state.tau * m_state.tau * m_config.cvp;
+    const double CV = m_state.tau * m_state.tau * m_params.cvp;
     return -CV * m_b_characteristics +
            std::sqrt(CV * CV * m_b_characteristics * m_b_characteristics +
                      2.0 * CV * m_c_characteristics);
   }
 
-  ValveParameters m_config{};
+  ValveParameters m_params{};
   ValveState m_state{};
 };
 

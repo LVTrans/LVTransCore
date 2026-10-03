@@ -19,7 +19,7 @@ The plant should be able to:
 | [x]  | Save current simulation state                                   | OK                        |                                                 |
 | [x]  | Continue simulation from a loaded state                         | OK                        | Via constructor                                 |
 | [ ]  | Read element outputs/state while the simulation is running      | OK                        | Via visitor pattern                             |
-| [ ]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
+| [x]  | Change supported runtime inputs while the simulation is running | OK                        |                                                 |
 | [ ]  | Expose simulation output independently of the user interface    |                           |                                                 |
 | [ ]  | Support execution faster than real time                         | OK                        |                                                 |
 | [ ]  | Support multiple independent simulation instances               | OK?                       |                                                 |
