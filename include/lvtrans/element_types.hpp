@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <iostream>
 #include <span>
+#include <sstream>
 #include <string>
 #include <variant>
 #include <vector>
@@ -72,6 +73,13 @@ struct ScalarValue {
     std::cout << "ScalarValue: name=" << name << " unit=" << unit
               << " symbol=" << symbol << " value=" << value << std::endl;
   }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "ScalarValue: name=" << name << " unit=" << unit
+       << " symbol=" << symbol << " value=" << value;
+    return ss.str();
+  }
 };
 
 struct VectorValue {
@@ -91,6 +99,19 @@ struct VectorValue {
                 << "] = " << values[i].y << std::endl;
     }
   }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "VectorValue: name=" << name << " symbol=" << symbol
+       << " x_unit=" << x_unit << " y_unit=" << y_unit
+       << " size=" << values.size() << std::endl;
+
+    for (size_t i = 0; i < values.size(); ++i) {
+      ss << "  x[" << i << "] = " << values[i].x << " y[" << i
+         << "] = " << values[i].y << std::endl;
+    }
+    return ss.str();
+  }
 };
 
 using DisplayValue = std::variant<ScalarValue, VectorValue>;
@@ -108,6 +129,18 @@ struct ElementView {
       std::cout << "  values[" << i << "] = ";
       std::visit([](const auto& value) { value.print(); }, values[i]);
     }
+  }
+
+  std::string to_string() const {
+    std::stringstream ss;
+    ss << "ElementView: element_id=" << element_id
+       << " values.size=" << values.size() << std::endl;
+    for (size_t i = 0; i < values.size(); ++i) {
+      ss << "  values[" << i << "] = ";
+      std::visit([&ss](const auto& value) { ss << value.to_string(); },
+                 values[i]);
+    }
+    return ss.str();
   }
 };
 

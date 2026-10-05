@@ -66,6 +66,8 @@ class Plant {
     return PlantConfigRepository::load(file_path, m_data);
   }
 
+  void reset_state();
+
   void step();
   void run_steps(size_t num_steps);
   void display() const;

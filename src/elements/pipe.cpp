@@ -23,6 +23,7 @@ Pipe::Pipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0)
   m_ports[PortType::Right].emplace(*this, PortType::Right);
 
   initialize_h_q(H0, Q0);
+  m_initial_state = m_state;
 
   m_Z.resize(m_num_nodes);
 
