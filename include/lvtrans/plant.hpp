@@ -69,6 +69,7 @@ class Plant {
   void step();
   void run_steps(size_t num_steps);
   void display() const;
+  std::optional<ElementView> read_state(ElementID id) const;
   double get_current_time() const { return m_data.state.current_time; }
 
  private:

@@ -2,6 +2,9 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
+#include <span>
+#include <string>
 #include <variant>
 #include <vector>
 
@@ -48,8 +51,64 @@ struct ReservoirParameters {
   double cvm{};  //< Loss coefficient with negative flow relative to element
 };
 
+struct DataPoint {
+  double x{};
+  double y{};
+};
+
+using ElementID = int;
+
 using ElementState = std::variant<ValveState, PipeState>;
 using ElementParameters =
     std::variant<ValveParameters, PipeParameters, ReservoirParameters>;
+
+struct ScalarValue {
+  std::string name{};
+  std::string unit{};
+  std::string symbol{};
+  double value{};
+
+  void print() const {
+    std::cout << "ScalarValue: name=" << name << " unit=" << unit
+              << " symbol=" << symbol << " value=" << value << std::endl;
+  }
+};
+
+struct VectorValue {
+  std::string name{};
+  std::string symbol{};
+  std::string x_unit{};
+  std::string y_unit{};
+  std::vector<DataPoint> values{};
+
+  void print() const {
+    std::cout << "VectorValue: name=" << name << " symbol=" << symbol
+              << " x_unit=" << x_unit << " y_unit=" << y_unit
+              << " size=" << values.size() << std::endl;
+
+    for (size_t i = 0; i < values.size(); ++i) {
+      std::cout << "  x[" << i << "] = " << values[i].x << " y[" << i
+                << "] = " << values[i].y << std::endl;
+    }
+  }
+};
+
+using DisplayValue = std::variant<ScalarValue, VectorValue>;
+
+struct ElementView {
+  ElementID element_id{};
+  std::vector<DisplayValue> values{};
+
+  void print() const {
+    std::cout << "ElementView: element_id=" << element_id
+              << " values.size=" << values.size() << std::endl;
+
+    std::cout << "  values: " << std::endl;
+    for (size_t i = 0; i < values.size(); ++i) {
+      std::cout << "  values[" << i << "] = ";
+      std::visit([](const auto& value) { value.print(); }, values[i]);
+    }
+  }
+};
 
 }  // namespace lvtrans

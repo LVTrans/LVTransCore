@@ -1,4 +1,5 @@
 #include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
@@ -20,6 +21,19 @@ ModificationResult Reservoir::modify(const ElementModification& mod) {
     return ModificationResult::Ok;
   }
   return ModificationResult::UnsupportedModification;
+}
+
+ElementView Reservoir::read_view() const {
+  return ElementView{
+      .element_id = m_ID,
+      .values =
+          {
+              ScalarValue{.name = "Reservoir Head",
+                          .unit = "m",
+                          .symbol = "HR",
+                          .value = m_params.H0},
+          },
+  };
 }
 
 }  // namespace lvtrans

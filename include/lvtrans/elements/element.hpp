@@ -9,7 +9,6 @@
 namespace lvtrans {
 
 using Ports = std::array<std::optional<Port>, 4>;
-using ElementID = int;
 
 struct IterateOutput {
   double H{};
@@ -28,7 +27,7 @@ class Element {
  public:
   Element() = default;
   virtual ~Element() = default;
-  virtual void iterate(const IterateInput = {}, IterateOutput = {}) = 0;
+  virtual void iterate(const double t = 0) = 0;
   virtual ElementType get_type() = 0;
   virtual ModificationResult modify(const ElementModification&) {
     return ModificationResult::Ok;
@@ -46,6 +45,7 @@ class Element {
   const Ports& get_ports() const { return m_ports; }
   virtual ElementParameters get_parameters() const = 0;
   virtual std::optional<ElementState> get_state() const = 0;
+  virtual ElementView read_view() const = 0;
 
  protected:
   ElementID m_ID{};

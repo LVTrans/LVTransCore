@@ -36,13 +36,11 @@ void Plant::step() {
   ++m_data.state.num_iterations;
 
   for (auto& pipe : m_data.element_container.get_pipes()) {
-    pipe->iterate();
+    pipe->iterate(m_data.state.current_time);
   }
 
   for (auto& non_pipe : m_data.element_container.get_non_pipes()) {
-    IterateInput input{};
-    input.t = m_data.state.current_time;
-    non_pipe->iterate(input);
+    non_pipe->iterate(m_data.state.current_time);
   }
 }
 
@@ -52,9 +50,18 @@ void Plant::run_steps(size_t num_steps) {
   }
 }
 
+std::optional<ElementView> Plant::read_state(ElementID id) const {
+  auto elem = m_data.element_container.get_element_by_id(id);
+  if (!elem) {
+    return std::nullopt;
+  }
+
+  return elem->read_view();
+}
+
 void Plant::display() const {
   for (auto& pipe : m_data.element_container.get_pipes()) {
-    auto* left_elem = pipe->left_elem();
+    auto left_elem = pipe->left_elem();
     if (left_elem) {
       std::cout << "R(" << left_elem->get_ID() << ")<---->";
     }

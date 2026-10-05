@@ -15,6 +15,7 @@ FetchContent_MakeAvailable(json)
 
 option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
 option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
+option(LVTRANS_BUILD_GUI "Build the ImGui simulation dashboard" OFF)
 option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
 
 add_library(lvtrans_core)
@@ -86,6 +87,10 @@ endif()
 if(LVTRANS_BUILD_EXAMPLES)
     MESSAGE("Building examples...")
     add_subdirectory(examples)
+endif()
+
+if(LVTRANS_BUILD_GUI)
+    add_subdirectory(examples/gui)
 endif()
 
 if(LVTRANS_BUILD_BENCHMARKS AND CMAKE_BUILD_TYPE STREQUAL "Release")

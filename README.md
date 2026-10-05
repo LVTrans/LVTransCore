@@ -168,6 +168,28 @@ int main(){
 
 ```
 
+
+
+_Read an elements state during simulation_
+```cpp
+
+    using ElementStateValue = std::pair<std::string, double>;
+    struct ElementView {
+        ElementID id; 
+        double value;
+    }
+    Plant plant;
+    
+    plant.add_element<Pipe>(PipeParameters {...});
+
+
+    plant.step();
+
+    ElementState state = plant.read_state(1);
+
+    
+```
+
 ## System Architecture (WIP)
 
 ![System Architecture](assets/system_architecture.png)

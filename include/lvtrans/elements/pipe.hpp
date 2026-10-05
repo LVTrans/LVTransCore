@@ -28,8 +28,7 @@ class Pipe : public Element {
  public:
   Pipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0);
   ~Pipe();
-  void iterate(const IterateInput input = {},
-               IterateOutput output = {}) override;
+  void iterate(const double t = 0) override;
 
   const PipeParameters& config() const { return m_params; }
   ElementType get_type() override { return ElementType::Pipe; }
@@ -40,43 +39,15 @@ class Pipe : public Element {
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
   ElementParameters get_parameters() const override { return m_params; }
+  ElementView read_view() const override;
   std::optional<ElementState> get_state() const override {
     return std::make_optional(m_state);
   }
 
-  void remove_left() {
-    if (auto* elem = left_elem()) {
-      auto their_port_type =
-          m_ports[PortType::Left]->get_connected_to()->get_type();
-      elem->set_port(their_port_type, nullptr);
-    }
-    m_ports[PortType::Left]->reset();
-  }
-
-  void remove_right() {
-    if (auto* elem = right_elem()) {
-      auto their_port_type =
-          m_ports[PortType::Right]->get_connected_to()->get_type();
-      elem->set_port(their_port_type, nullptr);
-    }
-    m_ports[PortType::Right]->reset();
-  }
-
-  NonPipe* left_elem() const {
-    if (m_ports[PortType::Left]->is_connected()) {
-      return dynamic_cast<NonPipe*>(
-          &m_ports[PortType::Left]->get_connected_to()->get_owner());
-    }
-    return nullptr;
-  }
-
-  NonPipe* right_elem() const {
-    if (m_ports[PortType::Right]->is_connected()) {
-      return dynamic_cast<NonPipe*>(
-          &m_ports[PortType::Right]->get_connected_to()->get_owner());
-    }
-    return nullptr;
-  }
+  void remove_left();
+  void remove_right();
+  NonPipe* left_elem() const;
+  NonPipe* right_elem() const;
 
  private:
   void initialize_h_q(InitialPipeValue& H0, InitialPipeValue& Q0);
