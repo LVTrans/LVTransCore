@@ -1,6 +1,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <lvtrans/elements/pipe.hpp>
+#include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/element.hpp"
 
 namespace lvtrans {
@@ -47,7 +48,7 @@ void Pipe::initialize_h_q(InitialPipeValue& H0, InitialPipeValue& Q0) {
   }
 }
 
-void Pipe::iterate(const IterateInput, IterateOutput) {
+void Pipe::iterate(const double) {
   const size_t L0 = 0;
   const size_t L1 = m_params.num_reaches;
   auto& H = m_state.H;
@@ -88,5 +89,62 @@ void Pipe::iterate(const IterateInput, IterateOutput) {
     H[m_params.num_reaches] = right_elem->get_H();
     Q[m_params.num_reaches] = right_elem->get_Q();
   }
+}
+
+void Pipe::remove_left() {
+  if (auto* elem = left_elem()) {
+    auto their_port_type =
+        m_ports[PortType::Left]->get_connected_to()->get_type();
+    elem->set_port(their_port_type, nullptr);
+  }
+  m_ports[PortType::Left]->reset();
+}
+
+void Pipe::remove_right() {
+  if (auto* elem = right_elem()) {
+    auto their_port_type =
+        m_ports[PortType::Right]->get_connected_to()->get_type();
+    elem->set_port(their_port_type, nullptr);
+  }
+  m_ports[PortType::Right]->reset();
+}
+
+NonPipe* Pipe::left_elem() const {
+  if (m_ports[PortType::Left]->is_connected()) {
+    return dynamic_cast<NonPipe*>(
+        &m_ports[PortType::Left]->get_connected_to()->get_owner());
+  }
+  return nullptr;
+}
+
+NonPipe* Pipe::right_elem() const {
+  if (m_ports[PortType::Right]->is_connected()) {
+    return dynamic_cast<NonPipe*>(
+        &m_ports[PortType::Right]->get_connected_to()->get_owner());
+  }
+  return nullptr;
+}
+
+ElementView Pipe::read_view() const {
+  ScalarValue H = {
+      .name = "Head flow",
+      .unit = "m",
+      .symbol = "H",
+      .value = m_state.H.back(),
+  };
+  ScalarValue Q = {
+      .name = "Flow rate",
+      .unit = "m³/s",
+      .symbol = "Q",
+      .value = m_state.Q.back(),
+  };
+  return {
+      .element_id = m_ID,
+      .values =
+          {
+              H,
+              Q,
+          },
+  };
 }
 }  // namespace lvtrans

@@ -81,7 +81,7 @@ class ElementContainer {
     }
   }
 
-  ElementID m_element_id{0};
+  ElementID m_element_id{1};
   std::vector<std::unique_ptr<Pipe>> m_pipes;
   std::vector<std::unique_ptr<NonPipe>> m_non_pipes;
   std::unordered_map<ElementID, std::pair<ElementAbstractType, size_t>>

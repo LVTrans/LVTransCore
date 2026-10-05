@@ -111,6 +111,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   for (int k = Kmax / 2 - 9; k < Kmax; ++k) {
     plant2.step();
+    plant2.read_state(1)->print();
 
     output_file << plant2.get_current_time() << "," << valve2->get_tau() << ","
                 << pipe2->get_H()[pipe_config.num_reaches] << ","
@@ -120,7 +121,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   output_file.close();
 
   const auto expected_file_path =
-      get_mock_data_file_path("expected/reservoir_pipe_valve_expected.csv");
+      get_mock_data_file_path("expected/reservoir_pipe_valve.csv");
 
   EXPECT_TRUE(compare_csv_files(test_file_path, expected_file_path));
 }

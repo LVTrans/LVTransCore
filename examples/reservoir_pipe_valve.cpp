@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
 #include <lvtrans/elements/valve.hpp>
@@ -97,13 +98,30 @@ int main() {
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 
-  for (int k = 1; k < Kmax; ++k) {
-    plant.step();
+  // for (int k = 1; k < Kmax; ++k) {
+  // print the pipes H and Q
+  std::cout << "H: [";
+  std::ranges::copy(pipe->get_H(),
+                    std::ostream_iterator<double>(std::cout, " "));
+  std::cout << "]\nQ: [";
+  std::ranges::copy(pipe->get_Q(),
+                    std::ostream_iterator<double>(std::cout, " "));
+  std::cout << "]\n";
+  std::cout << "Stepping: " << plant.get_current_time() << "\n";
+  plant.step();
 
-    output_file << plant.get_current_time() << "," << valve->get_tau() << ","
-                << pipe->get_H()[pipe_config.num_reaches] << ","
-                << pipe->get_Q()[pipe_config.num_reaches] << '\n';
-  }
+  std::cout << "H: [";
+  std::ranges::copy(pipe->get_H(),
+                    std::ostream_iterator<double>(std::cout, " "));
+  std::cout << "]\nQ: [";
+  std::ranges::copy(pipe->get_Q(),
+                    std::ostream_iterator<double>(std::cout, " "));
+  std::cout << "]\n";
+
+  //   output_file << plant.get_current_time() << "," << valve->get_tau() << ","
+  //               << pipe->get_H()[pipe_config.num_reaches] << ","
+  //               << pipe->get_Q()[pipe_config.num_reaches] << '\n';
+  // }
   output_file.close();
   plant.display();
 

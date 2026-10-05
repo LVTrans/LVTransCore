@@ -83,8 +83,8 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
   auto a = add_to<Reservoir>(first);
   auto b = add_to<Reservoir>(second);
   const auto id = a->get_ID();
-  EXPECT_EQ(id, 0);
-  EXPECT_EQ(b->get_ID(), 0);
+  EXPECT_EQ(id, 1);
+  EXPECT_EQ(b->get_ID(), 1);
   EXPECT_NE(a, b);
 
   first.remove_element_by_id(id);

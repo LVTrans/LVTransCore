@@ -24,9 +24,7 @@ TEST(ReservoirTest, KeepsHeadConstantAcrossIterations) {
 
   EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
   for (double time : {0.0, 1.0, 10.0}) {
-    IterateInput input{};
-    input.t = time;
-    reservoir.iterate(input);
+    reservoir.iterate(time);
     EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
   }
 }

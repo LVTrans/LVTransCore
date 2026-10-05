@@ -36,17 +36,16 @@ TEST(ValveTest, FollowsClosureCurveAndHoldsFinalOpening) {
   config.em = 2.0;
   config.cvp = 0.5;
   Valve valve(config);
-  IterateInput input{};
-  valve.iterate(input, {});
+  valve.iterate(0.0);
   EXPECT_DOUBLE_EQ(valve.get_tau(), 0.8);
 
-  input.t = 2.0;
-  valve.iterate(input, {});
+  double t = 2.0;
+  valve.iterate(t);
   EXPECT_DOUBLE_EQ(valve.get_tau(), 0.65);
 
   for (double time : {4.0, 8.0}) {
-    input.t = time;
-    valve.iterate(input, {});
+    t = time;
+    valve.iterate(t);
     EXPECT_DOUBLE_EQ(valve.get_tau(), 0.2);
   }
 }
@@ -78,9 +77,8 @@ TEST(ValveTest, FullyClosedBoundaryStopsFlow) {
   valve.set_c_characteristics(8.0);
   valve.set_b_characteristics(2.0);
 
-  IterateInput input{};
-  input.t = 4.0;
-  valve.iterate(input, {});
+  const auto t = 4.0;
+  valve.iterate(t);
   EXPECT_DOUBLE_EQ(valve.get_tau(), 0.0);
   EXPECT_DOUBLE_EQ(valve.get_Q({}), 0.0);
   EXPECT_DOUBLE_EQ(valve.get_H(), 8.0);

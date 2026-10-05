@@ -11,7 +11,7 @@ class Valve : public NonPipe {
   Valve(const ValveParameters& conf);
   Valve(const ValveParameters& conf, ValveState state);
   ~Valve() = default;
-  void iterate(const IterateInput input, IterateOutput output) override;
+  void iterate(const double t = 0) override;
   ModificationResult modify(const ElementModification& mod) override;
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return m_state; }
@@ -23,6 +23,7 @@ class Valve : public NonPipe {
 
   double get_tau() const { return m_state.tau; }
   ElementType get_type() override { return ElementType::Valve; }
+  ElementView read_view() const override;
 
  private:
   double calculate_q() const {

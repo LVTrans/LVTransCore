@@ -6,14 +6,14 @@
 #include <variant>
 #include <vector>
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant_types.hpp"
+#include "lvtrans/port.hpp"
 #include "nlohmann/json.hpp"
 namespace lvtrans {
 
 using ParameterValue = std::variant<double, std::string>;
 struct ElementConfig {
-  int id;
+  ElementID id;
   std::string name;
   ElementType type;
   ElementParameters parameters;

@@ -19,14 +19,26 @@ ModificationResult Valve::modify(const ElementModification& mod) {
   return ModificationResult::Ok;
 }
 
-void Valve::iterate(const IterateInput input, IterateOutput) {
-  if (input.t < m_params.tc) {
-    m_state.tau =
-        m_params.tau_i - (m_params.tau_i - m_params.tau_f) *
-                             std::pow(input.t / m_params.tc, m_params.em);
+void Valve::iterate(const double t) {
+  if (t < m_params.tc) {
+    m_state.tau = m_params.tau_i - (m_params.tau_i - m_params.tau_f) *
+                                       std::pow(t / m_params.tc, m_params.em);
   } else {
     m_state.tau = m_params.tau_f;
   }
+}
+
+ElementView Valve::read_view() const {
+  return {
+      .element_id = m_ID,
+      .values =
+          {
+              ScalarValue{.name = "Tau",
+                          .unit = "s",
+                          .symbol = "tau",
+                          .value = m_state.tau},
+          },
+  };
 }
 
 }  // namespace lvtrans

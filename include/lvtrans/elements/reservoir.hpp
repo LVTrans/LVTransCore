@@ -10,12 +10,13 @@ class Reservoir : public NonPipe {
   Reservoir(const double elevation);
   Reservoir(const ReservoirParameters& config);
   ~Reservoir();
-  void iterate(const IterateInput = {}, IterateOutput = {}) override {};
+  void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
 
   ElementType get_type() override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {}; }
+  ElementView read_view() const override;
 
   double get_H() const override { return m_params.H0; }
   double get_Q(const IterateInput = {}) const override {

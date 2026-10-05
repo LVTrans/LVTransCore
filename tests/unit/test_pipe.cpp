@@ -28,7 +28,8 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
 
   ASSERT_NE(reserovoir_port->get_connected_to(), nullptr);
   EXPECT_EQ(&reserovoir_port->get_connected_to()->get_owner(), &pipe);
-  EXPECT_EQ(reserovoir_port->get_connected_to()->get_connected_to(), reserovoir_port);
+  EXPECT_EQ(reserovoir_port->get_connected_to()->get_connected_to(),
+            reserovoir_port);
   EXPECT_NE(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), nullptr);
 
