@@ -29,6 +29,10 @@ class Element {
   virtual ~Element() = default;
   virtual void iterate(const double t = 0) = 0;
   virtual ElementType get_type() = 0;
+  virtual ElementParameters get_parameters() const = 0;
+  virtual std::optional<ElementState> get_state() const = 0;
+  virtual ElementView read_view() const = 0;
+  virtual void reset_state() = 0;
   virtual ModificationResult modify(const ElementModification&) {
     return ModificationResult::Ok;
   }
@@ -43,9 +47,6 @@ class Element {
   void set_ID(ElementID id) { m_ID = id; }
   void set_port(PortType index, Port* port) { m_ports[index]->connect(port); }
   const Ports& get_ports() const { return m_ports; }
-  virtual ElementParameters get_parameters() const = 0;
-  virtual std::optional<ElementState> get_state() const = 0;
-  virtual ElementView read_view() const = 0;
 
  protected:
   ElementID m_ID{};

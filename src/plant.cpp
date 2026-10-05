@@ -59,6 +59,14 @@ std::optional<ElementView> Plant::read_state(ElementID id) const {
   return elem->read_view();
 }
 
+void Plant::reset_state() {
+  m_data.state.reset();
+
+  for (const auto& e : m_data.element_container.get_elements()) {
+    e->reset_state();
+  }
+}
+
 void Plant::display() const {
   for (auto& pipe : m_data.element_container.get_pipes()) {
     auto left_elem = pipe->left_elem();

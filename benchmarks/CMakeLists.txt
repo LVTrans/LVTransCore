@@ -2,6 +2,7 @@ find_package(benchmark REQUIRED)
 
 set(BENCHMARK_SOURCES
     bench_pipe.cpp
+    bench_plant.cpp
 )
 
 

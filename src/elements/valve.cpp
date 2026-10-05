@@ -3,8 +3,8 @@
 #include "lvtrans/element_modifications.hpp"
 namespace lvtrans {
 
-Valve::Valve(const ValveParameters& conf)
-    : Valve(conf, ValveState{conf.tau_i}) {}
+Valve::Valve(const ValveParameters& params)
+    : Valve(params, ValveState{params.tau_i}) {}
 
 Valve::Valve(const ValveParameters& conf, ValveState state)
     : m_params{conf}, m_state{state} {

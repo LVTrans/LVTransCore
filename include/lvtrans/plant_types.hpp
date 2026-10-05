@@ -16,6 +16,11 @@ struct SimulationConfig {
 struct PlantState {
   double current_time{0};
   int num_iterations{0};
+
+  void reset() {
+    current_time = 0;
+    num_iterations = 0;
+  }
 };
 
 }  // namespace lvtrans

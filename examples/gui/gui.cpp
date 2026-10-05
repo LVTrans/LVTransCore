@@ -6,6 +6,8 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
+#include "lvtrans/element_modifications.hpp"
+#include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
@@ -155,18 +157,17 @@ int main() {
       plots.plots[1].push_back(pipe->get_latest_Q());
       plots.plots[2].push_back(valve->get_tau());
 
-      // Keep container size optimized
-      // if (plots.time.size() > 200) {
-      //   plots.time.erase(plots.time.begin());
-      //   plots.plots[0].erase(plots.plots[0].begin());
-      //   plots.plots[1].erase(plots.plots[1].begin());
-      //   plots.plots[2].erase(plots.plots[2].begin());
-      // }
+      if (plots.time.size() > 200) {
+        plots.time.erase(plots.time.begin());
+        plots.plots[0].erase(plots.plots[0].begin());
+        plots.plots[1].erase(plots.plots[1].begin());
+        plots.plots[2].erase(plots.plots[2].begin());
+      }
     }
 
     // --- UI WINDOW 1: SIMULATION CONTROLS ---
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(340, 200), ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(ImVec2(340, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Simulation Control Panel");
     ImGui::Text("Status: %s", is_running ? "RUNNING" : "PAUSED");
 
@@ -179,10 +180,41 @@ int main() {
       plots.plots[0].clear();
       plots.plots[1].clear();
       plots.plots[2].clear();
+      plant.reset_state();
       is_running = false;
     }
 
     ImGui::SliderFloat("Simulation Speed", &sim_speed, 0.1f, 5.0f);
+    ImGui::Spacing();
+    ImGui::TextUnformatted("Reservoir head (m)");
+    ImGui::SetNextItemWidth(180.0f);
+    ImGui::Spacing();
+    ImGui::SeparatorText("Element States");
+    for (const auto& e : plant.get_elements()) {
+      ImGui::PushID(e->get_ID());
+      const auto title = "Element " + std::to_string(e->get_ID());
+      if (ImGui::CollapsingHeader(title.c_str(),
+                                  ImGuiTreeNodeFlags_DefaultOpen)) {
+        const auto view = e->read_view();
+        ImGui::Indent();
+        ImGui::PushTextWrapPos(0.0f);
+        if (view.values.empty()) {
+          ImGui::TextDisabled("No state values available.");
+        }
+        for (const auto& value : view.values) {
+          std::visit(
+              [](const auto& state) {
+                const auto text = state.to_string();
+                ImGui::TextUnformatted(text.c_str());
+              },
+              value);
+          ImGui::Spacing();
+        }
+        ImGui::PopTextWrapPos();
+        ImGui::Unindent();
+      }
+      ImGui::PopID();
+    }
     ImGui::End();
 
     // --- UI WINDOW 2: REAL-TIME GRAPH (Using ImPlot) ---
@@ -190,35 +222,25 @@ int main() {
     ImGui::SetNextWindowSize(ImVec2(880, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Data Analytics");
     if (ImPlot::BeginPlot("Pipe Head at Valve")) {
-      // The plot starts empty. Keep fitting as simulation samples arrive.
       ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
                         ImPlotAxisFlags_AutoFit);
-      if (!plots.time.empty()) {
-        ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
-                         static_cast<int>(plots.time.size()));
-      }
+      ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
+                       static_cast<int>(plots.time.size()));
       ImPlot::EndPlot();
     }
 
     if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
-      // The plot starts empty. Keep fitting as simulation samples arrive.
       ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
                         ImPlotAxisFlags_AutoFit);
-      if (!plots.time.empty()) {
-        ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
-                         static_cast<int>(plots.time.size()));
-      }
+      ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
+                       static_cast<int>(plots.time.size()));
       ImPlot::EndPlot();
     }
     if (ImPlot::BeginPlot("Valve Tau")) {
-      // The plot starts empty. Keep fitting as simulation samples arrive.
       ImPlot::SetupAxes("Time (s)", "Tau (s)", ImPlotAxisFlags_AutoFit,
                         ImPlotAxisFlags_AutoFit);
-      if (!plots.time.empty()) {
-        ImPlot::PlotLine("Tau at valve", plots.time.data(),
-                         plots.plots[2].data(),
-                         static_cast<int>(plots.time.size()));
-      }
+      ImPlot::PlotLine("Tau at valve", plots.time.data(), plots.plots[2].data(),
+                       static_cast<int>(plots.time.size()));
       ImPlot::EndPlot();
     }
     ImGui::End();
@@ -227,7 +249,7 @@ int main() {
     int display_w, display_h;
     glfwGetFramebufferSize(window, &display_w, &display_h);
     glViewport(0, 0, display_w, display_h);
-    glClearColor(0.1f, 0.1f, 0.14f, 1.0f);  // Dark background theme
+    glClearColor(0.1f, 0.1f, 0.14f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
     ImGui::Render();

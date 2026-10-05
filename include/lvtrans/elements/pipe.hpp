@@ -29,20 +29,21 @@ class Pipe : public Element {
   Pipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0);
   ~Pipe();
   void iterate(const double t = 0) override;
+  ElementType get_type() override { return ElementType::Pipe; }
+  ElementParameters get_parameters() const override { return m_params; }
+  ElementView read_view() const override;
+  std::optional<ElementState> get_state() const override {
+    return std::make_optional(m_state);
+  }
+  void reset_state() override { m_state = m_initial_state; }
 
   const PipeParameters& config() const { return m_params; }
-  ElementType get_type() override { return ElementType::Pipe; }
   double get_R() const { return m_R; }
   double get_B() const { return m_B; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
-  ElementParameters get_parameters() const override { return m_params; }
-  ElementView read_view() const override;
-  std::optional<ElementState> get_state() const override {
-    return std::make_optional(m_state);
-  }
 
   void remove_left();
   void remove_right();
@@ -62,5 +63,6 @@ class Pipe : public Element {
 
   std::vector<double> m_Z{};
   PipeState m_state{};
+  PipeState m_initial_state{};
 };
 }  // namespace lvtrans

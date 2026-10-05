@@ -68,5 +68,4 @@ TEST(PlantTest, ReadElementState) {
   auto view = plant.read_state(1);
   ASSERT_NE(view, std::nullopt);
   EXPECT_EQ(view->element_id, 1);
-  view->print();
 }
