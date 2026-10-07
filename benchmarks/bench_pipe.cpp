@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <benchmark/benchmark.h>
 #include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
@@ -7,7 +8,7 @@ static void BM_PipeIterate(benchmark::State& state) {
   using namespace lvtrans;
 
   const size_t reaches = static_cast<size_t>(state.range(0));
-  auto reservoir = std::make_shared<Reservoir>(150.0);
+  auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
   auto valve = std::make_shared<Valve>(ValveParameters{});
 
   Pipe pipe(

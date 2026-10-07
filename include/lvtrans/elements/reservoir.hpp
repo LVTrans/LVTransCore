@@ -9,7 +9,7 @@ class Reservoir : public NonPipe {
  public:
   Reservoir(const double elevation);
   Reservoir(const ReservoirParameters& config);
-  ~Reservoir();
+  ~Reservoir() override = 0;
   void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
 

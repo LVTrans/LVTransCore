@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <iostream>
@@ -119,7 +120,7 @@ int main() {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
   auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
-  auto reservoir = plant.add_element<Reservoir>(150.0).value();
+  auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
 
   ValveParameters valve_config{};
   valve_config.tau_i = tau_i;

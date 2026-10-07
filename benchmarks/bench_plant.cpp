@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <benchmark/benchmark.h>
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
@@ -6,7 +7,7 @@
 static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, size_t reaches) {
   using namespace lvtrans;
 
-  auto* reservoir = plant.add_element<Reservoir>(150.0).value();
+  auto* reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
   auto* pipe = plant
                    .add_element<Pipe>(
                        PipeParameters{

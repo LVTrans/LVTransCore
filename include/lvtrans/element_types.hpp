@@ -13,9 +13,17 @@ namespace lvtrans {
 
 enum class ElementType : std::uint8_t { Pipe, Reservoir, Valve };
 
+// #### PIPE ####
 struct PipeParameters {
-  double length{};
-  double diameter{};
+  double length{};     //< length of the pipe [m]
+  double diameter{};   //< diameter of the pipe [m]
+  double area{};       //< cross sectional area of the pipe [m^2]
+  double periphery{};  //< periphery of the pipe [m]
+  double epsilon{};    //< pipe roughness [m]
+  double ny{};   //< Kinematic viscosity, ν (1e-6 for water a 20 deg C) when
+                 // using full_moody
+  double rho{};  //< Density, ρ (998.2 kg/m³ for water at 20 deg C) when
+                 // using full_moody
   double f{};
   double a{};
   double z0{};
@@ -23,8 +31,10 @@ struct PipeParameters {
   double lambda{};
   double f_max{};
   std::size_t num_reaches{};
-  bool use_diameter{};
+  bool use_diameter{};  //< TRUE = use pipe diameter instead of cross sectional
+                        // area
   bool use_full_moody{};
+  bool use_Dh{};  //< Use hydraulic diameter
 };
 
 struct PipeState {
@@ -48,6 +58,11 @@ struct ValveState {
 
 struct ReservoirParameters {
   double H0{};   //< Nominal geodesic level of the reservoir from datum.
+  double cvp{};  //< Loss coefficient with positive flow relative to element
+  double cvm{};  //< Loss coefficient with negative flow relative to element
+};
+
+struct LossCoefficients {
   double cvp{};  //< Loss coefficient with positive flow relative to element
   double cvm{};  //< Loss coefficient with negative flow relative to element
 };

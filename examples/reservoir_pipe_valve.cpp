@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <cassert>
 #include <cmath>
 #include <fstream>
@@ -66,7 +67,7 @@ int main() {
   const double H0 =
       HR - R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0;
 
-  auto reservoir = plant.add_element<Reservoir>(HR).value();
+  auto reservoir = plant.add_element<ConstantLevelLeft>(HR).value();
 
   const double Qi =
       std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /

@@ -1,11 +1,16 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <gtest/gtest.h>
 #include <lvtrans/elements/reservoir.hpp>
 #include <memory>
+#include <type_traits>
 
 using namespace lvtrans;
 
+static_assert(std::is_abstract_v<Reservoir>);
+static_assert(!std::is_abstract_v<ConstantLevelLeft>);
+
 TEST(ReservoirTest, InitializesRightPort) {
-  auto reservoir = std::make_shared<Reservoir>(150.0);
+  auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
   ASSERT_GT(reservoir->get_ports().size(),
             static_cast<size_t>(PortType::Right));
   const auto& port = reservoir->get_ports()[PortType::Right];
@@ -18,7 +23,7 @@ TEST(ReservoirTest, InitializesRightPort) {
 }
 
 TEST(ReservoirTest, KeepsHeadConstantAcrossIterations) {
-  Reservoir reservoir(150.0);
+  ConstantLevelLeft reservoir(150.0);
   reservoir.set_c_characteristics(100.0);
   reservoir.set_b_characteristics(50.0);
 
@@ -30,7 +35,7 @@ TEST(ReservoirTest, KeepsHeadConstantAcrossIterations) {
 }
 
 TEST(ReservoirTest, SupportsOutflowEquilibriumAndReverseFlow) {
-  Reservoir reservoir(150.0);
+  ConstantLevelLeft reservoir(150.0);
   reservoir.set_b_characteristics(50.0);
 
   reservoir.set_c_characteristics(100.0);
@@ -45,7 +50,7 @@ TEST(ReservoirTest, SupportsOutflowEquilibriumAndReverseFlow) {
 }
 
 TEST(ReservoirTest, ModifiesHead) {
-  Reservoir reservoir(150.0);
+  ConstantLevelLeft reservoir(150.0);
   EXPECT_DOUBLE_EQ(reservoir.get_H(), 150.0);
   reservoir.modify(SetReservoirH0{200.0});
   EXPECT_DOUBLE_EQ(reservoir.get_H(), 200.0);

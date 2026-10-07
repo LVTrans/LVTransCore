@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
@@ -50,7 +51,7 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 
 ElementParseResult ReservoirParser::parse(ElementContainer& container,
                                           const ElementConfig& element) {
-  auto reservoir = container.add_element_with_id<Reservoir>(
+  auto reservoir = container.add_element_with_id<ConstantLevelLeft>(
       element.id, std::get<ReservoirParameters>(element.parameters));
   if (!reservoir.has_value()) {
     return ElementParseResult::Error;

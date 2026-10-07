@@ -32,8 +32,8 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   ASSERT_EQ(elements.get_pipes().size(), 1u);
   ASSERT_EQ(elements.get_non_pipes().size(), 2u);
 
-  const auto* reservoir = elements.get_element_by_id<Reservoir>(1);
-  const auto* pipe = elements.get_element_by_id<Pipe>(2);
+  auto* reservoir = elements.get_element_by_id<Reservoir>(1);
+  auto* pipe = elements.get_element_by_id<Pipe>(2);
   auto* valve = elements.get_element_by_id<Valve>(3);
   ASSERT_NE(reservoir, nullptr);
   ASSERT_NE(pipe, nullptr);
@@ -138,7 +138,7 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
     ASSERT_EQ(elements.get_non_pipes().size(), 10u);
 
     for (const auto& [id, left, right] : neighbors) {
-      const auto* pipe = elements.get_element_by_id<Pipe>(id);
+      auto* pipe = elements.get_element_by_id<Pipe>(id);
       ASSERT_NE(pipe, nullptr);
       ASSERT_NE(pipe->left_elem(), nullptr);
       ASSERT_NE(pipe->right_elem(), nullptr);

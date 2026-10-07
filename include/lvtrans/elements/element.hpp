@@ -37,7 +37,10 @@ class Element {
     return ModificationResult::Ok;
   }
 
+  virtual void on_connection_changed(PortType, Element*) {}
+
   void connect_to(Element* other, PortType from, PortType to);
+  void connect(Element* other);
   void reset_ports();
   const Port* get_first_available_port() const;
 

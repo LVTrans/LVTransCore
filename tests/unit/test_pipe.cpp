@@ -2,10 +2,11 @@
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
 #include <memory>
+#include "lvtrans/elements/constant_level_left.hpp"
 
 TEST(PipeTest, ConnectsToUpstreamReservoir) {
   using namespace lvtrans;
-  auto reservoir = std::make_shared<Reservoir>(150.0);
+  auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
   ASSERT_GT(reservoir->get_ports().size(),
             static_cast<size_t>(PortType::Right));
 

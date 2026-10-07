@@ -1,3 +1,4 @@
+#include "lvtrans/elements/constant_level_left.hpp"
 #include <gtest/gtest.h>
 #include <cassert>
 #include <cmath>
@@ -84,7 +85,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
   auto valve = plant.add_element<Valve>(valve_config).value();
-  auto reservoir = plant.add_element<Reservoir>(HR).value();
+  auto reservoir = plant.add_element<ConstantLevelLeft>(HR).value();
 
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
