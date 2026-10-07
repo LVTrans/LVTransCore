@@ -22,6 +22,9 @@ class Port {
   }
   Element& get_owner() const { return m_owner; }
   Port* get_connected_to() const { return m_connected_to; }
+  const Element* get_peer() const {
+    return m_connected_to ? &m_connected_to->get_owner() : nullptr;
+  }
 
  private:
   Element& m_owner;

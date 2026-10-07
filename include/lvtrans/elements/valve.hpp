@@ -15,7 +15,7 @@ class Valve : public NonPipe {
   ModificationResult modify(const ElementModification& mod) override;
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return m_state; }
-  ElementType get_type() override { return ElementType::Valve; }
+  ElementType get_type() const override { return ElementType::Valve; }
   ElementView read_view() const override;
   double get_H() const override {
     return m_c_characteristics - m_b_characteristics * calculate_q();

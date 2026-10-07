@@ -102,17 +102,17 @@ struct VectorValue {
   std::string symbol{};
   std::string x_unit{};
   std::string y_unit{};
-  std::vector<DataPoint> values{};
+  std::vector<double> values{};
 
   void print() const {
     std::cout << "VectorValue: name=" << name << " symbol=" << symbol
               << " x_unit=" << x_unit << " y_unit=" << y_unit
               << " size=" << values.size() << std::endl;
 
-    for (size_t i = 0; i < values.size(); ++i) {
-      std::cout << "  x[" << i << "] = " << values[i].x << " y[" << i
-                << "] = " << values[i].y << std::endl;
-    }
+    // for (size_t i = 0; i < values.size(); ++i) {
+    //   std::cout << "  x[" << i << "] = " << values[i].x << " y[" << i
+    //             << "] = " << values[i].y << std::endl;
+    // }
   }
 
   std::string to_string() const {
@@ -121,10 +121,10 @@ struct VectorValue {
        << " x_unit=" << x_unit << " y_unit=" << y_unit
        << " size=" << values.size() << std::endl;
 
-    for (size_t i = 0; i < values.size(); ++i) {
-      ss << "  x[" << i << "] = " << values[i].x << " y[" << i
-         << "] = " << values[i].y << std::endl;
-    }
+    // for (size_t i = 0; i < values.size(); ++i) {
+    //   ss << "  x[" << i << "] = " << values[i].x << " y[" << i
+    //      << "] = " << values[i].y << std::endl;
+    // }
     return ss.str();
   }
 };

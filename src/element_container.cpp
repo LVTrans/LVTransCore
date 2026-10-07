@@ -1,8 +1,17 @@
 #include "lvtrans/element_container.hpp"
+#include <algorithm>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 namespace lvtrans {
+
+std::vector<Element*> ElementContainer::get_elements_sorted() const {
+  auto elements = get_elements();
+
+  std::sort(elements.begin(), elements.end(),
+            [](Element* a, Element* b) { return a->get_ID() < b->get_ID(); });
+  return elements;
+}
 
 std::vector<Element*> ElementContainer::get_elements() const {
   std::vector<Element*> elements{};

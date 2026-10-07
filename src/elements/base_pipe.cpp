@@ -81,17 +81,17 @@ void BasePipe::on_connection_changed(PortType port, Element* peer) {
 }
 
 ElementView BasePipe::read_view() const {
-  ScalarValue H = {
+  VectorValue H = {
       .name = "Head flow",
-      .unit = "m",
-      .symbol = "H",
-      .value = m_state.H.back(),
+      .y_unit = "m",
+      // .symbol = "H",
+      .values = m_state.H,
   };
-  ScalarValue Q = {
+  VectorValue Q = {
       .name = "Flow rate",
-      .unit = "m³/s",
-      .symbol = "Q",
-      .value = m_state.Q.back(),
+      .y_unit = "m³/s",
+      // .symbol = "Q",
+      .values = m_state.Q,
   };
   return {
       .element_id = m_ID,

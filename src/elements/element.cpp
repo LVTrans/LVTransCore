@@ -11,6 +11,11 @@ void Element::connect_to(Element* other, PortType from, PortType to) {
 
   m_ports[from]->connect(&*other->m_ports[to]);
   other->set_port(to, &*m_ports[from]);
+  std::cout << "connected " << get_ID() << " to " << other->get_ID()
+            << std::endl;
+  // print ports
+  std::cout << "from: " << static_cast<int>(from)
+            << " to: " << static_cast<int>(to) << std::endl;
 }
 
 void Element::connect(Element* other) {

@@ -28,7 +28,7 @@ class Element {
   Element() = default;
   virtual ~Element() = default;
   virtual void iterate(const double t = 0) = 0;
-  virtual ElementType get_type() = 0;
+  virtual ElementType get_type() const = 0;
   virtual ElementParameters get_parameters() const = 0;
   virtual std::optional<ElementState> get_state() const = 0;
   virtual ElementView read_view() const = 0;

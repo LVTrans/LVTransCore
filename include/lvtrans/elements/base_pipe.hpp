@@ -28,7 +28,7 @@ class BasePipe : public Element {
  public:
   BasePipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0);
   virtual ~BasePipe() = 0;
-  ElementType get_type() override { return ElementType::Pipe; }
+  ElementType get_type() const override { return ElementType::Pipe; }
   ElementParameters get_parameters() const override { return m_params; }
   ElementView read_view() const override;
   virtual void iterate(const double t = 0) override = 0;
