@@ -50,7 +50,6 @@ class Plant {
 
   ModificationResult modify_element(ElementID id,
                                     const ElementModification& mod) const;
-  void set_sim_speed(double speed) { m_data.config.sim_speed = speed; }
 
   void remove_element_by_id(ElementID id) {
     return m_data.element_container.remove_element_by_id(id);
@@ -73,6 +72,8 @@ class Plant {
   void display() const;
   std::optional<ElementView> read_state(ElementID id) const;
   double get_current_time() const { return m_data.state.current_time; }
+  int get_num_terations() const { return m_data.state.num_iterations; }
+  double get_step_size() const { return m_data.config.step_size; }
 
  private:
   PlantData m_data;

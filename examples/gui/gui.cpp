@@ -1,4 +1,3 @@
-#include "lvtrans/elements/constant_level_left.hpp"
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <iostream>
@@ -9,6 +8,7 @@
 #include "implot.h"
 #include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
@@ -139,7 +139,9 @@ int main() {
                           std::vector<double>{},
                           std::vector<double>{},
                       }};
-  // Main App/Simulation Loop
+  const double real_dt = ImGui::GetIO().DeltaTime;
+  const double sim_dt = plant.get_step_size();
+  double acc = 0;
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
@@ -150,19 +152,23 @@ int main() {
 
     // --- SIMULATION LOGIC ---
     if (is_running) {
-      plant.set_sim_speed(sim_speed);
-      plant.step();
-      plots.time.push_back(plant.get_current_time());
+      acc += real_dt * sim_speed;
+      while (acc >= sim_dt) {
+        plant.step();
+        plots.time.push_back(plant.get_current_time());
 
-      plots.plots[0].push_back(pipe->get_latest_H());
-      plots.plots[1].push_back(pipe->get_latest_Q());
-      plots.plots[2].push_back(valve->get_tau());
+        plots.plots[0].push_back(pipe->get_latest_H());
+        plots.plots[1].push_back(pipe->get_latest_Q());
+        plots.plots[2].push_back(valve->get_tau());
 
-      if (plots.time.size() > 200) {
-        plots.time.erase(plots.time.begin());
-        plots.plots[0].erase(plots.plots[0].begin());
-        plots.plots[1].erase(plots.plots[1].begin());
-        plots.plots[2].erase(plots.plots[2].begin());
+        if (plots.time.size() > 200) {
+          plots.time.erase(plots.time.begin());
+          plots.plots[0].erase(plots.plots[0].begin());
+          plots.plots[1].erase(plots.plots[1].begin());
+          plots.plots[2].erase(plots.plots[2].begin());
+        }
+
+        acc -= sim_dt;
       }
     }
 
@@ -171,6 +177,8 @@ int main() {
     ImGui::SetNextWindowSize(ImVec2(340, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Simulation Control Panel");
     ImGui::Text("Status: %s", is_running ? "RUNNING" : "PAUSED");
+    ImGui::Text("Time: %.2f s", plant.get_current_time());
+    ImGui::Text("Iterations: %d", plant.get_num_terations());
 
     if (ImGui::Button(is_running ? "Pause" : "Start")) {
       is_running = !is_running;
@@ -222,28 +230,35 @@ int main() {
     ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(880, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Data Analytics");
-    if (ImPlot::BeginPlot("Pipe Head at Valve")) {
-      ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
-    }
+    ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
+    if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
+      if (ImPlot::BeginPlot("Pipe Head at Valve")) {
+        ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
+                          ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
 
-    if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
-      ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
+      if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
+        ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
+                          ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
+      if (ImPlot::BeginPlot("Valve Tau")) {
+        ImPlot::SetupAxes("Time (s)", "Valve opening (0-1)",
+                          ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_None);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, -0.05, 1.05, ImPlotCond_Always);
+        ImPlot::PlotLine("Tau at valve", plots.time.data(),
+                         plots.plots[2].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
+      ImPlot::EndAlignedPlots();
     }
-    if (ImPlot::BeginPlot("Valve Tau")) {
-      ImPlot::SetupAxes("Time (s)", "Tau (s)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("Tau at valve", plots.time.data(), plots.plots[2].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
-    }
+    ImPlot::PopStyleVar();
     ImGui::End();
 
     // --- RENDER THE FRAME ---
