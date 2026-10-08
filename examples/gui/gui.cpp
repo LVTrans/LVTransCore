@@ -7,6 +7,7 @@
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/valve.hpp"
@@ -92,10 +93,13 @@ int main() {
   const auto segments =
       calculate_nodes_temp(pipe_config.lambda, pipe_config.length, sim_dt,
                            pipe_config.a, pipe_config.rho);
+  const auto segments_real = calculate_num_segments(segments);
   const double dx = calculate_dx(pipe_config.length, segments);
 
-  std::vector<double> H0_{};
-  std::vector<double> Q0_{};
+  const auto num_segments =
+      static_cast<size_t>(calculate_num_segments(segments));
+  std::vector<double> H0_(num_segments + 1, 0.0);
+  std::vector<double> Q0_(num_segments + 1, 0.0);
 
   const double area = calculate_pipe_area(
       pipe_config.area, pipe_config.diameter, pipe_config.dimension);
@@ -110,8 +114,8 @@ int main() {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= segments; i += 2) {
-    H0_[i] = HR - i * R * Qi * Qi;
+  for (size_t i = 0; i < H0_.size(); i += 2) {
+    H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
 

@@ -71,7 +71,7 @@ int main() {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= segments; i += 2) {
+  for (size_t i = 0; i < static_cast<size_t>(segments); i += 2) {
     H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }

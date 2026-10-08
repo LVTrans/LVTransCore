@@ -28,7 +28,7 @@ struct PipeParameters {
   double a{};
   double z0{};
   double z1{};
-  double lambda{0};
+  double lambda{};
   double f_max{};
   PipeDimension dimension{PipeDimension::Circular};
   bool use_diameter{};  //< TRUE = use pipe diameter instead of cross sectional

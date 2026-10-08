@@ -68,7 +68,7 @@ int main() {
 
   const int nodes = N + 1;
 
-  const double area = consts::pi * D * D / 4.0;
+  const double area = std::numbers::pi * D * D / 4.0;
   const double dx = L / static_cast<double>(N);
 
   const double R = f * dx / (2.0 * g * D * area * area);

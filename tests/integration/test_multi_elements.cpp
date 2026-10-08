@@ -39,10 +39,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
       get_mock_data_file_path("generated/reservoir_pipe_valve.csv");
   std::ofstream output_file(test_file_path);
 
-  if (!output_file) {
-    std::cerr << "Error opening output file.\n";
-    ASSERT_FALSE(output_file);
-  }
+  ASSERT_TRUE(output_file.is_open());
 
   const double system_dt = 0.1;
   const auto segments =
@@ -54,8 +51,10 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   output_file << "t,tau,H_valve,Q_valve\n";
 
-  std::vector<double> H0_{};
-  std::vector<double> Q0_{};
+  const auto num_segments =
+      static_cast<size_t>(calculate_num_segments(segments));
+  std::vector<double> H0_(num_segments + 1, 0.0);
+  std::vector<double> Q0_(num_segments + 1, 0.0);
 
   const double area = calculate_pipe_area(
       pipe_config.area, pipe_config.diameter, pipe_config.dimension);
@@ -70,8 +69,8 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= segments; i += 2) {
-    H0_[i] = HR - i * R * Qi * Qi;
+  for (size_t i = 0; i < H0_.size(); i += 2) {
+    H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
 
@@ -98,8 +97,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
-                << pipe->get_H()[static_cast<size_t>(segments)] << ","
-                << pipe->get_Q()[static_cast<size_t>(segments)] << '\n';
+                << pipe->get_latest_H() << "," << pipe->get_latest_Q() << '\n';
   }
 
   output_file.close();
