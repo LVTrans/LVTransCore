@@ -6,7 +6,6 @@
 #include <vector>
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 
 namespace {
@@ -20,13 +19,12 @@ const PipeParameters pipe_config{
     .a = 1200.0,
     .z0 = 10.0,
     .z1 = 15.0,
-    .num_reaches = 10,
 };
 
 template <typename T>
 T* add_to(ElementContainer& container) {
   if constexpr (std::is_base_of_v<Pipe, T>) {
-    return container.add_element<T>(pipe_config, 150.0, 0.0).value();
+    return container.add_element<T>(pipe_config, 150.0, 0.0, 0.1).value();
   } else {
     return container.add_element<T>(150.0).value();
   }

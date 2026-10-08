@@ -6,49 +6,61 @@
 
 namespace lvtrans {
 
+static PipeState initialize_H_and_Q(const InitialPipeValue& H0,
+                                    const InitialPipeValue& Q0,
+                                    const size_t num_nodes);
 BasePipe::~BasePipe() = default;
 
-BasePipe::BasePipe(PipeParameters params, InitialPipeValue H0,
-                   InitialPipeValue Q0)
-    : m_params(params),
-      m_area(calculate_pipe_area(params.diameter)),
-      m_dx(calculate_dx(params.length, params.num_reaches)),
-      m_R(calculate_R(params.f, m_dx, params.diameter, m_area)),
-      m_B(calculate_B(params.a, m_area)),
-      m_num_nodes(params.num_reaches + 1) {
-  assert(params.num_reaches >= 1 && "num_reaches must be at least 2");
-
-  if (params.num_reaches % 2 != 0) {
-    ++params.num_reaches;
-  }
-
+BasePipe::BasePipe(PipeParameters p, InitialPipeValue H0, InitialPipeValue Q0,
+                   double system_dt)
+    : m_params{p},
+      m_dt{pipe_dt(system_dt)},
+      m_nodes_temp{
+          calculate_nodes_temp(p.lambda, p.length, system_dt, p.a, p.rho)},
+      m_num_segments{calculate_num_segments(m_nodes_temp)},
+      m_a{calculate_wave_speed(p.length, m_nodes_temp, system_dt, p.lambda,
+                               p.rho)},
+      m_dx{calculate_dx(p.length, m_nodes_temp)},
+      m_num_nodes{m_num_segments + 1},
+      m_stag_nodes{(m_num_nodes + 1) / 2},
+      m_L0{0},
+      m_L1{m_num_segments},
+      m_D_Dh{calculate_pipe_diameter(p.area, p.periphery, p.diameter,
+                                     p.dimension)},
+      m_areal{calculate_pipe_area(p.area, p.diameter, p.dimension)},
+      m_R{calculate_R(p.f, m_dx, p.diameter, m_areal)},
+      m_B{calculate_B(p.a, m_areal)},
+      m_lambda{calculate_lambda(p.lambda, m_dx, p.rho, m_areal)},
+      m_state{initialize_H_and_Q(H0, Q0, static_cast<size_t>(m_num_nodes))},
+      m_initial_state{m_state} {
   m_ports[PortType::Left].emplace(*this, PortType::Left);
   m_ports[PortType::Right].emplace(*this, PortType::Right);
 
-  initialize_H_and_Q(H0, Q0);
-  m_initial_state = m_state;
-
-  m_Z.resize(m_num_nodes);
-
-  double dZ = params.z1 - params.z0 / static_cast<double>(params.num_reaches);
-  for (size_t i{0}; i < m_num_nodes; i++) {
-    m_Z[i] = dZ * static_cast<double>(i) + params.z0;
+  m_Z.resize(static_cast<size_t>(m_num_nodes));
+  double dZ = p.z1 - p.z0 / m_nodes_temp;
+  for (size_t i{0}; i < static_cast<size_t>(m_num_nodes); i++) {
+    m_Z[i] = dZ * static_cast<double>(i) + p.z0;
   }
 }
 
-void BasePipe::initialize_H_and_Q(const InitialPipeValue& H0,
-                                  const InitialPipeValue& Q0) {
+PipeState initialize_H_and_Q(const InitialPipeValue& H0,
+                             const InitialPipeValue& Q0,
+                             const size_t num_nodes) {
+  PipeState state{};
+
   if (auto* val = std::get_if<double>(&H0)) {
-    m_state.H.assign(static_cast<size_t>(m_num_nodes), *val);
+    state.H.assign(num_nodes, *val);
   } else {
-    m_state.H = std::move(std::get<std::vector<double>>(H0));
+    state.H = std::move(std::get<std::vector<double>>(H0));
   }
 
   if (auto* val = std::get_if<double>(&Q0)) {
-    m_state.Q.assign(static_cast<size_t>(m_num_nodes), *val);
+    state.Q.assign(num_nodes, *val);
   } else {
-    m_state.Q = std::move(std::get<std::vector<double>>(Q0));
+    state.Q = std::move(std::get<std::vector<double>>(Q0));
   }
+
+  return state;
 }
 
 void BasePipe::remove_left() {
@@ -84,13 +96,11 @@ ElementView BasePipe::read_view() const {
   VectorValue H = {
       .name = "Head flow",
       .y_unit = "m",
-      // .symbol = "H",
       .values = m_state.H,
   };
   VectorValue Q = {
       .name = "Flow rate",
       .y_unit = "m³/s",
-      // .symbol = "Q",
       .values = m_state.Q,
   };
   return {

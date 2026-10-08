@@ -22,9 +22,8 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
           .a = 1200.0,
           .z0 = 10.0,
           .z1 = 15.0,
-          .num_reaches = 10,
       },
-      150.0, 0.0);
+      150.0, 0.0, 0.1);
   pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
 
   ASSERT_NE(reserovoir_port->get_connected_to(), nullptr);

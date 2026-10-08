@@ -5,18 +5,21 @@
 #include "lvtrans/element_types.hpp"
 namespace lvtrans {
 
-Pipe::Pipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0)
-    : BasePipe(params, std::move(H0), std::move(Q0)) {}
+Pipe::Pipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0,
+           const double dt)
+    : BasePipe(params, std::move(H0), std::move(Q0), dt) {}
 
 void Pipe::iterate(const double) {
-  const size_t L0 = 0;
-  const size_t L1 = m_params.num_reaches;
+  const auto L0 = static_cast<size_t>(m_L0);
+  const auto L1 = static_cast<size_t>(m_L1);
+
   auto& H = m_state.H;
   auto& Q = m_state.Q;
 
   for (size_t i{1}; i < L1; i += 2) {
-    const double Cp = H[i - 1] + m_B * Q[i - 1];
-    const double Cm = H[i + 1] - m_B * Q[i + 1];
+    double lambda_current = m_params.lambda * (Q[i + 1] - Q[i - 1]);
+    const double Cp = H[i - 1] + m_B * Q[i - 1] + lambda_current;
+    const double Cm = H[i + 1] - m_B * Q[i + 1] + lambda_current;
     const double Bp = m_B + m_R * std::abs(Q[i - 1]);
     const double Bm = m_B + m_R * std::abs(Q[i + 1]);
 
@@ -25,8 +28,9 @@ void Pipe::iterate(const double) {
   }
 
   for (size_t i{2}; i < L1; i += 2) {
-    const double Cp = H[i - 1] + m_B * Q[i - 1];
-    const double Cm = H[i + 1] - m_B * Q[i + 1];
+    double lambda_current = m_params.lambda * (Q[i + 1] - Q[i - 1]);
+    const double Cp = H[i - 1] + m_B * Q[i - 1] + lambda_current;
+    const double Cm = H[i + 1] - m_B * Q[i + 1] + lambda_current;
     const double Bp = m_B + m_R * std::abs(Q[i - 1]);
     const double Bm = m_B + m_R * std::abs(Q[i + 1]);
 
@@ -35,19 +39,19 @@ void Pipe::iterate(const double) {
   }
 
   // C- characteristic
-  if (auto* left_elem = this->left_elem()) {
-    left_elem->set_c_characteristics(H[L0 + 1] - m_B * Q[L0 + 1]);
-    left_elem->set_b_characteristics(m_R * std::abs(Q[L0 + 1]) + m_B);
-    H[0] = left_elem->get_H();
-    Q[0] = left_elem->get_Q();
+  if (m_left_elem) {
+    m_left_elem->set_c_characteristics(H[L0 + 1] - m_B * Q[L0 + 1]);
+    m_left_elem->set_b_characteristics(m_R * std::abs(Q[L0 + 1]) + m_B);
+    H[L0] = m_left_elem->get_H();
+    Q[L0] = m_left_elem->get_Q();
   }
 
   // C+ characteristic
-  if (auto* right_elem = this->right_elem()) {
-    right_elem->set_c_characteristics(H[L1 - 1] + m_B * Q[L1 - 1]);
-    right_elem->set_b_characteristics(m_B + m_R * std::abs(Q[L1 - 1]));
-    H[m_params.num_reaches] = right_elem->get_H();
-    Q[m_params.num_reaches] = right_elem->get_Q();
+  if (m_right_elem) {
+    m_right_elem->set_c_characteristics(H[L1 - 1] + m_B * Q[L1 - 1]);
+    m_right_elem->set_b_characteristics(m_B + m_R * std::abs(Q[L1 - 1]));
+    H[L1] = m_right_elem->get_H();
+    Q[L1] = m_right_elem->get_Q();
   }
 }
 

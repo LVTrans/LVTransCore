@@ -23,10 +23,9 @@ TEST(PlantTest, AddElements) {
       .a = 1200.0,
       .z0 = 10.0,
       .z1 = 15.0,
-      .num_reaches = 10,
   };
 
-  auto pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0).value();
+  auto pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0, 0.1).value();
   ASSERT_EQ(plant.get_elements().size(), 1u);
   EXPECT_EQ(pipe->get_ID(), 1);
 }

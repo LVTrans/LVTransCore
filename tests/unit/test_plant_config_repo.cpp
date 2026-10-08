@@ -49,7 +49,6 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
   EXPECT_DOUBLE_EQ(config.f, 1.0);
   EXPECT_DOUBLE_EQ(config.a, 1.0);
-  EXPECT_EQ(config.num_reaches, 10u);
   EXPECT_DOUBLE_EQ(config.z0, 0.0);
   EXPECT_DOUBLE_EQ(config.z1, 100.0);
   EXPECT_DOUBLE_EQ(config.lambda, 0.0);
@@ -150,5 +149,4 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   ASSERT_TRUE(saved_file.is_open());
   EXPECT_EQ(nlohmann::json::parse(saved_file).at("connections").size(), 16u);
   Plant plant(std::move(loaded));
-  plant.display();
 }

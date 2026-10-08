@@ -44,7 +44,7 @@ struct PlantConfiguration {
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0,
-                                   z1, lambda, f_max, num_reaches, use_diameter,
+                                   z1, lambda, f_max, dimension, use_diameter,
                                    use_full_moody)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
@@ -55,6 +55,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0, cvp, cvm)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveParameters, tau_i, tau_f, tc, em, cda0,
                                    cvp, cvm)
+NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
+                             {{PipeDimension::Circular, "Circular"},
+                              {PipeDimension::CrossSectional,
+                               "CrossSectional"}})
 
 NLOHMANN_JSON_SERIALIZE_ENUM(ElementType,
                              {{ElementType::Pipe, "NormalPipe"},

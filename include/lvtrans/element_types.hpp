@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
-#include <span>
 #include <sstream>
 #include <string>
 #include <variant>
@@ -12,6 +11,7 @@
 namespace lvtrans {
 
 enum class ElementType : std::uint8_t { Pipe, Reservoir, Valve };
+enum class PipeDimension { Circular, CrossSectional };
 
 // #### PIPE ####
 struct PipeParameters {
@@ -28,9 +28,9 @@ struct PipeParameters {
   double a{};
   double z0{};
   double z1{};
-  double lambda{};
+  double lambda{0};
   double f_max{};
-  std::size_t num_reaches{};
+  PipeDimension dimension{PipeDimension::Circular};
   bool use_diameter{};  //< TRUE = use pipe diameter instead of cross sectional
                         // area
   bool use_full_moody{};

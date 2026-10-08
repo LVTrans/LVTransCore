@@ -1,4 +1,3 @@
-#include "lvtrans/elements/constant_level_left.hpp"
 #include <gtest/gtest.h>
 #include <cassert>
 #include <cmath>
@@ -9,6 +8,8 @@
 #include <lvtrans/elements/valve.hpp>
 #include "../test_helpers.hpp"
 #include "lvtrans/const.hpp"
+#include "lvtrans/elements/base_pipe.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/plant.hpp"
 
 TEST(MultiElementsTest, ReservoirPipeValve) {
@@ -32,7 +33,6 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
       .a = a,
       .z0 = 10,
       .z1 = 15,
-      .num_reaches = 10,
   };
 
   const auto test_file_path =
@@ -44,30 +44,33 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     ASSERT_FALSE(output_file);
   }
 
-  const double dx = calculate_dx(pipe_config.length, pipe_config.num_reaches);
+  const double system_dt = 0.1;
+  const auto segments =
+      calculate_nodes_temp(pipe_config.lambda, pipe_config.length, system_dt,
+                           pipe_config.a, pipe_config.rho);
+  const double dx = calculate_dx(pipe_config.length, segments);
 
   const double dt = dx / a;
 
-  const double system_dt = 2.0 * dt;
   output_file << "t,tau,H_valve,Q_valve\n";
 
-  std::vector<double> H0_(pipe_config.num_reaches + 1, 0.0);
-  std::vector<double> Q0_(pipe_config.num_reaches + 1, 0.0);
+  std::vector<double> H0_{};
+  std::vector<double> Q0_{};
 
-  const double area = calculate_pipe_area(pipe_config.diameter);
+  const double area = calculate_pipe_area(
+      pipe_config.area, pipe_config.diameter, pipe_config.dimension);
   const double R = calculate_R(pipe_config.f, dx, pipe_config.diameter, area);
 
-  const double Q0 = std::sqrt(
-      2.0 * consts::g * CdA0 * CdA0 * HR /
-      (R * pipe_config.num_reaches * 2.0 * consts::g * CdA0 * CdA0 + 1.0));
+  const double Q0 =
+      std::sqrt(2.0 * consts::g * CdA0 * CdA0 * HR /
+                (R * segments * 2.0 * consts::g * CdA0 * CdA0 + 1.0));
 
-  const double H0 = HR - R * pipe_config.num_reaches * Q0 * Q0;
+  const double H0 = HR - R * segments * Q0 * Q0;
 
-  const double Qi =
-      std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
-                (R * pipe_config.num_reaches * Q0 * Q0 * tau_i * tau_i + H0));
+  const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
+                              (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= pipe_config.num_reaches; i += 2) {
+  for (size_t i = 0; i <= segments; i += 2) {
     H0_[i] = HR - i * R * Qi * Qi;
     Q0_[i] = Qi;
   }
@@ -83,7 +86,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   Plant plant(system_dt);
 
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, system_dt).value();
   auto valve = plant.add_element<Valve>(valve_config).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(HR).value();
 
@@ -91,32 +94,12 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   pipe->connect_to(valve, PortType::Right, PortType::Left);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
-  for (int k = 1; k < Kmax / 2 - 9; ++k) {
+  for (int k = 1; k < Kmax; ++k) {
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
-                << pipe->get_H()[pipe_config.num_reaches] << ","
-                << pipe->get_Q()[pipe_config.num_reaches] << '\n';
-  }
-
-  // save state
-  std::cout << "saving state...\n";
-  plant.save(get_mock_data_file_path("generated/temp.json"));
-
-  auto plant2 = Plant(get_mock_data_file_path("generated/temp.json"));
-  std::cout << "loading state...\n";
-  // output_file << "time,tau,H,Q\n";
-
-  auto pipe2 = plant2.get_element_by_id<Pipe>(pipe->get_ID()).value();
-  auto valve2 = plant2.get_element_by_id<Valve>(valve->get_ID()).value();
-
-  for (int k = Kmax / 2 - 9; k < Kmax; ++k) {
-    plant2.step();
-    plant2.read_state(1)->print();
-
-    output_file << plant2.get_current_time() << "," << valve2->get_tau() << ","
-                << pipe2->get_H()[pipe_config.num_reaches] << ","
-                << pipe2->get_Q()[pipe_config.num_reaches] << '\n';
+                << pipe->get_H()[static_cast<size_t>(segments)] << ","
+                << pipe->get_Q()[static_cast<size_t>(segments)] << '\n';
   }
 
   output_file.close();

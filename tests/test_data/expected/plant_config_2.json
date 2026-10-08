@@ -15,7 +15,7 @@
       "id": 720,
       "name": "Main transfer",
       "type": "NormalPipe",
-      "parameters": {"length": 150.0, "diameter": 0.45, "f": 0.018, "a": 1200.0, "num_reaches": 6, "z0": 21.0, "z1": 23.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 150.0, "dimension": "Circular", "diameter": 0.45, "f": 0.018, "a": 1200.0,  "z0": 21.0, "z1": 23.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [159.0, 158.5, 158.0, 157.5, 157.0, 156.5, 156.0], "Q": [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]}
     },
     {
@@ -35,7 +35,7 @@
       "id": 260,
       "name": "Loop west",
       "type": "NormalPipe",
-      "parameters": {"length": 330.0, "diameter": 0.45, "f": 0.018, "a": 1200.0, "num_reaches": 8, "z0": 27.0, "z1": 29.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 330.0, "dimension": "Circular", "diameter": 0.45, "f": 0.018, "a": 1200.0,  "z0": 27.0, "z1": 29.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [153.0, 152.5, 152.0, 151.5, 151.0, 150.5, 150.0, 149.5, 149.0], "Q": [0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4]}
     },
     {
@@ -55,7 +55,7 @@
       "id": 410,
       "name": "Main intake",
       "type": "NormalPipe",
-      "parameters": {"length": 120.0, "diameter": 0.4, "f": 0.018, "a": 1200.0, "num_reaches": 4, "z0": 20.0, "z1": 22.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 120.0, "dimension": "Circular", "diameter": 0.4, "f": 0.018, "a": 1200.0,  "z0": 20.0, "z1": 22.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [160.0, 159.5, 159.0, 158.5, 158.0], "Q": [0.05, 0.05, 0.05, 0.05, 0.05]}
     },
     {
@@ -69,7 +69,7 @@
       "id": 550,
       "name": "Auxiliary outlet",
       "type": "NormalPipe",
-      "parameters": {"length": 240.0, "diameter": 0.45, "f": 0.018, "a": 1200.0, "num_reaches": 4, "z0": 24.0, "z1": 26.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 240.0, "dimension": "Circular", "diameter": 0.45, "f": 0.018, "a": 1200.0,  "z0": 24.0, "z1": 26.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [156.0, 155.5, 155.0, 154.5, 154.0], "Q": [0.25, 0.25, 0.25, 0.25, 0.25]}
     },
     {
@@ -83,7 +83,7 @@
       "id": 680,
       "name": "Loop north",
       "type": "NormalPipe",
-      "parameters": {"length": 270.0, "diameter": 0.5, "f": 0.018, "a": 1200.0, "num_reaches": 4, "z0": 25.0, "z1": 27.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 270.0, "dimension": "Circular", "diameter": 0.5, "f": 0.018, "a": 1200.0,  "z0": 25.0, "z1": 27.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [155.0, 154.5, 154.0, 153.5, 153.0], "Q": [0.30000000000000004, 0.30000000000000004, 0.30000000000000004, 0.30000000000000004, 0.30000000000000004]}
     },
     {
@@ -97,7 +97,7 @@
       "id": 230,
       "name": "Auxiliary intake",
       "type": "NormalPipe",
-      "parameters": {"length": 210.0, "diameter": 0.4, "f": 0.018, "a": 1200.0, "num_reaches": 6, "z0": 23.0, "z1": 25.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 210.0, "dimension": "Circular", "diameter": 0.4, "f": 0.018, "a": 1200.0,  "z0": 23.0, "z1": 25.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [157.0, 156.5, 156.0, 155.5, 155.0, 154.5, 154.0], "Q": [0.2, 0.2, 0.2, 0.2, 0.2, 0.2, 0.2]}
     },
     {
@@ -111,7 +111,7 @@
       "id": 470,
       "name": "Loop east",
       "type": "NormalPipe",
-      "parameters": {"length": 300.0, "diameter": 0.4, "f": 0.018, "a": 1200.0, "num_reaches": 6, "z0": 26.0, "z1": 28.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 300.0, "dimension": "Circular", "diameter": 0.4, "f": 0.018, "a": 1200.0,  "z0": 26.0, "z1": 28.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [154.0, 153.5, 153.0, 152.5, 152.0, 151.5, 151.0], "Q": [0.35000000000000003, 0.35000000000000003, 0.35000000000000003, 0.35000000000000003, 0.35000000000000003, 0.35000000000000003, 0.35000000000000003]}
     },
     {
@@ -125,7 +125,7 @@
       "id": 160,
       "name": "Main outlet",
       "type": "NormalPipe",
-      "parameters": {"length": 180.0, "diameter": 0.5, "f": 0.018, "a": 1200.0, "num_reaches": 8, "z0": 22.0, "z1": 24.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
+      "parameters": {"length": 180.0, "dimension": "Circular", "diameter": 0.5, "f": 0.018, "a": 1200.0,  "z0": 22.0, "z1": 24.0, "lambda": 0.0, "f_max": 0.0, "use_diameter": false, "use_full_moody": false},
       "state": {"H": [158.0, 157.5, 157.0, 156.5, 156.0, 155.5, 155.0, 154.5, 154.0], "Q": [0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002, 0.15000000000000002]}
     }
   ],

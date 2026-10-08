@@ -19,7 +19,6 @@ static void BM_PipeIterate(benchmark::State& state) {
           .a = 1200.0,
           .z0 = 0.0,
           .z1 = 0.0,
-          .num_reaches = reaches,
       },
       150.0, 0.0);
 

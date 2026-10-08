@@ -44,7 +44,7 @@ PlantRepositoryResult PlantConfigRepository::load(
   // add elements
   for (const auto& element : config.elements) {
     auto parser = ParserFactory::create(element.type);
-    if (parser->parse(element_container, element) ==
+    if (parser->parse(element_container, element, plant.config.step_size) ==
         ElementParseResult::Error) {
       return PlantRepositoryResult::Error;
     }

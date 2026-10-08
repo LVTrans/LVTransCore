@@ -79,7 +79,6 @@ void Plant::display() const {
       {ElementType::Reservoir, "R"},
   };
   for (auto& e : m_data.element_container.get_elements_sorted()) {
-    // std::cout << "E(" << e->get_ID() << ")<-->";
     if (visited_ids.contains(e->get_ID())) {
       continue;
     }

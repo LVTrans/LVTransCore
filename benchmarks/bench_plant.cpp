@@ -17,7 +17,6 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, size_t reaches) {
                            .a = 1200.0,
                            .z0 = 0.0,
                            .z1 = 0.0,
-                           .num_reaches = reaches,
                        },
                        150.0, 0.0)
                    .value();

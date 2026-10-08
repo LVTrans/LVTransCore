@@ -6,10 +6,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
-#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -79,7 +78,7 @@ int main() {
   double HR = 150.0;    // Reservoir head above datum [m]
   double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
-  Plant plant;
+  Plant plant(0.1);
   PipeParameters pipe_config = {
       .length = 600.0,
       .diameter = 0.5,
@@ -87,40 +86,40 @@ int main() {
       .a = a,
       .z0 = 10,
       .z1 = 15,
-      .num_reaches = 10,
   };
 
-  const double dx = calculate_dx(pipe_config.length, pipe_config.num_reaches);
+  const double sim_dt = plant.get_step_size();
+  const auto segments =
+      calculate_nodes_temp(pipe_config.lambda, pipe_config.length, sim_dt,
+                           pipe_config.a, pipe_config.rho);
+  const double dx = calculate_dx(pipe_config.length, segments);
 
-  std::vector<double> H0_(pipe_config.num_reaches + 1, 0.0);
-  std::vector<double> Q0_(pipe_config.num_reaches + 1, 0.0);
+  std::vector<double> H0_{};
+  std::vector<double> Q0_{};
 
-  const double area = calculate_pipe_area(pipe_config.diameter);
+  const double area = calculate_pipe_area(
+      pipe_config.area, pipe_config.diameter, pipe_config.dimension);
   const double R = calculate_R(pipe_config.f, dx, pipe_config.diameter, area);
 
   const double Q0 =
       std::sqrt(2.0 * consts::g * CdA0 * CdA0 * HR /
-                (R * static_cast<double>(pipe_config.num_reaches) * 2.0 *
-                     consts::g * CdA0 * CdA0 +
-                 1.0));
+                (R * segments * 2.0 * consts::g * CdA0 * CdA0 + 1.0));
 
-  const double H0 =
-      HR - R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0;
+  const double H0 = HR - R * segments * Q0 * Q0;
 
-  const double Qi =
-      std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
-                (R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0 *
-                     tau_i * tau_i +
-                 H0));
+  const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
+                              (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= pipe_config.num_reaches; i += 2) {
+  for (size_t i = 0; i <= segments; i += 2) {
     H0_[i] = HR - i * R * Qi * Qi;
     Q0_[i] = Qi;
   }
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
+  auto pipe2 = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
+  auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
 
   ValveParameters valve_config{};
   valve_config.tau_i = tau_i;
@@ -133,6 +132,9 @@ int main() {
 
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
+  pipe2->connect_to(reservoir2, PortType::Right, PortType::Left);
+  pipe2->connect_to(valve, PortType::Left, PortType::Right);
+
   PlotContainer plots{.time = std::vector<double>{},
                       .plots = std::vector<std::vector<double>>{
                           std::vector<double>{},
@@ -140,7 +142,6 @@ int main() {
                           std::vector<double>{},
                       }};
   const double real_dt = ImGui::GetIO().DeltaTime;
-  const double sim_dt = plant.get_step_size();
   double acc = 0;
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();

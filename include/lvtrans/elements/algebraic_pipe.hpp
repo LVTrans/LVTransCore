@@ -5,8 +5,8 @@ namespace lvtrans {
 
 class AlgebraicPipe : public BasePipe {
  public:
-  AlgebraicPipe(PipeParameters params, InitialPipeValue H0,
-                InitialPipeValue Q0);
+  AlgebraicPipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0,
+                const double dt);
   ElementType get_type() const override { return ElementType::Pipe; }
   void iterate(const double t) override;
 };
