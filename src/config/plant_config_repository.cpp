@@ -32,6 +32,7 @@ PlantRepositoryResult PlantConfigRepository::load(
     json = json::parse(file);
     config = json.get<PlantConfiguration>();
   } catch (std::exception& ex) {
+    std::cout << "Failed to parse file: " << ex.what() << '\n';
     return PlantRepositoryResult::Error;
   }
 
@@ -45,6 +46,7 @@ PlantRepositoryResult PlantConfigRepository::load(
     auto parser = ParserFactory::create(element.type);
     if (parser->parse(element_container, element, plant.config.step_size) ==
         ElementParseResult::Error) {
+      std::cout << "Failed to parse element: " << element.name << '\n';
       return PlantRepositoryResult::Error;
     }
   }

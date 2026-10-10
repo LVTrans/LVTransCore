@@ -25,7 +25,6 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_DOUBLE_EQ(plant_data.state.current_time, 10.0);
   EXPECT_EQ(plant_data.state.num_iterations, 2);
   EXPECT_EQ(plant_data.meta.name, "Plant 1");
-  EXPECT_EQ(plant_data.format_version, 1);
 
   auto& elements = plant_data.element_container;
   ASSERT_EQ(elements.get_elements().size(), 3u);

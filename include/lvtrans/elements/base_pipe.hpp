@@ -1,4 +1,5 @@
 #pragma once
+#include <cassert>
 #include <cmath>
 #include <numbers>
 #include <variant>
@@ -61,20 +62,22 @@ inline constexpr double calculate_dx(double length, double nodes) {
   return length / nodes;
 }
 
-inline constexpr double calculate_pipe_area(double areal_raw, double diameter,
+inline constexpr double calculate_pipe_area(double areal_raw,
+                                            double diameter_raw,
                                             PipeDimension dimension) {
   if (dimension == PipeDimension::CrossSectional) {
     return areal_raw;
   } else {
-    return std::numbers::pi * std::pow(diameter, 2) / 4.0;
+    return std::numbers::pi * std::pow(diameter_raw, 2) / 4.0;
   }
 }
 
-inline constexpr double calculate_pipe_diameter(double areal, double perimeter,
+inline constexpr double calculate_pipe_diameter(double areal_raw,
+                                                double perimeter,
                                                 double diameter_raw,
                                                 PipeDimension dimension) {
   if (dimension == PipeDimension::CrossSectional) {
-    return 4.0 * areal / perimeter;
+    return 4.0 * areal_raw / perimeter;
   } else {
     return diameter_raw;
   }

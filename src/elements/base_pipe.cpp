@@ -28,13 +28,15 @@ BasePipe::BasePipe(PipeParameters p, InitialPipeValue H0, InitialPipeValue Q0,
       m_D_Dh{calculate_pipe_diameter(p.area, p.periphery, p.diameter,
                                      p.dimension)},
       m_areal{calculate_pipe_area(p.area, p.diameter, p.dimension)},
-      m_R{calculate_R(p.f, m_dx, p.diameter, m_areal)},
+      m_R{calculate_R(p.f, m_dx, m_D_Dh, m_areal)},
       m_B{calculate_B(p.a, m_areal)},
       m_lambda{calculate_lambda(p.lambda, m_dx, p.rho, m_areal)},
       m_state{initialize_H_and_Q(H0, Q0, static_cast<size_t>(m_num_nodes))},
       m_initial_state{m_state} {
   m_ports[PortType::Left].emplace(*this, PortType::Left);
   m_ports[PortType::Right].emplace(*this, PortType::Right);
+  std::cout << "BasePipe: m_lambda: " << m_lambda << std::endl;
+  std::cout << "lambda in: " << p.lambda << std::endl;
 
   m_Z.resize(static_cast<size_t>(m_num_nodes));
   double dZ = p.z1 - p.z0 / m_nodes_temp;

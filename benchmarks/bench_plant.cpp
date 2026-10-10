@@ -30,39 +30,24 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, float dt) {
                     })
                     .value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
+  pipe->connect(reservoir);
+  pipe->connect(valve);
   return pipe;
 }
 
-static void BM_PlantStep(benchmark::State& state, double dt) {
+static void BM_PlantStepManyPipes001Dt(benchmark::State& state) {
+  const auto dt = 0.01;
   lvtrans::Plant plant(dt);
-  add_pipe_group(plant, dt);
-
-  for (auto _ : state) {
-    plant.step();
-  }
-}
-
-BENCHMARK_CAPTURE(BM_PlantStep, 0.1, 0.1);
-BENCHMARK_CAPTURE(BM_PlantStep, 0.01, 0.01);
-BENCHMARK_CAPTURE(BM_PlantStep, 0.001, 0.001);
-BENCHMARK_CAPTURE(BM_PlantStep, 0.0001, 0.0001);
-BENCHMARK_CAPTURE(BM_PlantStep, 0.00001, 0.00001);
-
-static void BM_PlantStepManyPipes(benchmark::State& state) {
-  lvtrans::Plant plant(0.01);
   for (int64_t i = 0; i < state.range(0); ++i) {
-    add_pipe_group(plant, 100);
+    add_pipe_group(plant, dt);
   }
 
   for (auto _ : state) {
     plant.step();
-    benchmark::ClobberMemory();
   }
 }
 
-BENCHMARK(BM_PlantStepManyPipes)->Arg(1)->Arg(10)->Arg(100);
+BENCHMARK(BM_PlantStepManyPipes001Dt)->Arg(1)->Arg(10)->Arg(100);
 
 static void BM_ReadState(benchmark::State& state) {
   lvtrans::Plant plant(0.01);

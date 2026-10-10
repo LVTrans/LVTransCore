@@ -8,6 +8,7 @@
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/plant_types.hpp"
 #include "lvtrans/port.hpp"
+#include "nlohmann/detail/macro_scope.hpp"
 #include "nlohmann/json.hpp"
 namespace lvtrans {
 
@@ -43,19 +44,19 @@ struct PlantConfiguration {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, area,
-                                   periphery, epsilon, ny, rho, f, a, z0, z1,
-                                   lambda, f_max, dimension, use_diameter,
-                                   use_full_moody, use_Dh)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
+    z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirParameters, H0, cvp, cvm)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
+                                                cvm)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveParameters, tau_i, tau_f, tc, em, cda0,
-                                   cvp, cvm)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveParameters, tau_i, tau_f,
+                                                tc, em, cda0, cvp, cvm)
 NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
                              {{PipeDimension::Circular, "Circular"},
                               {PipeDimension::CrossSectional,

@@ -17,7 +17,7 @@ void Pipe::iterate(const double) {
   auto& Q = m_state.Q;
 
   for (size_t i{1}; i < L1; i += 2) {
-    double lambda_current = m_params.lambda * (Q[i + 1] - Q[i - 1]);
+    double lambda_current = m_lambda * (Q[i + 1] - Q[i - 1]);
     const double Cp = H[i - 1] + m_B * Q[i - 1] + lambda_current;
     const double Cm = H[i + 1] - m_B * Q[i + 1] + lambda_current;
     const double Bp = m_B + m_R * std::abs(Q[i - 1]);
@@ -28,7 +28,7 @@ void Pipe::iterate(const double) {
   }
 
   for (size_t i{2}; i < L1; i += 2) {
-    double lambda_current = m_params.lambda * (Q[i + 1] - Q[i - 1]);
+    double lambda_current = m_lambda * (Q[i + 1] - Q[i - 1]);
     const double Cp = H[i - 1] + m_B * Q[i - 1] + lambda_current;
     const double Cm = H[i + 1] - m_B * Q[i + 1] + lambda_current;
     const double Bp = m_B + m_R * std::abs(Q[i - 1]);

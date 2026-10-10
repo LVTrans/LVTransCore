@@ -33,6 +33,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
       .a = a,
       .z0 = 10,
       .z1 = 15,
+      .lambda = 0,
   };
 
   const auto test_file_path =

@@ -14,16 +14,14 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   auto* reserovoir_port = &*reservoir->get_ports()[PortType::Right];
   EXPECT_EQ(&reserovoir_port->get_owner(), reservoir.get());
 
-  Pipe pipe(
-      PipeParameters{
-          .length = 600.0,
-          .diameter = 0.5,
-          .f = 0.018,
-          .a = 1200.0,
-          .z0 = 10.0,
-          .z1 = 15.0,
-      },
-      150.0, 0.0, 0.1);
+  Pipe pipe(PipeParameters{.length = 600.0,
+                           .diameter = 0.5,
+                           .f = 0.018,
+                           .a = 1200.0,
+                           .z0 = 10.0,
+                           .z1 = 15.0,
+                           .lambda = 0},
+            150.0, 0.0, 0.1);
   pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
 
   ASSERT_NE(reserovoir_port->get_connected_to(), nullptr);
