@@ -37,7 +37,6 @@ PlantRepositoryResult PlantConfigRepository::load(
 
   plant.config = config.simulation;
   plant.meta = config.meta;
-  plant.format_version = config.format_version;
   plant.state = config.state.value_or(PlantState{});
   auto& element_container = plant.element_container;
 
@@ -128,7 +127,7 @@ std::vector<ConnectionConfig> to_connection_configs(
 PlantConfiguration to_plant_configuration(const PlantData& plant) {
   PlantConfiguration config{};
   config.meta = plant.meta;
-  config.format_version = plant.format_version;
+  config.format_version = 1;
   config.simulation = plant.config;
   config.state = std::make_optional(plant.state);
   config.elements = to_element_configs(plant.element_container.get_elements());

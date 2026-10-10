@@ -14,7 +14,6 @@ struct PlantData {
   PlantState state;
   SimulationConfig config;
   PlantMetaData meta;
-  int format_version{1};
 };
 
 class Plant {

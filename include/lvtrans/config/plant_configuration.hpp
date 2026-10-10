@@ -43,9 +43,10 @@ struct PlantConfiguration {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, f, a, z0,
-                                   z1, lambda, f_max, dimension, use_diameter,
-                                   use_full_moody)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeParameters, length, diameter, area,
+                                   periphery, epsilon, ny, rho, f, a, z0, z1,
+                                   lambda, f_max, dimension, use_diameter,
+                                   use_full_moody, use_Dh)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
