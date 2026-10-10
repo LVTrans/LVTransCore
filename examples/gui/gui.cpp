@@ -137,6 +137,7 @@ int main() {
   pipe->connect_to(valve, PortType::Right, PortType::Left);
   pipe2->connect_to(reservoir2, PortType::Right, PortType::Left);
   pipe2->connect_to(valve, PortType::Left, PortType::Right);
+  plant.display();
 
   PlotContainer plots{.time = std::vector<double>{},
                       .plots = std::vector<std::vector<double>>{

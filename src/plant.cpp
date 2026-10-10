@@ -84,7 +84,7 @@ void Plant::display() const {
     }
 
     // check left element
-    if (e->get_ports()[PortType::Left]) {
+    if (e->get_ports()[PortType::Left]->get_peer()) {
       auto left_peer = e->get_ports()[PortType::Left]->get_peer();
       std::cout << element_type_names[left_peer->get_type()] << "("
                 << left_peer->get_ID() << ")<-->";
@@ -92,7 +92,7 @@ void Plant::display() const {
     }
     std::cout << element_type_names[e->get_type()] << "(" << e->get_ID() << ")";
     // check right element
-    if (e->get_ports()[PortType::Right]) {
+    if (e->get_ports()[PortType::Right]->get_peer()) {
       auto right_peer = e->get_ports()[PortType::Right]->get_peer();
       std::cout << "<-->" << element_type_names[right_peer->get_type()] << "("
                 << right_peer->get_ID() << ")";

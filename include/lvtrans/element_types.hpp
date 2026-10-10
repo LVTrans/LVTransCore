@@ -10,7 +10,14 @@
 
 namespace lvtrans {
 
-enum class ElementType : std::uint8_t { Pipe, Reservoir, Valve };
+enum class ElementType : std::uint8_t {
+  Pipe,
+  Reservoir,
+  Valve,
+  ConstantLevelLeft,
+  ConstantLevelRight,
+  AlgebraicPipe
+};
 enum class PipeDimension { Circular, CrossSectional };
 
 // #### PIPE ####

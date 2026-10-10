@@ -5,11 +5,53 @@
 #include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/config/plant_config_repository.hpp"
+#include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 #include "nlohmann/json.hpp"
+
+TEST(ElementConfigTest, DeserializesVariantsAndClearsAbsentState) {
+  using namespace lvtrans;
+  const std::vector<ElementConfig> configs{
+      {1, "pipe", ElementType::Pipe, PipeParameters{.length = 600.0},
+       PipeState{{10.0, 20.0}, {1.0, 2.0}}},
+      {2, "algebraic", ElementType::AlgebraicPipe,
+       PipeParameters{.length = 300.0}, PipeState{{30.0}, {3.0}}},
+      {3, "valve", ElementType::Valve, ValveParameters{.tau_i = 0.5},
+       ValveState{0.75}},
+      {4, "reservoir", ElementType::Reservoir,
+       ReservoirParameters{.H0 = 150.0}, std::nullopt},
+      {5, "left", ElementType::ConstantLevelLeft,
+       ReservoirParameters{.H0 = 160.0}, std::nullopt},
+      {6, "right", ElementType::ConstantLevelRight,
+       ReservoirParameters{.H0 = 170.0}, std::nullopt},
+  };
+  ElementConfig loaded{};
+  for (const auto& config : configs) {
+    SCOPED_TRACE(config.name);
+    const nlohmann::json encoded = config;
+    encoded.get_to(loaded);
+    EXPECT_EQ(loaded.type, config.type);
+    EXPECT_EQ(loaded.parameters.index(), config.parameters.index());
+    ASSERT_EQ(loaded.state.has_value(), config.state.has_value());
+    if (config.state) {
+      EXPECT_EQ(loaded.state->index(), config.state->index());
+    }
+    EXPECT_EQ(nlohmann::json(loaded), encoded);
+
+    auto without_state = encoded;
+    without_state.erase("state");
+    without_state.get_to(loaded);
+    EXPECT_FALSE(loaded.state.has_value());
+
+    encoded.get_to(loaded);
+    without_state["state"] = nullptr;
+    without_state.get_to(loaded);
+    EXPECT_FALSE(loaded.state.has_value());
+  }
+}
 
 TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   using namespace lvtrans;

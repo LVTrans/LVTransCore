@@ -3,6 +3,8 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <variant>
 #include <vector>
 #include "lvtrans/element_types.hpp"
@@ -62,11 +64,14 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
                               {PipeDimension::CrossSectional,
                                "CrossSectional"}})
 
-NLOHMANN_JSON_SERIALIZE_ENUM(ElementType,
-                             {{ElementType::Pipe, "NormalPipe"},
-                              {ElementType::Pipe, "Pipe"},
-                              {ElementType::Reservoir, "Reservoir"},
-                              {ElementType::Valve, "Valve"}})
+NLOHMANN_JSON_SERIALIZE_ENUM(
+    ElementType, {{ElementType::Pipe, "NormalPipe"},
+                  {ElementType::Pipe, "Pipe"},
+                  {ElementType::Reservoir, "Reservoir"},
+                  {ElementType::Valve, "Valve"},
+                  {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
+                  {ElementType::ConstantLevelRight, "ConstantLevelRight"},
+                  {ElementType::AlgebraicPipe, "AlgebraicPipe"}})
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PortType, {{PortType::Left, "left"},
                                         {PortType::Right, "right"},
@@ -78,22 +83,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
 
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
-  switch (value.type) {
-    case ElementType::Pipe:
-      j["parameters"] = std::get<PipeParameters>(value.parameters);
-      if (value.state) {
-        j["state"] = std::get<PipeState>(*value.state);
-      }
-      break;
-    case ElementType::Valve:
-      j["parameters"] = std::get<ValveParameters>(value.parameters);
-      if (value.state) {
-        j["state"] = std::get<ValveState>(*value.state);
-      }
-      break;
-    case ElementType::Reservoir:
-      j["parameters"] = std::get<ReservoirParameters>(value.parameters);
-      break;
+  std::visit([&](const auto& parameters) { j["parameters"] = parameters; },
+             value.parameters);
+  if (value.state) {
+    std::visit([&](const auto& state) { j["state"] = state; }, *value.state);
   }
 }
 
@@ -101,24 +94,29 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   j.at("id").get_to(value.id);
   j.at("name").get_to(value.name);
   j.at("type").get_to(value.type);
+  using ElementDefaults =
+      std::pair<ElementParameters, std::optional<ElementState>>;
+  static const std::unordered_map<ElementType, ElementDefaults> defaults{
+      {ElementType::Pipe, {PipeParameters{}, PipeState{}}},
+      {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
+      {ElementType::Valve, {ValveParameters{}, ValveState{}}},
+      {ElementType::Reservoir, {ReservoirParameters{}, std::nullopt}},
+      {ElementType::ConstantLevelLeft, {ReservoirParameters{}, std::nullopt}},
+      {ElementType::ConstantLevelRight, {ReservoirParameters{}, std::nullopt}},
+  };
+
+  const auto& [parameters, state] = defaults.at(value.type);
+  value.parameters = parameters;
   value.state.reset();
-  const bool has_state = j.contains("state") && !j.at("state").is_null();
-  switch (value.type) {
-    case ElementType::Pipe:
-      value.parameters = j.at("parameters").get<PipeParameters>();
-      if (has_state) {
-        value.state = j.at("state").get<PipeState>();
-      }
-      break;
-    case ElementType::Valve:
-      value.parameters = j.at("parameters").get<ValveParameters>();
-      if (has_state) {
-        value.state = j.at("state").get<ValveState>();
-      }
-      break;
-    case ElementType::Reservoir:
-      value.parameters = j.at("parameters").get<ReservoirParameters>();
-      break;
+  std::visit(
+      [&](auto& parameter_values) {
+        j.at("parameters").get_to(parameter_values);
+      },
+      value.parameters);
+  if (state && j.contains("state") && !j.at("state").is_null()) {
+    value.state = state;
+    std::visit([&](auto& state_values) { j.at("state").get_to(state_values); },
+               *value.state);
   }
 }
 

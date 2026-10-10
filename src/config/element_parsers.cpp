@@ -34,7 +34,7 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);
-    if (!check_state(state, config)) {
+    if (!check_state(state, config, step_size)) {
       return ElementParseResult::Error;
     }
     H0 = state.H;
@@ -68,8 +68,11 @@ ElementParseResult ReservoirParser::parse(ElementContainer& container,
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
   switch (type) {
     case ElementType::Pipe:
+    case ElementType::AlgebraicPipe:
       return std::make_unique<PipeParser>();
     case ElementType::Reservoir:
+    case ElementType::ConstantLevelLeft:
+    case ElementType::ConstantLevelRight:
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();
