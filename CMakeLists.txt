@@ -29,27 +29,11 @@ target_sources(
         src/elements/reservoir.cpp
         src/elements/element.cpp
         src/elements/pid_turbine.cpp
-        src/elements/pid_pump.cpp
-        src/elements/pid_turbine_aff.cpp
         src/elements/surge_shaft_standard.cpp
-        src/elements/surge_shaft_variable.cpp
-        src/elements/surge_shaft_variable_qin.cpp
-        src/elements/creek_shaft_normal.cpp
-        src/elements/creek_shaft_normal_q1.cpp
         src/elements/t_1in_2out_n.cpp
         src/elements/t_1in_2out_s.cpp
         src/elements/t_2in_1out_n.cpp
         src/elements/t_2in_1out_s.cpp
-        src/elements/t_adaptive.cpp
-        src/elements/francis.cpp
-        src/elements/pelton.cpp
-        src/elements/pelton_sump.cpp
-        src/elements/pump_centrifugal.cpp
-        src/elements/valve_internal_servo.cpp
-        src/elements/prv.cpp
-        src/elements/open_channel_nl_normal.cpp
-        src/elements/open_channel_ll_normal.cpp
-        src/elements/open_channel_lr_normal.cpp
         src/plant.cpp
         src/port.cpp
         src/element_container.cpp

@@ -93,7 +93,6 @@ int main() {
   const auto segments =
       calculate_nodes_temp(pipe_config.lambda, pipe_config.length, sim_dt,
                            pipe_config.a, pipe_config.rho);
-  const auto segments_real = calculate_num_segments(segments);
   const double dx = calculate_dx(pipe_config.length, segments);
 
   const auto num_segments =
