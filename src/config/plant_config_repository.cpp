@@ -32,20 +32,21 @@ PlantRepositoryResult PlantConfigRepository::load(
     json = json::parse(file);
     config = json.get<PlantConfiguration>();
   } catch (std::exception& ex) {
+    std::cout << "Failed to parse file: " << ex.what() << '\n';
     return PlantRepositoryResult::Error;
   }
 
   plant.config = config.simulation;
   plant.meta = config.meta;
-  plant.format_version = config.format_version;
   plant.state = config.state.value_or(PlantState{});
   auto& element_container = plant.element_container;
 
   // add elements
   for (const auto& element : config.elements) {
     auto parser = ParserFactory::create(element.type);
-    if (parser->parse(element_container, element) ==
+    if (parser->parse(element_container, element, plant.config.step_size) ==
         ElementParseResult::Error) {
+      std::cout << "Failed to parse element: " << element.name << '\n';
       return PlantRepositoryResult::Error;
     }
   }
@@ -128,7 +129,7 @@ std::vector<ConnectionConfig> to_connection_configs(
 PlantConfiguration to_plant_configuration(const PlantData& plant) {
   PlantConfiguration config{};
   config.meta = plant.meta;
-  config.format_version = plant.format_version;
+  config.format_version = 1;
   config.simulation = plant.config;
   config.state = std::make_optional(plant.state);
   config.elements = to_element_configs(plant.element_container.get_elements());

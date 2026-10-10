@@ -61,6 +61,7 @@ class ElementContainer {
   }
 
   std::vector<Element*> get_elements() const;
+  std::vector<Element*> get_elements_sorted() const;
   Element* get_element_by_id(ElementID id) const;
   void remove_element_by_id(ElementID id);
 

@@ -1,10 +1,11 @@
 #include "lvtrans/config/element_parsers.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
 
 ElementParseResult ValveParser::parse(ElementContainer& container,
-                                      const ElementConfig& element) {
+                                      const ElementConfig& element, double) {
   const auto& config = std::get<ValveParameters>(element.parameters);
   const auto state = element.state ? std::get<ValveState>(*element.state)
                                    : ValveState{config.tau_i};
@@ -20,7 +21,8 @@ ElementParseResult ValveParser::parse(ElementContainer& container,
 }
 
 ElementParseResult PipeParser::parse(ElementContainer& container,
-                                     const ElementConfig& element) {
+                                     const ElementConfig& element,
+                                     double step_size) {
   const auto& config = std::get<PipeParameters>(element.parameters);
 
   if (!check_parameters(config)) {
@@ -32,14 +34,16 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);
-    if (!check_state(state, config)) {
+    if (!check_state(state, config, step_size)) {
       return ElementParseResult::Error;
     }
     H0 = state.H;
     Q0 = state.Q;
   }
 
-  auto pipe = container.add_element_with_id<Pipe>(element.id, config, H0, Q0);
+  auto pipe =
+      container.add_element_with_id<Pipe>(element.id, config, H0, Q0,
+                                          step_size);  // TODO: Use system dt
   if (!pipe.has_value()) {
     return ElementParseResult::Error;
   }
@@ -49,8 +53,9 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 }
 
 ElementParseResult ReservoirParser::parse(ElementContainer& container,
-                                          const ElementConfig& element) {
-  auto reservoir = container.add_element_with_id<Reservoir>(
+                                          const ElementConfig& element,
+                                          double) {
+  auto reservoir = container.add_element_with_id<ConstantLevelLeft>(
       element.id, std::get<ReservoirParameters>(element.parameters));
   if (!reservoir.has_value()) {
     return ElementParseResult::Error;
@@ -63,8 +68,11 @@ ElementParseResult ReservoirParser::parse(ElementContainer& container,
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
   switch (type) {
     case ElementType::Pipe:
+    case ElementType::AlgebraicPipe:
       return std::make_unique<PipeParser>();
     case ElementType::Reservoir:
+    case ElementType::ConstantLevelLeft:
+    case ElementType::ConstantLevelRight:
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();

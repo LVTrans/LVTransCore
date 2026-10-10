@@ -19,5 +19,5 @@ foreach(example IN LISTS LVTRANS_EXAMPLES)
     lvtrans_core
   )
 
-  target_compile_options(${example} PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+target_compile_options(${example} PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
 endforeach()

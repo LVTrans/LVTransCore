@@ -1,12 +1,13 @@
 #include <benchmark/benchmark.h>
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
-static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, size_t reaches) {
+static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, float dt) {
   using namespace lvtrans;
 
-  auto* reservoir = plant.add_element<Reservoir>(150.0).value();
+  auto* reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
   auto* pipe = plant
                    .add_element<Pipe>(
                        PipeParameters{
@@ -16,9 +17,8 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, size_t reaches) {
                            .a = 1200.0,
                            .z0 = 0.0,
                            .z1 = 0.0,
-                           .num_reaches = reaches,
                        },
-                       150.0, 0.0)
+                       150.0, 0.0, dt)
                    .value();
 
   auto* valve = plant
@@ -30,42 +30,24 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, size_t reaches) {
                     })
                     .value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
+  pipe->connect(reservoir);
+  pipe->connect(valve);
   return pipe;
 }
 
-static void BM_PlantStep(benchmark::State& state) {
-  const auto reaches = static_cast<size_t>(state.range(0));
-  lvtrans::Plant plant(2.0 * 600.0 / (1200.0 * reaches));
-  add_pipe_group(plant, reaches);
-
-  for (auto _ : state) {
-    plant.step();
-    benchmark::ClobberMemory();
-  }
-}
-
-BENCHMARK(BM_PlantStep)
-    ->Arg(10)
-    ->Arg(100)
-    ->Arg(1'000)
-    ->Arg(10'000)
-    ->Arg(100'000);
-
-static void BM_PlantStepManyPipes(benchmark::State& state) {
-  lvtrans::Plant plant(0.01);
+static void BM_PlantStepManyPipes001Dt(benchmark::State& state) {
+  const auto dt = 0.01;
+  lvtrans::Plant plant(dt);
   for (int64_t i = 0; i < state.range(0); ++i) {
-    add_pipe_group(plant, 100);
+    add_pipe_group(plant, dt);
   }
 
   for (auto _ : state) {
     plant.step();
-    benchmark::ClobberMemory();
   }
 }
 
-BENCHMARK(BM_PlantStepManyPipes)->Arg(1)->Arg(10)->Arg(100);
+BENCHMARK(BM_PlantStepManyPipes001Dt)->Arg(1)->Arg(10)->Arg(100);
 
 static void BM_ReadState(benchmark::State& state) {
   lvtrans::Plant plant(0.01);

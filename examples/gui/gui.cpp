@@ -6,9 +6,10 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
-#include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/base_pipe.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
+#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -78,7 +79,7 @@ int main() {
   double HR = 150.0;    // Reservoir head above datum [m]
   double CdA0 = 0.009;  // Valve coefficient/opening parameter
 
-  Plant plant;
+  Plant plant(0.1);
   PipeParameters pipe_config = {
       .length = 600.0,
       .diameter = 0.5,
@@ -86,40 +87,42 @@ int main() {
       .a = a,
       .z0 = 10,
       .z1 = 15,
-      .num_reaches = 10,
   };
 
-  const double dx = calculate_dx(pipe_config.length, pipe_config.num_reaches);
+  const double sim_dt = plant.get_step_size();
+  const auto segments =
+      calculate_nodes_temp(pipe_config.lambda, pipe_config.length, sim_dt,
+                           pipe_config.a, pipe_config.rho);
+  const double dx = calculate_dx(pipe_config.length, segments);
 
-  std::vector<double> H0_(pipe_config.num_reaches + 1, 0.0);
-  std::vector<double> Q0_(pipe_config.num_reaches + 1, 0.0);
+  const auto num_segments =
+      static_cast<size_t>(calculate_num_segments(segments));
+  std::vector<double> H0_(num_segments + 1, 0.0);
+  std::vector<double> Q0_(num_segments + 1, 0.0);
 
-  const double area = calculate_pipe_area(pipe_config.diameter);
+  const double area = calculate_pipe_area(
+      pipe_config.area, pipe_config.diameter, pipe_config.dimension);
   const double R = calculate_R(pipe_config.f, dx, pipe_config.diameter, area);
 
   const double Q0 =
       std::sqrt(2.0 * consts::g * CdA0 * CdA0 * HR /
-                (R * static_cast<double>(pipe_config.num_reaches) * 2.0 *
-                     consts::g * CdA0 * CdA0 +
-                 1.0));
+                (R * segments * 2.0 * consts::g * CdA0 * CdA0 + 1.0));
 
-  const double H0 =
-      HR - R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0;
+  const double H0 = HR - R * segments * Q0 * Q0;
 
-  const double Qi =
-      std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
-                (R * static_cast<double>(pipe_config.num_reaches) * Q0 * Q0 *
-                     tau_i * tau_i +
-                 H0));
+  const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
+                              (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i <= pipe_config.num_reaches; i += 2) {
-    H0_[i] = HR - i * R * Qi * Qi;
+  for (size_t i = 0; i < H0_.size(); i += 2) {
+    H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_).value();
-  auto reservoir = plant.add_element<Reservoir>(150.0).value();
+  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
+  auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
+  auto pipe2 = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
+  auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
 
   ValveParameters valve_config{};
   valve_config.tau_i = tau_i;
@@ -132,13 +135,18 @@ int main() {
 
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
+  pipe2->connect_to(reservoir2, PortType::Right, PortType::Left);
+  pipe2->connect_to(valve, PortType::Left, PortType::Right);
+  plant.display();
+
   PlotContainer plots{.time = std::vector<double>{},
                       .plots = std::vector<std::vector<double>>{
                           std::vector<double>{},
                           std::vector<double>{},
                           std::vector<double>{},
                       }};
-  // Main App/Simulation Loop
+  const double real_dt = ImGui::GetIO().DeltaTime;
+  double acc = 0;
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
 
@@ -149,19 +157,23 @@ int main() {
 
     // --- SIMULATION LOGIC ---
     if (is_running) {
-      plant.set_sim_speed(sim_speed);
-      plant.step();
-      plots.time.push_back(plant.get_current_time());
+      acc += real_dt * sim_speed;
+      while (acc >= sim_dt) {
+        plant.step();
+        plots.time.push_back(plant.get_current_time());
 
-      plots.plots[0].push_back(pipe->get_latest_H());
-      plots.plots[1].push_back(pipe->get_latest_Q());
-      plots.plots[2].push_back(valve->get_tau());
+        plots.plots[0].push_back(pipe->get_latest_H());
+        plots.plots[1].push_back(pipe->get_latest_Q());
+        plots.plots[2].push_back(valve->get_tau());
 
-      if (plots.time.size() > 200) {
-        plots.time.erase(plots.time.begin());
-        plots.plots[0].erase(plots.plots[0].begin());
-        plots.plots[1].erase(plots.plots[1].begin());
-        plots.plots[2].erase(plots.plots[2].begin());
+        if (plots.time.size() > 200) {
+          plots.time.erase(plots.time.begin());
+          plots.plots[0].erase(plots.plots[0].begin());
+          plots.plots[1].erase(plots.plots[1].begin());
+          plots.plots[2].erase(plots.plots[2].begin());
+        }
+
+        acc -= sim_dt;
       }
     }
 
@@ -170,6 +182,8 @@ int main() {
     ImGui::SetNextWindowSize(ImVec2(340, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Simulation Control Panel");
     ImGui::Text("Status: %s", is_running ? "RUNNING" : "PAUSED");
+    ImGui::Text("Time: %.2f s", plant.get_current_time());
+    ImGui::Text("Iterations: %d", plant.get_num_terations());
 
     if (ImGui::Button(is_running ? "Pause" : "Start")) {
       is_running = !is_running;
@@ -221,28 +235,35 @@ int main() {
     ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(880, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Data Analytics");
-    if (ImPlot::BeginPlot("Pipe Head at Valve")) {
-      ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
-    }
+    ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
+    if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
+      if (ImPlot::BeginPlot("Pipe Head at Valve")) {
+        ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
+                          ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
 
-    if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
-      ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
+      if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
+        ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
+                          ImPlotAxisFlags_AutoFit);
+        ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
+      if (ImPlot::BeginPlot("Valve Tau")) {
+        ImPlot::SetupAxes("Time (s)", "Valve opening (0-1)",
+                          ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_None);
+        ImPlot::SetupAxisLimits(ImAxis_Y1, -0.05, 1.05, ImPlotCond_Always);
+        ImPlot::PlotLine("Tau at valve", plots.time.data(),
+                         plots.plots[2].data(),
+                         static_cast<int>(plots.time.size()));
+        ImPlot::EndPlot();
+      }
+      ImPlot::EndAlignedPlots();
     }
-    if (ImPlot::BeginPlot("Valve Tau")) {
-      ImPlot::SetupAxes("Time (s)", "Tau (s)", ImPlotAxisFlags_AutoFit,
-                        ImPlotAxisFlags_AutoFit);
-      ImPlot::PlotLine("Tau at valve", plots.time.data(), plots.plots[2].data(),
-                       static_cast<int>(plots.time.size()));
-      ImPlot::EndPlot();
-    }
+    ImPlot::PopStyleVar();
     ImGui::End();
 
     // --- RENDER THE FRAME ---
