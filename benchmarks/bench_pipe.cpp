@@ -1,15 +1,13 @@
-#include "lvtrans/elements/constant_level_left.hpp"
 #include <benchmark/benchmark.h>
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/pipe.hpp"
-#include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 
-static void BM_PipeIterate(benchmark::State& state) {
+static void BM_PipeIterate(benchmark::State& state, double dt) {
   using namespace lvtrans;
 
-  const size_t reaches = static_cast<size_t>(state.range(0));
-  auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
-  auto valve = std::make_shared<Valve>(ValveParameters{});
+  auto reservoir = std::make_shared<ConstantLevelLeft>(150.0).get();
+  auto valve = std::make_shared<Valve>(ValveParameters{}).get();
 
   Pipe pipe(
       PipeParameters{
@@ -20,21 +18,20 @@ static void BM_PipeIterate(benchmark::State& state) {
           .z0 = 0.0,
           .z1 = 0.0,
       },
-      150.0, 0.0);
+      150.0, 0.0, dt);
 
-  pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
-  pipe.connect_to(valve.get(), PortType::Right, PortType::Left);
+  pipe.connect(reservoir);
+  pipe.connect(valve);
 
   for (auto _ : state) {
     pipe.iterate();
   }
 }
 
-BENCHMARK(BM_PipeIterate)
-    ->Arg(10)
-    ->Arg(100)
-    ->Arg(1'000)
-    ->Arg(10'000)
-    ->Arg(100'000);
+BENCHMARK_CAPTURE(BM_PipeIterate, 0.1, 0.1);
+BENCHMARK_CAPTURE(BM_PipeIterate, 0.01, 0.01);
+BENCHMARK_CAPTURE(BM_PipeIterate, 0.001, 0.001);
+BENCHMARK_CAPTURE(BM_PipeIterate, 0.0001, 0.0001);
+BENCHMARK_CAPTURE(BM_PipeIterate, 0.00001, 0.00001);
 
 BENCHMARK_MAIN();
