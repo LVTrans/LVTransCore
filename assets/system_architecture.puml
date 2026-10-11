@@ -19,14 +19,15 @@ abstract class Element {
   + set_port(type, port): void
   + get_ports(): array<optional<Port>, 4>
   + set_name(name)
-  + get_name(): string 
+  + get_name(): string
   + get_ID(): int
   + get_parameters(): void
   + get_state(): ElementState
   + get_first_available_port(): const Port*
   + connect_to(other, from, to): void
+  + on_connection_changed(port_type, *peer): void
   + reset_ports()
-  
+
 }
 
 abstract class NonPipe {
@@ -40,12 +41,18 @@ abstract class NonPipe {
 }
 
 abstract class BasePipe {
-  - H: vector<double>
-  - Q: vector<double>
+  - left_elem: NonPipe*
+  - right_elem: NonPipe*
+  - params: PipeParameters
+  - derived_data: PipeState
+  - state: PipeState
+  - initial_state: PipeState
   + get_H()
   + get_Q()
   + remove_left()
   + remove_right()
+  + left_element(): 
+  + right_element(): 
 }
 
 class ConcreteNonPipe  {
@@ -61,8 +68,8 @@ class Plant {
   - data: PlantData
   + Plant(file_path)
   + Plant(plantData)
-  + step() 
-  + run_steps(steps) 
+  + step()
+  + run_steps(steps)
   + get_state()
   + save_data(path)
   + load_data(path)
@@ -71,7 +78,7 @@ class Plant {
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
-  + get_pipes() 
+  + get_pipes()
   + get_non_pipes()
   + get_elements()
   + remove_element_by_id(id)
@@ -87,6 +94,7 @@ object PlantData {
 
 
 class ElementContainer {
+  - element_id: ElementID
   - pipes: vector<unique_ptr<BasePipe>>
   - non_pipes: vector<unique_ptr<NonPipe>>
   - element_indicies: map<ElementID, pair<ElementAbstractType, int>>
@@ -94,7 +102,7 @@ class ElementContainer {
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
-  + get_pipes() 
+  + get_pipes()
   + get_non_pipes()
   + get_elements()
   + remove_element_by_id(id)
@@ -102,16 +110,16 @@ class ElementContainer {
 
 
 class PlantConfigurationRepository << (S,#FF7700) Singleton >> {
-  + read_plant_from_file(path): PlantConfiguration
-  + save_plant_to_file(path, plant): Result
+  + load(path, &plant_data): PlantRepositoryResult
+  + save(path, &plant_data): PlantRepositoryResult
 }
 
 abstract class ElementParser {
-  + parse(container, element_config)
+  + parse(container, element_config, step_size)
 }
 
 class ConcreteElementParser {
-  + parse(container, element_config)
+  + parse(container, element_config, step_size)
 }
 
 
