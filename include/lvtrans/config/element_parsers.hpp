@@ -11,21 +11,18 @@ class ElementParser {
  public:
   virtual ~ElementParser() = default;
   virtual ElementParseResult parse(ElementContainer& container,
-                                   const ElementConfig& config,
-                                   double step_size) = 0;
+                                   ElementConfig& config, double step_size) = 0;
 };
 
 class ValveParser : public ElementParser {
  public:
-  ElementParseResult parse(ElementContainer& container,
-                           const ElementConfig& element,
+  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
                            double step_size) override;
 };
 
 class PipeParser : public ElementParser {
  public:
-  ElementParseResult parse(ElementContainer& container,
-                           const ElementConfig& element,
+  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
                            double step_size) override;
   bool check_parameters(const PipeParameters& parameters) const {
     if (!std::isfinite(parameters.length) || parameters.length <= 0 ||
@@ -62,8 +59,7 @@ class PipeParser : public ElementParser {
 
 class ReservoirParser : public ElementParser {
  public:
-  ElementParseResult parse(ElementContainer& container,
-                           const ElementConfig& element,
+  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
                            double step_size) override;
 };
 

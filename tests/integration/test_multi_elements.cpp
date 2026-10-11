@@ -54,8 +54,8 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   const auto num_segments =
       static_cast<size_t>(calculate_num_segments(segments));
-  std::vector<double> H0_(num_segments + 1, 0.0);
-  std::vector<double> Q0_(num_segments + 1, 0.0);
+  std::vector<double> H0_pipe(num_segments + 1, 0.0);
+  std::vector<double> Q0_pipe(num_segments + 1, 0.0);
 
   const double area = calculate_pipe_area(
       pipe_config.area, pipe_config.diameter, pipe_config.dimension);
@@ -70,12 +70,13 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i < H0_.size(); i += 2) {
-    H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
-    Q0_[i] = Qi;
+  for (size_t i = 0; i < H0_pipe.size(); i += 2) {
+    H0_pipe[i] = HR - static_cast<double>(i) * R * Qi * Qi;
+    Q0_pipe[i] = Qi;
   }
-  pipe_config.H0 = H0;
-  pipe_config.Q0 = Q0;
+
+  pipe_config.H0 = std::move(H0_pipe);
+  pipe_config.Q0 = std::move(Q0_pipe);
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 

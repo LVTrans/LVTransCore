@@ -15,6 +15,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   EXPECT_EQ(&reserovoir_port->get_owner(), reservoir.get());
 
   Pipe pipe(PipeParameters{.H0 = 150.0,
+                           .Q0 = 0.0,
                            .length = 600.0,
                            .diameter = 0.5,
                            .f = 0.018,
@@ -23,7 +24,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
                            .z1 = 15.0,
                            .lambda = 0},
             0.1);
-  pipe.connect_to(reservoir.get(), PortType::Left, PortType::Right);
+  pipe.connect(reservoir.get());
 
   ASSERT_NE(reserovoir_port->get_connected_to(), nullptr);
   EXPECT_EQ(&reserovoir_port->get_connected_to()->get_owner(), &pipe);

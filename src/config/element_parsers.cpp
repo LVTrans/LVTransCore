@@ -4,7 +4,7 @@
 namespace lvtrans {
 
 ElementParseResult ValveParser::parse(ElementContainer& container,
-                                      const ElementConfig& element, double) {
+                                      ElementConfig& element, double) {
   const auto& config = std::get<ValveParameters>(element.parameters);
   const auto state = element.state ? std::get<ValveState>(*element.state)
                                    : ValveState{config.tau_i};
@@ -20,9 +20,8 @@ ElementParseResult ValveParser::parse(ElementContainer& container,
 }
 
 ElementParseResult PipeParser::parse(ElementContainer& container,
-                                     const ElementConfig& element,
-                                     double step_size) {
-  const auto& config = std::get<PipeParameters>(element.parameters);
+                                     ElementConfig& element, double step_size) {
+  auto& config = std::get<PipeParameters>(element.parameters);
 
   if (!check_parameters(config)) {
     return ElementParseResult::Error;
@@ -36,8 +35,8 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
     if (!check_state(state, config, step_size)) {
       return ElementParseResult::Error;
     }
-    H0 = state.H;
-    Q0 = state.Q;
+    config.H0 = state.H;
+    config.Q0 = state.Q;
   }
 
   auto pipe =
@@ -52,8 +51,7 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 }
 
 ElementParseResult ReservoirParser::parse(ElementContainer& container,
-                                          const ElementConfig& element,
-                                          double) {
+                                          ElementConfig& element, double) {
   auto reservoir = container.add_element_with_id<ConstantLevelLeft>(
       element.id, std::get<ReservoirParameters>(element.parameters));
   if (!reservoir.has_value()) {

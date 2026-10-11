@@ -24,7 +24,7 @@ const PipeParameters pipe_config{
 template <typename T>
 T* add_to(ElementContainer& container) {
   if constexpr (std::is_base_of_v<Pipe, T>) {
-    return container.add_element<T>(pipe_config, 150.0, 0.0, 0.1).value();
+    return container.add_element<T>(pipe_config, 0.1).value();
   } else {
     return container.add_element<T>(150.0).value();
   }
