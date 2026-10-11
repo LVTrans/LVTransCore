@@ -18,7 +18,7 @@ static void BM_PipeIterate(benchmark::State& state, double dt) {
           .z0 = 0.0,
           .z1 = 0.0,
       },
-      150.0, 0.0, dt);
+      dt);
 
   pipe.connect(reservoir);
   pipe.connect(valve);

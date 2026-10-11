@@ -3,7 +3,6 @@
 #include <cstdint>
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_container.hpp"
-#include "lvtrans/elements/base_pipe.hpp"
 namespace lvtrans {
 
 enum class ElementParseResult : std::uint8_t { Success, Error };

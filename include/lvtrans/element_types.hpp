@@ -19,9 +19,12 @@ enum class ElementType : std::uint8_t {
   AlgebraicPipe
 };
 enum class PipeDimension { Circular, CrossSectional };
+using InitialPipeState = std::variant<double, std::vector<double>>;
 
 // #### PIPE ####
 struct PipeParameters {
+  InitialPipeState H0{100.0};
+  InitialPipeState Q0{100.0};
   double length{100.0};  //< length of the pipe [m]
   double diameter{2.0};  //< diameter of the pipe [m]
   double area{};         //< cross sectional area of the pipe [m^2]

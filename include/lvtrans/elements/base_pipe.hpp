@@ -1,8 +1,8 @@
 #pragma once
 #include <cassert>
 #include <cmath>
+#include <cstddef>
 #include <numbers>
-#include <variant>
 #include <vector>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -92,13 +92,36 @@ inline constexpr double calculate_lambda(double lambda_in, double dx,
   return lambda_in / (dx * rho_in * consts::g * area * 2.0);
 }
 
-using InitialPipeValue = std::variant<double, std::vector<double>>;
+struct PipeDiscretization {
+  double dt{};
+  double dx{};
+  double wave_speed{};
+  std::size_t num_segments{};
+  std::size_t num_nodes{};
+  std::size_t staggered_nodes{};
+};
+
+struct PipeCoefficients {
+  double hydraulic_diameter{};  ///< Hydraulic diameter of the pipe [m] (D_Dh)
+  double area{};  ///< Cross-sectional area of the pipe [m^2] (Areal)
+  double R{};
+  double B{};
+  double lambda{};
+};
+
+struct PipeDerivedData {
+  PipeDiscretization grid;
+  PipeCoefficients coefficients;
+};
+
+PipeDerivedData calculate_pipe_data(const PipeParameters& parameters,
+                                    double system_dt);
+
 class Element;
 
 class BasePipe : public Element {
  public:
-  BasePipe(PipeParameters params, InitialPipeValue H0, InitialPipeValue Q0,
-           const double dt);
+  BasePipe(PipeParameters params, const double dt);
   virtual ~BasePipe() = 0;
   ElementType get_type() const override { return ElementType::Pipe; }
   ElementParameters get_parameters() const override { return m_params; }
@@ -110,8 +133,8 @@ class BasePipe : public Element {
   void reset_state() override { m_state = m_initial_state; }
 
   const PipeParameters& config() const { return m_params; }
-  double get_R() const { return m_R; }
-  double get_B() const { return m_B; }
+  double get_R() const { return m_derived.coefficients.R; }
+  double get_B() const { return m_derived.coefficients.B; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
@@ -119,8 +142,8 @@ class BasePipe : public Element {
 
   void remove_left();
   void remove_right();
-  NonPipe* left_elem() const noexcept { return m_left_elem; }
-  NonPipe* right_elem() const noexcept { return m_right_elem; }
+  NonPipe* left_elem() const { return m_left_elem; }
+  NonPipe* right_elem() const { return m_right_elem; }
   void on_connection_changed(PortType port, Element* peer) override;
 
  protected:
@@ -128,21 +151,7 @@ class BasePipe : public Element {
   NonPipe* m_left_elem{nullptr};
   NonPipe* m_right_elem{nullptr};
 
-  const double m_dt{};
-  const double m_nodes_temp{};
-  const long m_num_segments{};  ///< Number of segments
-  const double m_a{};           ///< Calculated wave speed
-  const double m_dx{};
-  const long m_num_nodes{};
-  const long m_stag_nodes{};
-  const long m_L0{};       ///< Indices for boundary conditions
-  const long m_L1{};       /// Indices for boundary conditions
-  double m_D_Dh{};         ///< Hydraulic diameter
-  const double m_areal{};  ///< Cross-sectional area
-
-  const double m_R{};
-  const double m_B{};
-  const double m_lambda{};
+  const PipeDerivedData m_derived;
 
   PipeState m_state{};
   PipeState m_initial_state{};

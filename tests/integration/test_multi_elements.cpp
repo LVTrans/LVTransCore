@@ -74,6 +74,8 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
+  pipe_config.H0 = H0;
+  pipe_config.Q0 = Q0;
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
@@ -86,7 +88,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
 
   Plant plant(system_dt);
 
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, system_dt).value();
+  auto pipe = plant.add_element<Pipe>(pipe_config, system_dt).value();
   auto valve = plant.add_element<Valve>(valve_config).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(HR).value();
 

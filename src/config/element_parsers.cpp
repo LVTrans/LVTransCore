@@ -1,6 +1,5 @@
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
 
@@ -29,8 +28,8 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
     return ElementParseResult::Error;
   }
 
-  InitialPipeValue H0 = 0.0;
-  InitialPipeValue Q0 = 0.0;
+  InitialPipeState H0 = 0.0;
+  InitialPipeState Q0 = 0.0;
 
   if (element.state) {
     const auto& state = std::get<PipeState>(*element.state);
@@ -42,7 +41,7 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
   }
 
   auto pipe =
-      container.add_element_with_id<Pipe>(element.id, config, H0, Q0,
+      container.add_element_with_id<Pipe>(element.id, config,
                                           step_size);  // TODO: Use system dt
   if (!pipe.has_value()) {
     return ElementParseResult::Error;

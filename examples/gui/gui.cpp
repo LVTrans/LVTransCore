@@ -117,11 +117,13 @@ int main() {
     H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
+  pipe_config.H0 = H0;
+  pipe_config.Q0 = Q0;
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
+  auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
-  auto pipe2 = plant.add_element<Pipe>(pipe_config, H0_, Q0_, sim_dt).value();
+  auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
   auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
 
   ValveParameters valve_config{};

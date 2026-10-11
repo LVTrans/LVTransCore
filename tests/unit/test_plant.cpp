@@ -2,12 +2,8 @@
 #include "../test_helpers.hpp"
 #include "gtest/gtest.h"
 #include "lvtrans/element_modifications.hpp"
-#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/pipe.hpp"
-#include "lvtrans/elements/reservoir.hpp"
-#include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
 TEST(PlantTest, AddElements) {
@@ -17,6 +13,7 @@ TEST(PlantTest, AddElements) {
   ASSERT_TRUE(plant.get_elements().empty());
 
   PipeParameters pipeConfig{
+      .H0 = 150.0,
       .length = 600.0,
       .diameter = 0.5,
       .f = 0.018,
@@ -25,7 +22,7 @@ TEST(PlantTest, AddElements) {
       .z1 = 15.0,
   };
 
-  auto pipe = plant.add_element<Pipe>(pipeConfig, 150.0, 0.0, 0.1).value();
+  auto pipe = plant.add_element<Pipe>(pipeConfig, 0.1).value();
   ASSERT_EQ(plant.get_elements().size(), 1u);
   EXPECT_EQ(pipe->get_ID(), 1);
 }

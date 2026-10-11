@@ -5,6 +5,7 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
+#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/pipe.hpp"
 namespace lvtrans {
 
@@ -35,7 +36,7 @@ class ElementContainer {
 
     element->set_ID(id);
 
-    if constexpr (std::is_base_of_v<Pipe, T>) {
+    if constexpr (std::is_base_of_v<BasePipe, T>) {
       m_pipes.emplace_back(std::move(element));
       m_element_indices[id] = {ElementAbstractType::Pipe, m_pipes.size() - 1};
     } else {

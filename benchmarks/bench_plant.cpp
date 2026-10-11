@@ -1,6 +1,5 @@
 #include <benchmark/benchmark.h>
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -11,6 +10,7 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, float dt) {
   auto* pipe = plant
                    .add_element<Pipe>(
                        PipeParameters{
+                           .H0 = 150.0,
                            .length = 600.0,
                            .diameter = 0.5,
                            .f = 0.018,
@@ -18,7 +18,7 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, float dt) {
                            .z0 = 0.0,
                            .z1 = 0.0,
                        },
-                       150.0, 0.0, dt)
+                       dt)
                    .value();
 
   auto* valve = plant

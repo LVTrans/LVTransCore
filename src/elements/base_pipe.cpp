@@ -6,61 +6,26 @@
 
 namespace lvtrans {
 
-static PipeState initialize_H_and_Q(const InitialPipeValue& H0,
-                                    const InitialPipeValue& Q0,
+static PipeState initialize_H_and_Q(const InitialPipeState& H0,
+                                    const InitialPipeState& Q0,
                                     const size_t num_nodes);
+
 BasePipe::~BasePipe() = default;
 
-BasePipe::BasePipe(PipeParameters p, InitialPipeValue H0, InitialPipeValue Q0,
-                   double system_dt)
+BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
-      m_dt{pipe_dt(system_dt)},
-      m_nodes_temp{
-          calculate_nodes_temp(p.lambda, p.length, system_dt, p.a, p.rho)},
-      m_num_segments{calculate_num_segments(m_nodes_temp)},
-      m_a{calculate_wave_speed(p.length, m_nodes_temp, system_dt, p.lambda,
-                               p.rho)},
-      m_dx{calculate_dx(p.length, m_nodes_temp)},
-      m_num_nodes{m_num_segments + 1},
-      m_stag_nodes{(m_num_nodes + 1) / 2},
-      m_L0{0},
-      m_L1{m_num_segments},
-      m_D_Dh{calculate_pipe_diameter(p.area, p.periphery, p.diameter,
-                                     p.dimension)},
-      m_areal{calculate_pipe_area(p.area, p.diameter, p.dimension)},
-      m_R{calculate_R(p.f, m_dx, m_D_Dh, m_areal)},
-      m_B{calculate_B(p.a, m_areal)},
-      m_lambda{calculate_lambda(p.lambda, m_dx, p.rho, m_areal)},
-      m_state{initialize_H_and_Q(H0, Q0, static_cast<size_t>(m_num_nodes))},
+      m_derived{calculate_pipe_data(p, system_dt)},
+      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},
       m_initial_state{m_state} {
   m_ports[PortType::Left].emplace(*this, PortType::Left);
   m_ports[PortType::Right].emplace(*this, PortType::Right);
 
-  m_Z.resize(static_cast<size_t>(m_num_nodes));
-  double dZ = p.z1 - p.z0 / m_nodes_temp;
-  for (size_t i{0}; i < static_cast<size_t>(m_num_nodes); i++) {
+  const auto& grid = m_derived.grid;
+  m_Z.resize(grid.num_nodes);
+  double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
+  for (size_t i{0}; i < grid.num_nodes; i++) {
     m_Z[i] = dZ * static_cast<double>(i) + p.z0;
   }
-}
-
-PipeState initialize_H_and_Q(const InitialPipeValue& H0,
-                             const InitialPipeValue& Q0,
-                             const size_t num_nodes) {
-  PipeState state{};
-
-  if (auto* val = std::get_if<double>(&H0)) {
-    state.H.assign(num_nodes, *val);
-  } else {
-    state.H = std::move(std::get<std::vector<double>>(H0));
-  }
-
-  if (auto* val = std::get_if<double>(&Q0)) {
-    state.Q.assign(num_nodes, *val);
-  } else {
-    state.Q = std::move(std::get<std::vector<double>>(Q0));
-  }
-
-  return state;
 }
 
 void BasePipe::remove_left() {
@@ -111,5 +76,51 @@ ElementView BasePipe::read_view() const {
               Q,
           },
   };
+}
+
+PipeState initialize_H_and_Q(const InitialPipeState& H0,
+                             const InitialPipeState& Q0,
+                             const size_t num_nodes) {
+  PipeState state{};
+
+  if (auto* val = std::get_if<double>(&H0)) {
+    state.H.assign(num_nodes, *val);
+  } else {
+    state.H = std::move(std::get<std::vector<double>>(H0));
+  }
+
+  if (auto* val = std::get_if<double>(&Q0)) {
+    state.Q.assign(num_nodes, *val);
+  } else {
+    state.Q = std::move(std::get<std::vector<double>>(Q0));
+  }
+
+  return state;
+}
+
+PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
+  const double nodes_temp =
+      calculate_nodes_temp(p.lambda, p.length, system_dt, p.a, p.rho);
+  PipeDerivedData data{};
+  auto& grid = data.grid;
+  grid.dt = pipe_dt(system_dt);
+  grid.dx = calculate_dx(p.length, nodes_temp);
+  grid.wave_speed =
+      calculate_wave_speed(p.length, nodes_temp, system_dt, p.lambda, p.rho);
+  grid.num_segments =
+      static_cast<std::size_t>(calculate_num_segments(nodes_temp));
+  grid.num_nodes = grid.num_segments + 1;
+  grid.staggered_nodes = (grid.num_nodes + 1) / 2;
+
+  auto& coefficients = data.coefficients;
+  coefficients.hydraulic_diameter =
+      calculate_pipe_diameter(p.area, p.periphery, p.diameter, p.dimension);
+  coefficients.area = calculate_pipe_area(p.area, p.diameter, p.dimension);
+  coefficients.R = calculate_R(p.f, grid.dx, coefficients.hydraulic_diameter,
+                               coefficients.area);
+  coefficients.B = calculate_B(p.a, coefficients.area);
+  coefficients.lambda =
+      calculate_lambda(p.lambda, grid.dx, p.rho, coefficients.area);
+  return data;
 }
 }  // namespace lvtrans
