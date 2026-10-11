@@ -91,9 +91,6 @@ inline void to_json(nlohmann::json& j, const ElementConfig& value) {
 }
 
 inline void from_json(const nlohmann::json& j, ElementConfig& value) {
-  j.at("id").get_to(value.id);
-  j.at("name").get_to(value.name);
-  j.at("type").get_to(value.type);
   using ElementDefaults =
       std::pair<ElementParameters, std::optional<ElementState>>;
   static const std::unordered_map<ElementType, ElementDefaults> defaults{
@@ -105,6 +102,10 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       {ElementType::ConstantLevelRight, {ReservoirParameters{}, std::nullopt}},
   };
 
+  j.at("id").get_to(value.id);
+  j.at("name").get_to(value.name);
+  j.at("type").get_to(value.type);
+
   const auto& [parameters, state] = defaults.at(value.type);
   value.parameters = parameters;
   value.state.reset();
@@ -114,9 +115,9 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       },
       value.parameters);
   if (state && j.contains("state") && !j.at("state").is_null()) {
-    value.state = state;
+    auto& parsed_state = value.state.emplace(*state);
     std::visit([&](auto& state_values) { j.at("state").get_to(state_values); },
-               *value.state);
+               parsed_state);
   }
 }
 
