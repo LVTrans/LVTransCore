@@ -5,7 +5,7 @@
 #include <type_traits>
 #include <vector>
 #include "lvtrans/element_container.hpp"
-#include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/valve.hpp"
 
 namespace {
@@ -19,13 +19,12 @@ const PipeParameters pipe_config{
     .a = 1200.0,
     .z0 = 10.0,
     .z1 = 15.0,
-    .num_reaches = 10,
 };
 
 template <typename T>
 T* add_to(ElementContainer& container) {
   if constexpr (std::is_base_of_v<Pipe, T>) {
-    return container.add_element<T>(pipe_config, 150.0, 0.0).value();
+    return container.add_element<T>(pipe_config, 150.0, 0.0, 0.1).value();
   } else {
     return container.add_element<T>(150.0).value();
   }
@@ -45,7 +44,7 @@ TEST(ElementContainerTest, EmptyContainerAcceptsMissingLookupsAndRemovals) {
 
 TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
-  auto reservoir = add_to<Reservoir>(container);
+  auto reservoir = add_to<ConstantLevelLeft>(container);
   auto pipe = add_to<Pipe>(container);
   ValveParameters valve_config{};
   valve_config.tau_i = 0.8;
@@ -73,15 +72,16 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
 
 TEST(ElementContainerTest, DuplicateInsertIDShouldFail) {
   ElementContainer container;
-  EXPECT_NE(container.add_element_with_id<Reservoir>(0, 1.0), nullptr);
-  EXPECT_EQ(container.add_element_with_id<Reservoir>(0, 1.0), std::nullopt);
+  EXPECT_NE(container.add_element_with_id<ConstantLevelLeft>(0, 1.0), nullptr);
+  EXPECT_EQ(container.add_element_with_id<ConstantLevelLeft>(0, 1.0),
+            std::nullopt);
 }
 
 TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
   ElementContainer first;
   ElementContainer second;
-  auto a = add_to<Reservoir>(first);
-  auto b = add_to<Reservoir>(second);
+  auto a = add_to<ConstantLevelLeft>(first);
+  auto b = add_to<ConstantLevelLeft>(second);
   const auto id = a->get_ID();
   EXPECT_EQ(id, 1);
   EXPECT_EQ(b->get_ID(), 1);
@@ -95,7 +95,7 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
 
 TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   ElementContainer container;
-  auto reservoir = add_to<Reservoir>(container);
+  auto reservoir = add_to<ConstantLevelLeft>(container);
   auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
@@ -111,8 +111,10 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
   EXPECT_THAT(container.get_elements(), UnorderedElementsAre(reservoir, valve));
 
   auto replacement = add_to<Pipe>(container);
+
   replacement->connect_to(reservoir, PortType::Left, PortType::Right);
   replacement->connect_to(valve, PortType::Right, PortType::Left);
+
   EXPECT_EQ(replacement->left_elem(), reservoir);
   EXPECT_EQ(replacement->right_elem(), valve);
 }
@@ -120,11 +122,14 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingPeerPorts) {
 TEST(ElementContainerTest,
      ResettingSparsePortsIsRepeatableAndPreservesOtherConnections) {
   ElementContainer container;
-  auto reservoir = add_to<Reservoir>(container);
+  auto reservoir = add_to<ConstantLevelLeft>(container);
   auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
   pipe->connect_to(reservoir, PortType::Left, PortType::Right);
   pipe->connect_to(valve, PortType::Right, PortType::Left);
+
+  ASSERT_EQ(pipe->left_elem(), reservoir);
+  ASSERT_EQ(pipe->right_elem(), valve);
 
   reservoir->reset_ports();
   reservoir->reset_ports();
@@ -138,5 +143,24 @@ TEST(ElementContainerTest,
   EXPECT_EQ(pipe->left_elem(), nullptr);
   EXPECT_EQ(pipe->right_elem(), nullptr);
   EXPECT_EQ(valve->get_ports()[PortType::Left]->get_connected_to(), nullptr);
+}
+
+TEST(ElementContainerTest, ReconnectingUpdatesPipeNeighbors) {
+  ElementContainer container;
+  auto first = add_to<ConstantLevelLeft>(container);
+  auto second = add_to<ConstantLevelLeft>(container);
+  auto pipe = add_to<Pipe>(container);
+  const Pipe& view = *pipe;
+
+  pipe->connect_to(first, PortType::Left, PortType::Right);
+  ASSERT_EQ(view.left_elem(), first);
+  first->reset_ports();
+  ASSERT_EQ(view.left_elem(), nullptr);
+
+  pipe->connect_to(second, PortType::Left, PortType::Right);
+  EXPECT_EQ(view.left_elem(), second);
+  pipe->remove_left();
+  EXPECT_EQ(view.left_elem(), nullptr);
+  EXPECT_FALSE(second->get_ports()[PortType::Right]->is_connected());
 }
 }  // namespace

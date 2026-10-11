@@ -22,9 +22,7 @@ int main() {
   double tc = 2.1;     // Valve operating/closure time [s]
   double em = 0.75;    // Exponent defining valve motion
 
-  int N = 10;      // Number of pipe reaches; must be even
-  int IPR = 1;     // Output interval
-  int IGRAF = 11;  // Original FORTRAN graph location
+  int N = 10;  // Number of pipe reaches; must be even
 
   // ------------------------------------------------------------
   // Grid setup

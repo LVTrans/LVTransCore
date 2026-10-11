@@ -5,11 +5,53 @@
 #include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/config/plant_config_repository.hpp"
+#include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 #include "nlohmann/json.hpp"
+
+TEST(ElementConfigTest, DeserializesVariantsAndClearsAbsentState) {
+  using namespace lvtrans;
+  const std::vector<ElementConfig> configs{
+      {1, "pipe", ElementType::Pipe, PipeParameters{.length = 600.0},
+       PipeState{{10.0, 20.0}, {1.0, 2.0}}},
+      {2, "algebraic", ElementType::AlgebraicPipe,
+       PipeParameters{.length = 300.0}, PipeState{{30.0}, {3.0}}},
+      {3, "valve", ElementType::Valve, ValveParameters{.tau_i = 0.5},
+       ValveState{0.75}},
+      {4, "reservoir", ElementType::Reservoir,
+       ReservoirParameters{.H0 = 150.0}, std::nullopt},
+      {5, "left", ElementType::ConstantLevelLeft,
+       ReservoirParameters{.H0 = 160.0}, std::nullopt},
+      {6, "right", ElementType::ConstantLevelRight,
+       ReservoirParameters{.H0 = 170.0}, std::nullopt},
+  };
+  ElementConfig loaded{};
+  for (const auto& config : configs) {
+    SCOPED_TRACE(config.name);
+    const nlohmann::json encoded = config;
+    encoded.get_to(loaded);
+    EXPECT_EQ(loaded.type, config.type);
+    EXPECT_EQ(loaded.parameters.index(), config.parameters.index());
+    ASSERT_EQ(loaded.state.has_value(), config.state.has_value());
+    if (config.state) {
+      EXPECT_EQ(loaded.state->index(), config.state->index());
+    }
+    EXPECT_EQ(nlohmann::json(loaded), encoded);
+
+    auto without_state = encoded;
+    without_state.erase("state");
+    without_state.get_to(loaded);
+    EXPECT_FALSE(loaded.state.has_value());
+
+    encoded.get_to(loaded);
+    without_state["state"] = nullptr;
+    without_state.get_to(loaded);
+    EXPECT_FALSE(loaded.state.has_value());
+  }
+}
 
 TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   using namespace lvtrans;
@@ -25,15 +67,14 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_DOUBLE_EQ(plant_data.state.current_time, 10.0);
   EXPECT_EQ(plant_data.state.num_iterations, 2);
   EXPECT_EQ(plant_data.meta.name, "Plant 1");
-  EXPECT_EQ(plant_data.format_version, 1);
 
   auto& elements = plant_data.element_container;
   ASSERT_EQ(elements.get_elements().size(), 3u);
   ASSERT_EQ(elements.get_pipes().size(), 1u);
   ASSERT_EQ(elements.get_non_pipes().size(), 2u);
 
-  const auto* reservoir = elements.get_element_by_id<Reservoir>(1);
-  const auto* pipe = elements.get_element_by_id<Pipe>(2);
+  auto* reservoir = elements.get_element_by_id<Reservoir>(1);
+  auto* pipe = elements.get_element_by_id<Pipe>(2);
   auto* valve = elements.get_element_by_id<Valve>(3);
   ASSERT_NE(reservoir, nullptr);
   ASSERT_NE(pipe, nullptr);
@@ -49,7 +90,6 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
   EXPECT_DOUBLE_EQ(config.f, 1.0);
   EXPECT_DOUBLE_EQ(config.a, 1.0);
-  EXPECT_EQ(config.num_reaches, 10u);
   EXPECT_DOUBLE_EQ(config.z0, 0.0);
   EXPECT_DOUBLE_EQ(config.z1, 100.0);
   EXPECT_DOUBLE_EQ(config.lambda, 0.0);
@@ -138,7 +178,7 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
     ASSERT_EQ(elements.get_non_pipes().size(), 10u);
 
     for (const auto& [id, left, right] : neighbors) {
-      const auto* pipe = elements.get_element_by_id<Pipe>(id);
+      auto* pipe = elements.get_element_by_id<Pipe>(id);
       ASSERT_NE(pipe, nullptr);
       ASSERT_NE(pipe->left_elem(), nullptr);
       ASSERT_NE(pipe->right_elem(), nullptr);
@@ -150,5 +190,4 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   ASSERT_TRUE(saved_file.is_open());
   EXPECT_EQ(nlohmann::json::parse(saved_file).at("connections").size(), 16u);
   Plant plant(std::move(loaded));
-  plant.display();
 }

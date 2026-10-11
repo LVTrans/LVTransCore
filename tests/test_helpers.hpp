@@ -23,27 +23,20 @@ inline bool compare_csv_files(const std::string& path1,
     return false;
   }
 
-  int line_count1 = std::count(std::istreambuf_iterator<char>(f1),
-                               std::istreambuf_iterator<char>(), '\n');
-  int line_count2 = std::count(std::istreambuf_iterator<char>(f2),
-                               std::istreambuf_iterator<char>(), '\n');
-
-  if (line_count1 != line_count2) {
-    std::cout << "compare_csv_files failed: line count mismatch\n";
-    return false;
-  }
-
   int line{1};
-  for (std::string line1, line2;
-       std::getline(f1, line1) && std::getline(f2, line2);) {
-    std::cout << "comparing line " << line << ": " << line1 << " vs " << line2
-              << '\n';
+  for (std::string line1, line2;; ++line) {
+    const bool has_line1 = static_cast<bool>(std::getline(f1, line1));
+    const bool has_line2 = static_cast<bool>(std::getline(f2, line2));
+    if (f1.bad() || f2.bad()) return false;
+    if (has_line1 != has_line2) {
+      std::cout << "compare_csv_files failed: line count mismatch\n";
+      return false;
+    }
+    if (!has_line1) return true;
     if (line1 != line2) {
       std::cout << "failed at line " << line << ": " << line1 << " vs " << line2
                 << '\n';
       return false;
     }
-    line++;
   }
-  return true;
 }

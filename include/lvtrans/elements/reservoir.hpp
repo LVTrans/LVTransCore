@@ -9,11 +9,11 @@ class Reservoir : public NonPipe {
  public:
   Reservoir(const double elevation);
   Reservoir(const ReservoirParameters& config);
-  ~Reservoir();
+  ~Reservoir() override = 0;
   void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
 
-  ElementType get_type() override { return ElementType::Reservoir; }
+  ElementType get_type() const override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {}; }
   void reset_state() override {}

@@ -46,7 +46,7 @@ int main() {
 
   const int nodes = N + 1;
 
-  const double area = consts::pi * D * D / 4.0;
+  const double area = std::numbers::pi * D * D / 4.0;
   const double dx = L / N;
 
   // Same R as the FORTRAN expression:
@@ -165,7 +165,7 @@ int main() {
     // constant-head reservoir
     // ========================================================
 
-    H[0] = HR + 10 * std::sin(consts::pi * t);
+    H[0] = HR + 10 * std::sin(std::numbers::pi * t);
 
     Q[0] = (H[0] - H[1] + B * Q[1]) / (B + R * std::abs(Q[1]));
 
