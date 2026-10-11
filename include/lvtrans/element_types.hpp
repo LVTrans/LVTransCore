@@ -51,6 +51,7 @@ struct PipeParameters {
 struct PipeState {
   std::vector<double> H{};
   std::vector<double> Q{};
+  std::vector<double> Z{};
 };
 
 struct ValveParameters {

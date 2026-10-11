@@ -133,8 +133,8 @@ class BasePipe : public Element {
   void reset_state() override { m_state = m_initial_state; }
 
   const PipeParameters& config() const { return m_params; }
-  double get_R() const { return m_derived.coefficients.R; }
-  double get_B() const { return m_derived.coefficients.B; }
+  double get_R() const { return m_derived_data.coefficients.R; }
+  double get_B() const { return m_derived_data.coefficients.B; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
@@ -151,10 +151,8 @@ class BasePipe : public Element {
   NonPipe* m_left_elem{nullptr};
   NonPipe* m_right_elem{nullptr};
 
-  const PipeDerivedData m_derived;
-
+  const PipeDerivedData m_derived_data;
   PipeState m_state{};
   PipeState m_initial_state{};
-  std::vector<double> m_Z{};
 };
 }  // namespace lvtrans

@@ -14,17 +14,17 @@ BasePipe::~BasePipe() = default;
 
 BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
-      m_derived{calculate_pipe_data(p, system_dt)},
-      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},
+      m_derived_data{calculate_pipe_data(p, system_dt)},
+      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived_data.grid.num_nodes)},
       m_initial_state{m_state} {
   m_ports[PortType::Left].emplace(*this, PortType::Left);
   m_ports[PortType::Right].emplace(*this, PortType::Right);
 
-  const auto& grid = m_derived.grid;
-  m_Z.resize(grid.num_nodes);
+  const auto& grid = m_derived_data.grid;
+  m_state.Z.resize(grid.num_nodes);
   double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
   for (size_t i{0}; i < grid.num_nodes; i++) {
-    m_Z[i] = dZ * static_cast<double>(i) + p.z0;
+    m_state.Z[i] = dZ * static_cast<double>(i) + p.z0;
   }
 }
 
