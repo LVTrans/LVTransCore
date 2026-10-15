@@ -2,14 +2,15 @@
 
 #include <cstdint>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
+#include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/plant_types.hpp"
-#include "lvtrans/port.hpp"
 #include "nlohmann/detail/macro_scope.hpp"
 #include "nlohmann/json.hpp"
 namespace lvtrans {
@@ -24,8 +25,9 @@ struct ElementConfig {
 };
 
 struct Connection {
-  PortType port_type;
+  Side port_type;
   ElementID element_id;
+  std::size_t index{0};
 };
 
 struct ConnectionConfig {
@@ -73,12 +75,28 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
                   {ElementType::AlgebraicPipe, "AlgebraicPipe"}})
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PortType, {{PortType::Left, "left"},
-                                        {PortType::Right, "right"},
-                                        {PortType::Up, "up"},
-                                        {PortType::Down, "down"}})
-
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Connection, port_type, element_id)
+inline void to_json(nlohmann::json& j, Side side) {
+  j = side == Side::Left ? "left" : "right";
+}
+inline void from_json(const nlohmann::json& j, Side& side) {
+  const auto value = j.get<std::string>();
+  if (value == "left")
+    side = Side::Left;
+  else if (value == "right")
+    side = Side::Right;
+  else
+    throw std::invalid_argument("Invalid hydraulic connection side");
+}
+inline void to_json(nlohmann::json& j, const Connection& value) {
+  j = {{"port_type", value.port_type}, {"element_id", value.element_id}};
+  // Preserve existing files for single-slot elements.
+  if (value.index != 0) j["index"] = value.index;
+}
+inline void from_json(const nlohmann::json& j, Connection& value) {
+  j.at("port_type").get_to(value.port_type);
+  j.at("element_id").get_to(value.element_id);
+  value.index = j.value("index", std::size_t{0});
+}
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
 
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {

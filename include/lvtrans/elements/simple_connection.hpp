@@ -1,18 +1,26 @@
 #pragma once
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
 
-// Simple Connection is used to:
-// • Connect two pipes with different specification
-// • Define singular losses
-// • Divide the pipe/tunnel better to fit the terrain for instance
 namespace lvtrans {
-class SimpleConnection : public Element {
+class SimpleConnection : public NonPipe {
  public:
-  SimpleConnection(const LossCoefficients& loss_coeffs)
-      : loss_coeffs_(loss_coeffs) {}
+  SimpleConnection();
+  explicit SimpleConnection(const LossCoefficients& loss_coeffs);
+  double get_H(CharacteristicsType, ElementID) const override;
+  double get_Q(CharacteristicsType, ElementID,
+               const IterateInput = {}) const override;
+
+  virtual ElementType get_type() const override {
+    return ElementType::SimpleConnection;
+  }
+  virtual ElementParameters get_parameters() const override {
+    return ElementParameters{};
+  }
 
  private:
-  LossCoefficients loss_coeffs_;
+  double calculate_Qp(ElementID id) const;
+  LossCoefficients m_params;
 };
 }  // namespace lvtrans

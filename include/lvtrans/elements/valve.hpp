@@ -1,6 +1,7 @@
 #pragma once
 #include <cmath>
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/controller.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
@@ -17,24 +18,21 @@ class Valve : public NonPipe {
   std::optional<ElementState> get_state() const override { return m_state; }
   ElementType get_type() const override { return ElementType::Valve; }
   ElementView read_view() const override;
-  double get_H() const override {
-    return m_c_characteristics - m_b_characteristics * calculate_q();
-  }
-  double get_Q(const IterateInput) const override { return calculate_q(); }
+
+  double get_H(CharacteristicsType ct, ElementID id) const override;
+  double get_Q(CharacteristicsType, ElementID id,
+               const IterateInput) const override;
+
   void reset_state() override { m_state = ValveState{m_params.tau_i}; }
 
   double get_tau() const { return m_state.tau; }
 
  private:
-  double calculate_q() const {
-    const double CV = m_state.tau * m_state.tau * m_params.cvp;
-    return -CV * m_b_characteristics +
-           std::sqrt(CV * CV * m_b_characteristics * m_b_characteristics +
-                     2.0 * CV * m_c_characteristics);
-  }
+  double calculate_q(ElementID id) const;
 
   ValveParameters m_params{};
   ValveState m_state{};
+  Controller m_controller{};
 };
 
 }  // namespace lvtrans

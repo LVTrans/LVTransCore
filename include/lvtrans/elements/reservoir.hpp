@@ -7,8 +7,9 @@ namespace lvtrans {
 
 class Reservoir : public NonPipe {
  public:
-  Reservoir(const double elevation);
-  Reservoir(const ReservoirParameters& config);
+  Reservoir(double elevation, std::size_t left_count, std::size_t right_count);
+  Reservoir(const ReservoirParameters& config, std::size_t left_count,
+            std::size_t right_count);
   ~Reservoir() override = 0;
   void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
@@ -19,12 +20,15 @@ class Reservoir : public NonPipe {
   void reset_state() override {}
   ElementView read_view() const override;
 
-  double get_H() const override { return m_params.H0; }
-  double get_Q(const IterateInput = {}) const override {
-    return (m_params.H0 - m_c_characteristics) / m_b_characteristics;
-  }
+  // double get_H(CharacteristicsType, ElementID) const override {
+  //   return m_params.H0;
+  // }
+  // double get_Q(CharacteristicsType, ElementID,
+  //              const IterateInput = {}) const override {
+  //   return (m_params.H0 - m_c_characteristics) / m_b_characteristics;
+  // }
 
- private:
+ protected:
   ReservoirParameters m_params;
 };
 }  // namespace lvtrans

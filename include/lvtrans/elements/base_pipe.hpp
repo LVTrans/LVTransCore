@@ -6,6 +6,7 @@
 #include <vector>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
+#include "lvtrans/hydraulic_connections.hpp"
 namespace lvtrans {
 inline constexpr double pipe_dt(const double system_dt) {
   return 0.5 * system_dt;
@@ -139,17 +140,23 @@ class BasePipe : public Element {
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
+  void update_boundaries();
 
-  void remove_left();
-  void remove_right();
-  NonPipe* left_elem() const { return m_left_elem; }
-  NonPipe* right_elem() const { return m_right_elem; }
-  void on_connection_changed(PortType port, Element* peer) override;
+  const BoundaryLink& left_link() const { return m_left; }
+  const BoundaryLink& right_link() const { return m_right; }
+  NonPipe* left_elem() const { return m_left.element; }
+  NonPipe* right_elem() const { return m_right.element; }
+  void disconnect_all() noexcept;
+  void disconnect_left() noexcept;
+  void disconnect_right() noexcept;
+
+ private:
+  BoundaryLink m_left{};
+  BoundaryLink m_right{};
+  friend class HydraulicConnections;
 
  protected:
   PipeParameters m_params{};
-  NonPipe* m_left_elem{nullptr};
-  NonPipe* m_right_elem{nullptr};
 
   const PipeDerivedData m_derived_data;
   PipeState m_state{};
