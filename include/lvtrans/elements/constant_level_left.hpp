@@ -1,6 +1,9 @@
 #pragma once
 
 #include <cmath>
+#include "lvtrans/elements/base_pipe.hpp"
+#include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 namespace lvtrans {
 class ConstantLevelLeft : public Reservoir {
@@ -17,12 +20,18 @@ class ConstantLevelLeft : public Reservoir {
     return get_Qp(id);
   }
 
-  double get_Qp(ElementID id) const {
+  double get_Qp(ElementID) const {
     double CvB{0.0};
     double Qp{0.0};
+    double Cm{0.0};
+    double Bm{0.0};
 
-    auto Cm = m_c_minus.at(id).c;
-    auto Bm = m_c_minus.at(id).b;
+    if (const auto* pipe = right_links()[0].pipe) {
+      const auto& characteristic = m_c_minus.at(pipe->get_ID());
+      Cm = characteristic.c;
+      Bm = characteristic.b;
+    }
+
     auto H0 = m_params.H0;
     auto cvp = m_params.cvp;
     auto cvm = m_params.cvm;

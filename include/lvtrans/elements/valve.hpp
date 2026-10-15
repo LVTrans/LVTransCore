@@ -28,7 +28,7 @@ class Valve : public NonPipe {
   double get_tau() const { return m_state.tau; }
 
  private:
-  double calculate_q(ElementID id) const;
+  double calculate_q() const;
 
   ValveParameters m_params{};
   ValveState m_state{};

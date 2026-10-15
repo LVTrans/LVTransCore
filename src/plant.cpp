@@ -94,7 +94,6 @@ void Plant::display() const {
       std::cout << "<-->" << pipe->right_elem()->get_ID();
       visited_ids.insert(pipe->right_elem()->get_ID());
     }
-    std::cout << '\n';
 
     visited_ids.insert(e->get_ID());
   }

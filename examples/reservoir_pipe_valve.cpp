@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
+#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -95,6 +96,16 @@ int main() {
 
   HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
   HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
+  auto pipe2 = plant.add_element<Pipe>(pipe_config, system_dt).value();
+  // auto reservoir2 = plant.add_element<ConstantLevelRight>(100.0).value();
+
+  if (HydraulicConnections::connect(*pipe2, PipeEnd::Left, *valve) !=
+      ConnectResult::Ok) {
+    throw std::runtime_error("Failed to connect the second pipe to the valve");
+  }
+  // assert(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *reservoir2)
+  // ==
+  //        ConnectResult::Ok);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 

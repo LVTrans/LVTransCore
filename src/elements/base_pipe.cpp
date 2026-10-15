@@ -1,8 +1,10 @@
 #include <cassert>
 #include <cstdlib>
+#include <format>
 #include <lvtrans/elements/base_pipe.hpp>
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
+#include "lvtrans/hydraulic_connections.hpp"
 
 namespace lvtrans {
 
@@ -39,6 +41,14 @@ void BasePipe::update_boundaries() {
     m_state.H[L1] = right->get_H(CharacteristicsType::CPlus, get_ID());
     m_state.Q[L1] = right->get_Q(CharacteristicsType::CPlus, get_ID());
   }
+}
+
+ConnectResult BasePipe::connect_left(NonPipe& element) {
+  return HydraulicConnections::connect(*this, PipeEnd::Left, element);
+}
+
+ConnectResult BasePipe::connect_right(NonPipe& element) {
+  return HydraulicConnections::connect(*this, PipeEnd::Right, element);
 }
 
 void BasePipe::disconnect_all() noexcept {

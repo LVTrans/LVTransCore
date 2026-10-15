@@ -132,6 +132,8 @@ class BasePipe : public Element {
     return std::make_optional(m_state);
   }
   void reset_state() override { m_state = m_initial_state; }
+  ConnectResult connect_left(NonPipe& element);
+  ConnectResult connect_right(NonPipe& element);
 
   const PipeParameters& config() const { return m_params; }
   double get_R() const { return m_derived_data.coefficients.R; }

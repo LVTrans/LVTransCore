@@ -22,6 +22,7 @@ struct IterateInput {
 class Element {
  public:
   Element() = default;
+  Element(const std::string& name) : m_name(std::move(name)) {}
   Element(const Element&) = delete;
   Element& operator=(const Element&) = delete;
   Element(Element&&) = delete;

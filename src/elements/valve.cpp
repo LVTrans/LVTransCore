@@ -1,6 +1,7 @@
 #include "lvtrans/elements/valve.hpp"
 #include <cmath>
 #include "lvtrans/element_modifications.hpp"
+#include "lvtrans/elements/base_pipe.hpp"
 namespace lvtrans {
 
 Valve::Valve(const ValveParameters& params)
@@ -26,7 +27,7 @@ void Valve::iterate(const double t) {
 }
 
 double Valve::get_H(CharacteristicsType ct, ElementID id) const {
-  const auto Qp = calculate_q(id);
+  const auto Qp = calculate_q();
   if (ct == CharacteristicsType::CPlus) {
     return m_c_plus.at(id).c - m_c_plus.at(id).b * Qp;
   } else {
@@ -34,12 +35,11 @@ double Valve::get_H(CharacteristicsType ct, ElementID id) const {
   }
 }
 
-double Valve::get_Q(CharacteristicsType, ElementID id,
-                    const IterateInput) const {
-  return calculate_q(id);
+double Valve::get_Q(CharacteristicsType, ElementID, const IterateInput) const {
+  return calculate_q();
 }
 
-double Valve::calculate_q(ElementID id) const {
+double Valve::calculate_q() const {
   double Cv{0.0};
   double CvB{0.0};
   double Qp{0.0};
@@ -49,14 +49,16 @@ double Valve::calculate_q(ElementID id) const {
   auto Bm2 = 0.0;
 
   // We can't guarantee that both endpoints are connected to pipes
-  if (m_c_plus.size() > 0) {
-    Cp1 = m_c_plus.at(id).c;
-    Bp1 = m_c_plus.at(id).b;
+  if (const auto* pipe = left_links()[0].pipe) {
+    const auto& characteristic = m_c_plus.at(pipe->get_ID());
+    Cp1 = characteristic.c;
+    Bp1 = characteristic.b;
   }
 
-  if (m_c_minus.size() > 0) {
-    Cm2 = m_c_minus.at(id).c;
-    Bm2 = m_c_minus.at(id).b;
+  if (const auto* pipe = right_links()[0].pipe) {
+    const auto& characteristic = m_c_minus.at(pipe->get_ID());
+    Cm2 = characteristic.c;
+    Bm2 = characteristic.b;
   }
 
   if ((Cp1 - Cm2) >= 0.0) {

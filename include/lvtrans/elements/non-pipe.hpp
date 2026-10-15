@@ -30,13 +30,12 @@ class NonPipe : public Element {
                        const IterateInput = {}) const {
     return 0.0;
   }
-  // void set_c_characteristics(double c) { m_c_characteristics = c; }
-  // void set_b_characteristics(double b) { m_b_characteristics = b; }
+
   void set_characteristics(Characteristics c, int id) {
     if (c.type == CharacteristicsType::CPlus) {
-      m_c_plus[id] = c;
+      m_c_plus.insert_or_assign(id, c);
     } else {
-      m_c_minus[id] = c;
+      m_c_minus.insert_or_assign(id, c);
     }
   }
 
@@ -46,7 +45,6 @@ class NonPipe : public Element {
 
   std::unordered_map<ElementID, Characteristics> m_c_plus{};
   std::unordered_map<ElementID, Characteristics> m_c_minus{};
-  // std::vector<Characteristics> m_c_minus{};
 
  private:
   std::vector<PipeLink> m_left;
