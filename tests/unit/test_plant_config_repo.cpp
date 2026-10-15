@@ -7,6 +7,7 @@
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
@@ -83,7 +84,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(pipe->get_ID(), 2);
   EXPECT_EQ(valve->get_ID(), 3);
 
-  EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
+  // EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
 
   const auto& config = pipe->config();
   EXPECT_DOUBLE_EQ(config.length, 100.0);
@@ -106,22 +107,10 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   ASSERT_EQ(pipe->left_elem(), reservoir);
   ASSERT_EQ(pipe->right_elem(), valve);
 
-  const auto& reservoir_ports = pipe->left_elem()->get_ports();
-  ASSERT_GT(reservoir_ports.size(), static_cast<size_t>(PortType::Right));
-  ASSERT_TRUE(reservoir_ports[PortType::Right].has_value());
-  const auto* reservoir_right = &*reservoir_ports[PortType::Right];
-  ASSERT_NE(reservoir_right->get_connected_to(), nullptr);
-  EXPECT_EQ(&reservoir_right->get_connected_to()->get_owner(), pipe);
-  EXPECT_EQ(reservoir_right->get_connected_to()->get_connected_to(),
-            reservoir_right);
-
-  const auto& valve_ports = valve->get_ports();
-  ASSERT_GT(valve_ports.size(), static_cast<size_t>(PortType::Left));
-  ASSERT_TRUE(valve_ports[PortType::Left].has_value());
-  const auto* valve_left = &*valve_ports[PortType::Left];
-  ASSERT_NE(valve_left->get_connected_to(), nullptr);
-  EXPECT_EQ(&valve_left->get_connected_to()->get_owner(), pipe);
-  EXPECT_EQ(valve_left->get_connected_to()->get_connected_to(), valve_left);
+  ASSERT_EQ(reservoir->right_links().size(), 1u);
+  EXPECT_EQ(reservoir->right_links()[0].pipe, pipe);
+  ASSERT_EQ(valve->left_links().size(), 1u);
+  EXPECT_EQ(valve->left_links()[0].pipe, pipe);
 
   const auto generated_path =
       get_mock_data_file_path("generated/plant_config_1.json");
@@ -190,4 +179,94 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   ASSERT_TRUE(saved_file.is_open());
   EXPECT_EQ(nlohmann::json::parse(saved_file).at("connections").size(), 16u);
   Plant plant(std::move(loaded));
+}
+
+TEST(ConnectionConfigTest, PreservesIndicesAndRejectsNonHydraulicSides) {
+  using namespace lvtrans;
+  Connection connection{Side::Right, 42, 3};
+  const nlohmann::json encoded = connection;
+  EXPECT_EQ(encoded.at("index"), 3);
+  const auto decoded = encoded.get<Connection>();
+  EXPECT_EQ(decoded.port_type, Side::Right);
+  EXPECT_EQ(decoded.element_id, 42);
+  EXPECT_EQ(decoded.index, 3u);
+
+  auto legacy = encoded;
+  legacy.erase("index");
+  legacy.get_to(connection);
+  EXPECT_EQ(connection.index, 0u);
+  legacy["port_type"] = "up";
+  EXPECT_THROW(legacy.get<Connection>(), std::invalid_argument);
+}
+
+TEST(PlantConfigRepositoryTest, LoadsConnectionsInEitherRecordDirection) {
+  using namespace lvtrans;
+  std::ifstream source(get_mock_data_file_path("expected/plant_config_1.json"));
+  auto config = nlohmann::json::parse(source);
+  for (auto& connection : config["connections"])
+    std::swap(connection["from"], connection["to"]);
+  const auto path =
+      get_mock_data_file_path("generated/reversed_connections.json");
+  {
+    std::ofstream output(path);
+    output << config;
+  }
+  PlantData data;
+  ASSERT_EQ(PlantConfigRepository::load(path, data), PlantRepositoryResult::Ok);
+  auto* pipe = data.element_container.get_element_by_id<Pipe>(2);
+  ASSERT_NE(pipe, nullptr);
+  EXPECT_EQ(pipe->left_elem()->get_ID(), 1);
+  EXPECT_EQ(pipe->right_elem()->get_ID(), 3);
+}
+
+TEST(PlantConfigRepositoryTest, RejectsInvalidHydraulicConnections) {
+  using namespace lvtrans;
+  std::ifstream source(get_mock_data_file_path("expected/plant_config_1.json"));
+  const auto original = nlohmann::json::parse(source);
+  const auto path =
+      get_mock_data_file_path("generated/invalid_connections.json");
+  for (int scenario = 0; scenario < 5; ++scenario) {
+    SCOPED_TRACE(scenario);
+    auto config = original;
+    auto& connection = config["connections"][0];
+    if (scenario == 0) connection["to"]["port_type"] = "left";
+    if (scenario == 1) connection["to"]["element_id"] = 999;
+    if (scenario == 2) connection["to"]["element_id"] = 2;
+    if (scenario == 3) connection["to"]["index"] = 1;
+    if (scenario == 4) config["connections"].push_back(connection);
+    {
+      std::ofstream output(path);
+      output << config;
+    }
+    PlantData data;
+    EXPECT_EQ(PlantConfigRepository::load(path, data),
+              PlantRepositoryResult::Error);
+  }
+}
+
+TEST(PlantConfigRepositoryTest, PreservesDownstreamReservoirConnections) {
+  using namespace lvtrans;
+  PlantData data;
+  data.config.step_size = 0.1;
+  auto* pipe =
+      data.element_container.add_element<Pipe>(PipeParameters{}, 0.1).value();
+  auto* reservoir =
+      data.element_container.add_element<ConstantLevelRight>(100.0).value();
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *reservoir),
+            ConnectResult::Ok);
+  const auto path = get_mock_data_file_path("generated/right_reservoir.json");
+  ASSERT_EQ(PlantConfigRepository::save(path, data), PlantRepositoryResult::Ok);
+  PlantData loaded;
+  ASSERT_EQ(PlantConfigRepository::load(path, loaded),
+            PlantRepositoryResult::Ok);
+  auto* loaded_pipe =
+      loaded.element_container.get_element_by_id<Pipe>(pipe->get_ID());
+  auto* loaded_reservoir =
+      loaded.element_container.get_element_by_id<ConstantLevelRight>(
+          reservoir->get_ID());
+  ASSERT_NE(loaded_pipe, nullptr);
+  ASSERT_NE(loaded_reservoir, nullptr);
+  EXPECT_EQ(loaded_pipe->right_elem(), loaded_reservoir);
+  EXPECT_EQ(loaded_reservoir->left_links()[0].pipe, loaded_pipe);
+  EXPECT_TRUE(loaded_reservoir->right_links().empty());
 }

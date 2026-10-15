@@ -93,15 +93,17 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   auto valve = plant.add_element<Valve>(valve_config).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(HR).value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
   for (int k = 1; k < Kmax; ++k) {
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
-                << pipe->get_latest_H() << "," << pipe->get_latest_Q() << '\n';
+                << pipe->get_H()[10] << "," << pipe->get_Q()[10] << '\n';
   }
 
   output_file.close();
