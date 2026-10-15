@@ -1,5 +1,6 @@
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
+#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
 
@@ -52,13 +53,21 @@ ElementParseResult PipeParser::parse(ElementContainer& container,
 
 ElementParseResult ReservoirParser::parse(ElementContainer& container,
                                           ElementConfig& element, double) {
-  auto reservoir = container.add_element_with_id<ConstantLevelLeft>(
-      element.id, std::get<ReservoirParameters>(element.parameters));
-  if (!reservoir.has_value()) {
-    return ElementParseResult::Error;
+  const auto& parameters = std::get<ReservoirParameters>(element.parameters);
+  Reservoir* reservoir = nullptr;
+  if (element.type == ElementType::ConstantLevelRight) {
+    reservoir =
+        container
+            .add_element_with_id<ConstantLevelRight>(element.id, parameters)
+            .value_or(nullptr);
+  } else {
+    reservoir =
+        container.add_element_with_id<ConstantLevelLeft>(element.id, parameters)
+            .value_or(nullptr);
   }
+  if (!reservoir) return ElementParseResult::Error;
+  reservoir->set_name(element.name);
 
-  reservoir.value()->set_name(element.name);
   return ElementParseResult::Success;
 }
 
@@ -73,8 +82,9 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();
+    default:
+      assert(false && "Invalid element type");
+      return nullptr;
   }
-  assert(false && "Invalid element type");
-  return nullptr;
 }
 }  // namespace lvtrans

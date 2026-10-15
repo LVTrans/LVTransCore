@@ -4,6 +4,8 @@
 #include "lvtrans/element_types.hpp"
 namespace lvtrans {
 
+Pipe::Pipe(const double dt) : BasePipe(PipeParameters{}, dt) {}
+
 Pipe::Pipe(PipeParameters params, const double dt) : BasePipe(params, dt) {}
 
 void Pipe::iterate(const double) {
@@ -38,21 +40,23 @@ void Pipe::iterate(const double) {
   }
 
   // C- characteristic
-  if (m_left_elem) {
-    m_left_elem->set_c_characteristics(H[L0 + 1] - coefficients.B * Q[L0 + 1]);
-    m_left_elem->set_b_characteristics(coefficients.R * std::abs(Q[L0 + 1]) +
-                                       coefficients.B);
-    H[L0] = m_left_elem->get_H();
-    Q[L0] = m_left_elem->get_Q();
+  if (auto* left = left_elem()) {
+    Characteristics c;
+    c.c = H[L0 + 1] - coefficients.B * Q[L0 + 1];
+    c.b = coefficients.R * std::abs(Q[L0 + 1]) + coefficients.B;
+    c.type = CharacteristicsType::CMinus;
+
+    left->set_characteristics(c, get_ID());
   }
 
   // C+ characteristic
-  if (m_right_elem) {
-    m_right_elem->set_c_characteristics(H[L1 - 1] + coefficients.B * Q[L1 - 1]);
-    m_right_elem->set_b_characteristics(coefficients.B +
-                                        coefficients.R * std::abs(Q[L1 - 1]));
-    H[L1] = m_right_elem->get_H();
-    Q[L1] = m_right_elem->get_Q();
+  if (auto* right = right_elem()) {
+    Characteristics c;
+    c.c = H[L1 - 1] + coefficients.B * Q[L1 - 1];
+    c.b = coefficients.B + coefficients.R * std::abs(Q[L1 - 1]);
+    c.type = CharacteristicsType::CPlus;
+
+    right->set_characteristics(c, get_ID());
   }
 }
 

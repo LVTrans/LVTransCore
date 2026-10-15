@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <lvtrans/elements/base_pipe.hpp>
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
 
@@ -10,16 +10,13 @@ static PipeState initialize_H_and_Q(const InitialPipeState& H0,
                                     const InitialPipeState& Q0,
                                     const size_t num_nodes);
 
-BasePipe::~BasePipe() = default;
+BasePipe::~BasePipe() { disconnect_all(); }
 
 BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
       m_derived_data{calculate_pipe_data(p, system_dt)},
       m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived_data.grid.num_nodes)},
       m_initial_state{m_state} {
-  m_ports[PortType::Left].emplace(*this, PortType::Left);
-  m_ports[PortType::Right].emplace(*this, PortType::Right);
-
   const auto& grid = m_derived_data.grid;
   m_state.Z.resize(grid.num_nodes);
   double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
@@ -28,33 +25,32 @@ BasePipe::BasePipe(PipeParameters p, double system_dt)
   }
 }
 
-void BasePipe::remove_left() {
-  if (m_left_elem) {
-    const auto peer_port_type =
-        m_ports[PortType::Left]->get_connected_to()->get_type();
-    m_left_elem->set_port(peer_port_type, nullptr);
+void BasePipe::update_boundaries() {
+  const auto& grid = m_derived_data.grid;
+  constexpr size_t L0 = 0;
+  const auto L1 = grid.num_segments;
+
+  if (auto* left = left_elem()) {
+    m_state.H[L0] = left->get_H(CharacteristicsType::CMinus, get_ID());
+    m_state.Q[L0] = left->get_Q(CharacteristicsType::CMinus, get_ID());
   }
-  m_ports[PortType::Left]->reset();
-  m_left_elem = nullptr;
+
+  if (auto* right = right_elem()) {
+    m_state.H[L1] = right->get_H(CharacteristicsType::CPlus, get_ID());
+    m_state.Q[L1] = right->get_Q(CharacteristicsType::CPlus, get_ID());
+  }
 }
 
-void BasePipe::remove_right() {
-  if (m_right_elem) {
-    const auto peer_port_type =
-        m_ports[PortType::Right]->get_connected_to()->get_type();
-    m_right_elem->set_port(peer_port_type, nullptr);
-  }
-  m_ports[PortType::Right]->reset();
-  m_right_elem = nullptr;
+void BasePipe::disconnect_all() noexcept {
+  HydraulicConnections::disconnect_all(*this);
 }
 
-void BasePipe::on_connection_changed(PortType port, Element* peer) {
-  auto* neighbor = dynamic_cast<NonPipe*>(peer);
-  if (port == PortType::Left) {
-    m_left_elem = neighbor;
-  } else if (port == PortType::Right) {
-    m_right_elem = neighbor;
-  }
+void BasePipe::disconnect_left() noexcept {
+  HydraulicConnections::disconnect(*this, PipeEnd::Left);
+}
+
+void BasePipe::disconnect_right() noexcept {
+  HydraulicConnections::disconnect(*this, PipeEnd::Right);
 }
 
 ElementView BasePipe::read_view() const {
