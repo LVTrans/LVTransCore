@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -123,8 +124,8 @@ int main() {
   const double CVP = 0.5 * Q0 * Q0 / H0;
   auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
   auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
-  auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
+  // auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
+  // auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
 
   ValveParameters valve_config{};
   valve_config.tau_i = tau_i;
@@ -135,10 +136,11 @@ int main() {
 
   auto valve = plant.add_element<Valve>(valve_config).value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
-  pipe2->connect_to(reservoir2, PortType::Right, PortType::Left);
-  pipe2->connect_to(valve, PortType::Left, PortType::Right);
+  HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
+  HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
+  // HydraulicConnections::connect(*pipe2, PipeEnd::Right, *reservoir2);
+  // HydraulicConnections::connect(*pipe2, PipeEnd::Left, *valve);
+
   plant.display();
 
   PlotContainer plots{.time = std::vector<double>{},

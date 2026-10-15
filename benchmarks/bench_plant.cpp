@@ -1,4 +1,5 @@
 #include <benchmark/benchmark.h>
+#include <stdexcept>
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
@@ -30,8 +31,9 @@ static lvtrans::Pipe* add_pipe_group(lvtrans::Plant& plant, float dt) {
                     })
                     .value();
 
-  pipe->connect(reservoir);
-  pipe->connect(valve);
+  HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
+
+  HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
   return pipe;
 }
 

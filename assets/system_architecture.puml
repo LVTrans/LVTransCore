@@ -1,36 +1,22 @@
 @startuml
 
-class Port {
-  + Port(owner, type)
-  + connect(other)
-  + reset()
-  + is_connected()
-  + get_owner(): Element
-  + get_type(): PortType
-  - connected_to: *Port
-  - owner: &Element
-  - type: PortType
-}
-
 abstract class Element {
-  # ports: array<optional<Port>, 4>
   # id: ElementID
   # type: ElementType
-  + set_port(type, port): void
-  + get_ports(): array<optional<Port>, 4>
   + set_name(name)
   + get_name(): string
   + get_ID(): int
   + get_parameters(): void
   + get_state(): ElementState
-  + get_first_available_port(): const Port*
-  + connect_to(other, from, to): void
-  + on_connection_changed(port_type, *peer): void
-  + reset_ports()
 
 }
 
 abstract class NonPipe {
+  - left: vector<PipeLink>
+  - right: vector<PipeLink>
+  + left_links(): span<const PipeLink>
+  + right_links(): span<const PipeLink>
+  + disconnect_all()
   # c_characteristic: double
   # b_characteristic: double
   + set_c_characteristic(val): void
@@ -41,16 +27,15 @@ abstract class NonPipe {
 }
 
 abstract class BasePipe {
-  - left_elem: NonPipe*
-  - right_elem: NonPipe*
+  - left: BoundaryLink
+  - right: BoundaryLink
   - params: PipeParameters
   - derived_data: PipeState
   - state: PipeState
   - initial_state: PipeState
   + get_H()
   + get_Q()
-  + remove_left()
-  + remove_right()
+  + disconnect_all()
   + left_element(): 
   + right_element(): 
 }
@@ -125,15 +110,39 @@ class ConcreteElementParser {
 
 
 
+class HydraulicConnections {
+  {static} + connect(BasePipe&, PipeEnd, NonPipe&, index = 0): ConnectResult
+  {static} + disconnect(BasePipe&, PipeEnd)
+  {static} + disconnect_all(BasePipe&)
+  {static} + disconnect_all(NonPipe&)
+}
+
+class BoundaryLink {
+  + element: NonPipe*
+  + terminal: TerminalId
+}
+class PipeLink {
+  + pipe: BasePipe*
+  + end: PipeEnd
+}
+class TerminalId {
+  + side: Side
+  + index: size_t
+}
+
 ' Relations
+HydraulicConnections ..> BasePipe : maintains links
+HydraulicConnections ..> NonPipe : maintains links
+BasePipe *-- BoundaryLink
+NonPipe *-- PipeLink
 Plant -- PlantData
 
 Element <|-- NonPipe
 Element <|-- BasePipe
-Element ||--o{ Port
 
 NonPipe <|-- ConcreteNonPipe
 BasePipe <|-- ConcretePipe
+BasePipe "0..*" -- "0..2" NonPipe : hydraulic connections
 
 ElementParser <|-- ConcreteElementParser
 
