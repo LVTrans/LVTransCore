@@ -32,7 +32,7 @@ class Valve : public NonPipe {
 
   ValveParameters m_params{};
   ValveState m_state{};
-  Controller m_controller{};
+  Controller* m_controller{};
 };
 
 }  // namespace lvtrans

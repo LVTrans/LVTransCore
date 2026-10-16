@@ -102,8 +102,6 @@ struct DataPoint {
 using ElementID = int;
 
 using ElementState = std::variant<ValveState, PipeState>;
-using ElementParameters =
-    std::variant<ValveParameters, PipeParameters, ReservoirParameters>;
 
 struct ScalarValue {
   std::string name{};

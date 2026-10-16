@@ -1,8 +1,30 @@
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
+#include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/surge_shaft_standard.hpp"
+#include "lvtrans/elements/t_1in_2out_n.hpp"
 #include "lvtrans/elements/valve.hpp"
 namespace lvtrans {
+
+namespace {
+template <typename ElementClass, typename Parameters>
+class ConfiguredElementParser : public ElementParser {
+ public:
+  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
+                           double) override {
+    auto created = container.add_element_with_id<ElementClass>(
+        element.id, std::get<Parameters>(element.parameters));
+
+    if (!created) {
+      return ElementParseResult::Error;
+    }
+
+    created.value()->set_name(element.name);
+    return ElementParseResult::Success;
+  }
+};
+}  // namespace
 
 ElementParseResult ValveParser::parse(ElementContainer& container,
                                       ElementConfig& element, double) {
@@ -82,8 +104,16 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();
+    case ElementType::SimpleConnection:
+      return std::make_unique<
+          ConfiguredElementParser<SimpleConnection, LossCoefficients>>();
+    case ElementType::T1In2OutN:
+      return std::make_unique<
+          ConfiguredElementParser<T1In2OutN, TConnectionParameters>>();
+    case ElementType::SurgeShaftStandard:
+      return std::make_unique<ConfiguredElementParser<
+          SurgeShaftStandard, SurgeShaftStandardParameters>>();
     default:
-      assert(false && "Invalid element type");
       return nullptr;
   }
 }

@@ -37,7 +37,6 @@ double SimpleConnection::get_Q(CharacteristicsType, ElementID,
 }
 
 double SimpleConnection::calculate_Qp(ElementID) const {
-
   const auto cvm = m_params.cvm;
   const auto cvp = m_params.cvp;
   auto Cp1 = 0.0;

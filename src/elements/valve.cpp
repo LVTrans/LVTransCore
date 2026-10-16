@@ -8,7 +8,7 @@ Valve::Valve(const ValveParameters& params)
     : Valve(params, ValveState{params.tau_i}) {}
 
 Valve::Valve(const ValveParameters& conf, ValveState state)
-    : NonPipe(1, 1), m_params{conf}, m_state{state} {}
+    : NonPipe(1, 1), m_params{conf}, m_state{state}, m_controller{nullptr} {}
 
 ModificationResult Valve::modify(const ElementModification& mod) {
   if (std::get_if<SetValveOpening>(&mod)) {

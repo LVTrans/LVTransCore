@@ -10,15 +10,6 @@ void T1In2OutN::iterate(const double) {
   throw std::logic_error("T1In2OutN solver is not implemented");
 }
 
-ElementType T1In2OutN::get_type() const {
-  throw std::logic_error("T1In2OutN has no ElementType mapping yet");
-}
-
-ElementParameters T1In2OutN::get_parameters() const {
-  throw std::logic_error(
-      "TConnectionParameters is not in ElementParameters yet");
-}
-
 std::optional<ElementState> T1In2OutN::get_state() const {
   return std::nullopt;
 }

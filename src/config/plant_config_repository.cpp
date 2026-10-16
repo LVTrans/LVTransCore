@@ -43,7 +43,7 @@ PlantRepositoryResult PlantConfigRepository::load(
   // add elements
   for (auto& element : config.elements) {
     auto parser = ParserFactory::create(element.type);
-    if (parser->parse(element_container, element, plant.config.step_size) ==
+    if (!parser || parser->parse(element_container, element, plant.config.step_size) ==
         ElementParseResult::Error) {
       std::cout << "Failed to parse element: " << element.name << '\n';
       return PlantRepositoryResult::Error;

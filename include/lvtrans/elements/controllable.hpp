@@ -3,7 +3,7 @@
 namespace lvtrans {
 class Controllable {
  public:
-  Controllable();
+  virtual void bar() = 0;
   virtual ~Controllable() = default;
 };
 }  // namespace lvtrans

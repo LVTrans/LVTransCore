@@ -12,6 +12,10 @@ class ConstantLevelLeft : public Reservoir {
   ConstantLevelLeft(const ReservoirParameters& parameters)
       : Reservoir(parameters, 0, 1) {}
 
+  ElementType get_type() const override {
+    return ElementType::ConstantLevelLeft;
+  }
+
   double get_H(CharacteristicsType, ElementID id) const override {
     return m_c_minus.at(id).c + m_c_minus.at(id).b * get_Qp(id);
   }

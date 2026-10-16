@@ -5,14 +5,11 @@
 
 namespace lvtrans {
 
-// LVTrans manual section 12.6: Turbine governor for Francis or Pelton; grid and
-// island modes. Skeleton: remains abstract until the Element interface and
-// solver are implemented.
 class PIDTurbine : public Element {
  public:
   explicit PIDTurbine(const PIDTurbineParameters& parameters);
-  PIDTurbine() = default;
-  ~PIDTurbine() = default;
+  PIDTurbine();
+  ~PIDTurbine();
   const PIDTurbineParameters& config() const { return m_params; }
   void iterate(const double t = 0) override;
   virtual ElementType get_type() const override;
@@ -20,10 +17,13 @@ class PIDTurbine : public Element {
   virtual std::optional<ElementState> get_state() const override;
   virtual ElementView read_view() const override;
   virtual void reset_state() override;
+  void set_controllable(Controllable* controllable) {
+    m_controllable = controllable;
+  }
 
  private:
-  PIDTurbineParameters m_params;
-  Controllable m_controllable;
+  PIDTurbineParameters m_params{};
+  Controllable* m_controllable{nullptr};
 };
 
 }  // namespace lvtrans

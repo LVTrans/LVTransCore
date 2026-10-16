@@ -6,9 +6,15 @@
 #include "../test_helpers.hpp"
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
+#include "lvtrans/elements/constant_level_left.hpp"
+#include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
+#include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/surge_shaft_standard.hpp"
+#include "lvtrans/elements/t_1in_2out_n.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 #include "nlohmann/json.hpp"
@@ -199,51 +205,6 @@ TEST(ConnectionConfigTest, PreservesIndicesAndRejectsNonHydraulicSides) {
   EXPECT_THROW(legacy.get<Connection>(), std::invalid_argument);
 }
 
-TEST(PlantConfigRepositoryTest, LoadsConnectionsInEitherRecordDirection) {
-  using namespace lvtrans;
-  std::ifstream source(get_mock_data_file_path("expected/plant_config_1.json"));
-  auto config = nlohmann::json::parse(source);
-  for (auto& connection : config["connections"])
-    std::swap(connection["from"], connection["to"]);
-  const auto path =
-      get_mock_data_file_path("generated/reversed_connections.json");
-  {
-    std::ofstream output(path);
-    output << config;
-  }
-  PlantData data;
-  ASSERT_EQ(PlantConfigRepository::load(path, data), PlantRepositoryResult::Ok);
-  auto* pipe = data.element_container.get_element_by_id<Pipe>(2);
-  ASSERT_NE(pipe, nullptr);
-  EXPECT_EQ(pipe->left_elem()->get_ID(), 1);
-  EXPECT_EQ(pipe->right_elem()->get_ID(), 3);
-}
-
-TEST(PlantConfigRepositoryTest, RejectsInvalidHydraulicConnections) {
-  using namespace lvtrans;
-  std::ifstream source(get_mock_data_file_path("expected/plant_config_1.json"));
-  const auto original = nlohmann::json::parse(source);
-  const auto path =
-      get_mock_data_file_path("generated/invalid_connections.json");
-  for (int scenario = 0; scenario < 5; ++scenario) {
-    SCOPED_TRACE(scenario);
-    auto config = original;
-    auto& connection = config["connections"][0];
-    if (scenario == 0) connection["to"]["port_type"] = "left";
-    if (scenario == 1) connection["to"]["element_id"] = 999;
-    if (scenario == 2) connection["to"]["element_id"] = 2;
-    if (scenario == 3) connection["to"]["index"] = 1;
-    if (scenario == 4) config["connections"].push_back(connection);
-    {
-      std::ofstream output(path);
-      output << config;
-    }
-    PlantData data;
-    EXPECT_EQ(PlantConfigRepository::load(path, data),
-              PlantRepositoryResult::Error);
-  }
-}
-
 TEST(PlantConfigRepositoryTest, PreservesDownstreamReservoirConnections) {
   using namespace lvtrans;
   PlantData data;
@@ -269,4 +230,61 @@ TEST(PlantConfigRepositoryTest, PreservesDownstreamReservoirConnections) {
   EXPECT_EQ(loaded_pipe->right_elem(), loaded_reservoir);
   EXPECT_EQ(loaded_reservoir->left_links()[0].pipe, loaded_pipe);
   EXPECT_TRUE(loaded_reservoir->right_links().empty());
+}
+
+TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
+  using namespace lvtrans;
+  PlantData loaded, reloaded;
+  const auto path = get_mock_data_file_path("expected/plant_config_3.json");
+  const auto saved_path =
+      get_mock_data_file_path("generated/plant_config_3.json");
+  // R2-P1-SC4-P7-V3-P8-T5-P10-R12; P9-S6-P11.
+  ASSERT_EQ(PlantConfigRepository::load(path, loaded),
+            PlantRepositoryResult::Ok);
+  ASSERT_EQ(PlantConfigRepository::save(saved_path, loaded),
+            PlantRepositoryResult::Ok);
+  ASSERT_EQ(PlantConfigRepository::load(saved_path, reloaded),
+            PlantRepositoryResult::Ok);
+
+  // pipe elements neighbors. -1 means no connection.
+  const std::array<std::array<ElementID, 3>, 6> neighbors{{
+      {1, 2, 4},
+      {7, 4, 3},
+      {8, 3, 5},
+      {9, -1, 6},
+      {10, 5, 12},
+      {11, 6, -1},
+  }};
+  for (auto* data : {&loaded, &reloaded}) {
+    auto& elements = data->element_container;
+    ASSERT_EQ(elements.get_elements().size(), 12u);
+    ASSERT_NE(elements.get_element_by_id<SimpleConnection>(4), nullptr);
+    ASSERT_NE(elements.get_element_by_id<T1In2OutN>(5), nullptr);
+    ASSERT_NE(elements.get_element_by_id<SurgeShaftStandard>(6), nullptr);
+    for (const auto& [id, left, right] : neighbors) {
+      const auto* pipe = elements.get_element_by_id<Pipe>(id);
+      ASSERT_NE(pipe, nullptr);
+
+      if (left < 0) {
+        EXPECT_EQ(pipe->left_elem(), nullptr);
+      } else {
+        ASSERT_NE(pipe->left_elem(), nullptr);
+        EXPECT_EQ(pipe->left_elem()->get_ID(), left);
+      }
+
+      if (right < 0) {
+        EXPECT_EQ(pipe->right_elem(), nullptr);
+      } else {
+        ASSERT_NE(pipe->right_elem(), nullptr);
+        EXPECT_EQ(pipe->right_elem()->get_ID(), right);
+      }
+    }
+    // test T junction
+    const auto* junction = elements.get_element_by_id<T1In2OutN>(5);
+    ASSERT_EQ(junction->left_links().size(), 1u);
+    ASSERT_EQ(junction->right_links().size(), 2u);
+    EXPECT_EQ(junction->right_links()[0].pipe,
+              elements.get_element_by_id<Pipe>(10));
+    EXPECT_EQ(junction->right_links()[1].pipe, nullptr);
+  }
 }

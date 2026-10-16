@@ -76,18 +76,6 @@ endif()
 
 target_link_libraries(lvtrans_core PUBLIC nlohmann_json::nlohmann_json)
 
-# if(LVTRANS_ENABLE_OPENMP)
-#     find_package(OpenMP)
-#
-#     if(OpenMP_CXX_FOUND)
-#         target_link_libraries(
-#             lvtrans_core
-#             PUBLIC
-#                 OpenMP::OpenMP_CXX
-#         )
-#     endif()
-# endif()
-
 if(LVTRANS_BUILD_TESTS)
     MESSAGE("Building tests...")
     include(CTest)

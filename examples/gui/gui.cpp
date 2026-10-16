@@ -10,7 +10,7 @@
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
+#include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"

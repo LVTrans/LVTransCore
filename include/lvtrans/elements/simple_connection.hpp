@@ -1,6 +1,5 @@
 #pragma once
-#include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/element.hpp"
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
@@ -15,9 +14,7 @@ class SimpleConnection : public NonPipe {
   virtual ElementType get_type() const override {
     return ElementType::SimpleConnection;
   }
-  virtual ElementParameters get_parameters() const override {
-    return ElementParameters{};
-  }
+  virtual ElementParameters get_parameters() const override { return m_params; }
 
  private:
   double calculate_Qp(ElementID id) const;

@@ -1,5 +1,2 @@
 #include "lvtrans/elements/controllable.hpp"
-namespace lvtrans {
-
-Controllable::Controllable() {}
-}  // namespace lvtrans
+namespace lvtrans {}  // namespace lvtrans

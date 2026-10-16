@@ -5,6 +5,7 @@
 #include <numbers>
 #include <vector>
 #include "lvtrans/const.hpp"
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 namespace lvtrans {
@@ -122,10 +123,11 @@ class Element;
 
 class BasePipe : public Element {
  public:
+  BasePipe() = default;
   BasePipe(PipeParameters params, const double dt);
   virtual ~BasePipe() = 0;
   ElementType get_type() const override { return ElementType::Pipe; }
-  ElementParameters get_parameters() const override { return m_params; }
+  virtual ElementParameters get_parameters() const override { return m_params; }
   ElementView read_view() const override;
   virtual void iterate(const double t = 0) override = 0;
   std::optional<ElementState> get_state() const override {

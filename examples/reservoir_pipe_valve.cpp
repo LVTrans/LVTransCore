@@ -9,7 +9,6 @@
 #include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant.hpp"
 
