@@ -3,6 +3,7 @@
 #include <array>
 #include <cstddef>
 #include <string>
+#include <variant>
 #include "lvtrans/element_types.hpp"
 
 namespace lvtrans {
@@ -207,5 +208,11 @@ struct OpenChannelParameters {
   double delta{};              // Numerical constant in [0.5, 1.0]
   std::array<ChannelProfilePoint, 5> profile{};
 };
+
+using ElementParameters =
+    std::variant<ValveParameters, PipeParameters, ReservoirParameters,
+                 LossCoefficients, TConnectionParameters,
+                 SurgeShaftStandardParameters, PIDTurbineParameters,
+                 ValveInternalServoParameters>;
 
 }  // namespace lvtrans

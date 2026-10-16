@@ -8,5 +8,11 @@
         "request": "launch",
         "adapter": "CodeLLDB",
         "program": "./build/examples/reservoir_pipe_valve"
-    }
+    },
+    {
+         "label": "Debug gui",
+         "request": "launch",
+         "adapter": "CodeLLDB",
+         "program": "./build/examples/gui/gui"
+     }
 ]

@@ -72,7 +72,7 @@ class ElementContainer {
                            size_t index) {
     if (index < elements.size()) {
       m_element_indices.erase(elements[index]->get_ID());
-      elements[index]->reset_ports();
+      elements[index]->disconnect_all();
 
       if (index != elements.size() - 1) {
         std::swap(elements[index], elements.back());

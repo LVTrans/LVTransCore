@@ -2,14 +2,16 @@
 
 #include <cstdint>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant_types.hpp"
-#include "lvtrans/port.hpp"
 #include "nlohmann/detail/macro_scope.hpp"
 #include "nlohmann/json.hpp"
 namespace lvtrans {
@@ -24,8 +26,9 @@ struct ElementConfig {
 };
 
 struct Connection {
-  PortType port_type;
+  Side port_type;
   ElementID element_id;
+  std::size_t index{0};
 };
 
 struct ConnectionConfig {
@@ -59,6 +62,25 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveParameters, tau_i, tau_f,
                                                 tc, em, cda0, cvp, cvm)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LossCoefficients, cvp, cvm)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectionParameters, cv1, cv2,
+                                                cv3);
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SurgeShaftStandardParameters,
+                                                use_area, area, diameter, f,
+                                                losses, initial_level);
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    PIDTurbineParameters, rated_power, rated_speed, power_setpoint, kp_grid,
+    ti_grid, td_grid, kp_island, ti_island, td_island, tip, ramp_time, droop,
+    closing_time_high, closing_time_low, opening_time_high, opening_time_low,
+    kappa_change, a, b, c, servo_max, manual_default, power_droop)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoParameters,
+                                                losses, closing_time_high,
+                                                closing_time_low, switch_over,
+                                                servo_time, initial_opening,
+                                                use_cv_file, cv_file, diameter)
+
 NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
                              {{PipeDimension::Circular, "Circular"},
                               {PipeDimension::CrossSectional,
@@ -66,19 +88,38 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ElementType, {{ElementType::Pipe, "NormalPipe"},
-                  {ElementType::Pipe, "Pipe"},
                   {ElementType::Reservoir, "Reservoir"},
                   {ElementType::Valve, "Valve"},
                   {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
+                  {ElementType::SurgeShaftStandard, "SurgeShaftStandard"},
+                  {ElementType::SimpleConnection, "SimpleConnection"},
+                  {ElementType::T1In2OutN, "T1In2OutN"},
                   {ElementType::AlgebraicPipe, "AlgebraicPipe"}})
 
-NLOHMANN_JSON_SERIALIZE_ENUM(PortType, {{PortType::Left, "left"},
-                                        {PortType::Right, "right"},
-                                        {PortType::Up, "up"},
-                                        {PortType::Down, "down"}})
+inline void to_json(nlohmann::json& j, Side side) {
+  j = side == Side::Left ? "left" : "right";
+}
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(Connection, port_type, element_id)
+inline void from_json(const nlohmann::json& j, Side& side) {
+  const auto value = j.get<std::string>();
+  if (value == "left")
+    side = Side::Left;
+  else if (value == "right")
+    side = Side::Right;
+  else
+    throw std::invalid_argument("Invalid hydraulic connection side");
+}
+inline void to_json(nlohmann::json& j, const Connection& value) {
+  j = {{"port_type", value.port_type}, {"element_id", value.element_id}};
+  // Preserve existing files for single-slot elements.
+  if (value.index != 0) j["index"] = value.index;
+}
+inline void from_json(const nlohmann::json& j, Connection& value) {
+  j.at("port_type").get_to(value.port_type);
+  j.at("element_id").get_to(value.element_id);
+  value.index = j.value("index", std::size_t{0});
+}
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
 
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
@@ -96,10 +137,21 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   static const std::unordered_map<ElementType, ElementDefaults> defaults{
       {ElementType::Pipe, {PipeParameters{}, PipeState{}}},
       {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
-      {ElementType::Valve, {ValveParameters{}, ValveState{}}},
       {ElementType::Reservoir, {ReservoirParameters{}, std::nullopt}},
+      {ElementType::Valve, {ValveParameters{}, ValveState{}}},
+      {ElementType::ValveInternalServo,
+       {ValveInternalServoParameters{}, ValveState{}}},
+      {ElementType::SurgeShaftStandard,
+       {SurgeShaftStandardParameters{}, std::nullopt}},
+      {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
+      {ElementType::PIDTurbine, {PIDTurbineParameters{}, ValveState{}}},
       {ElementType::ConstantLevelLeft, {ReservoirParameters{}, std::nullopt}},
       {ElementType::ConstantLevelRight, {ReservoirParameters{}, std::nullopt}},
+      {ElementType::SimpleConnection, {LossCoefficients{}, std::nullopt}},
+      {ElementType::T1In2OutN, {TConnectionParameters{}, std::nullopt}},
+      {ElementType::T1In2OutS, {TConnectionParameters{}, std::nullopt}},
+      {ElementType::T2In1OutN, {TConnectionParameters{}, std::nullopt}},
+      {ElementType::T2In1OutS, {TConnectionParameters{}, std::nullopt}},
   };
 
   j.at("id").get_to(value.id);

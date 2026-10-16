@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -9,7 +10,8 @@
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_levle_right.hpp"
+#include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -122,23 +124,30 @@ int main() {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
   auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
+  auto CLL = plant.add_element<ConstantLevelLeft>(150.0).value();
   auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto reservoir2 = plant.add_element<ConstantLevelRight>(150.0).value();
+  auto pipe3 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
+  auto CLR = plant.add_element<ConstantLevelRight>(100.0).value();
 
-  ValveParameters valve_config{};
-  valve_config.tau_i = tau_i;
-  valve_config.tau_f = tau_f;
-  valve_config.tc = tc;
-  valve_config.em = em;
-  valve_config.cvp = CVP;
+  ValveParameters valve_config{
+      .tau_i = tau_i,
+      .tau_f = tau_f,
+      .tc = tc,
+      .em = em,
+      .cvp = CVP,
+      .cvm = CVP,
+  };
 
   auto valve = plant.add_element<Valve>(valve_config).value();
+  auto simple_connection = plant.add_element<SimpleConnection>().value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
-  pipe2->connect_to(reservoir2, PortType::Right, PortType::Left);
-  pipe2->connect_to(valve, PortType::Left, PortType::Right);
+  assert(pipe->connect_left(*CLL) == ConnectResult::Ok);
+  assert(pipe->connect_right(*simple_connection) == ConnectResult::Ok);
+  assert(pipe2->connect_left(*simple_connection) == ConnectResult::Ok);
+  assert(pipe2->connect_right(*valve) == ConnectResult::Ok);
+  assert(pipe3->connect_left(*valve) == ConnectResult::Ok);
+  assert(pipe3->connect_right(*CLR) == ConnectResult::Ok);
+
   plant.display();
 
   PlotContainer plots{.time = std::vector<double>{},

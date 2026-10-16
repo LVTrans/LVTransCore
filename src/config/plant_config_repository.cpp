@@ -2,7 +2,6 @@
 #include <fstream>
 #include <iostream>
 #include <string>
-#include <unordered_set>
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/plant.hpp"
@@ -44,23 +43,29 @@ PlantRepositoryResult PlantConfigRepository::load(
   // add elements
   for (auto& element : config.elements) {
     auto parser = ParserFactory::create(element.type);
-    if (parser->parse(element_container, element, plant.config.step_size) ==
+    if (!parser || parser->parse(element_container, element, plant.config.step_size) ==
         ElementParseResult::Error) {
       std::cout << "Failed to parse element: " << element.name << '\n';
       return PlantRepositoryResult::Error;
     }
   }
 
-  // connect elements
+  // Connect only opposite sides of a pipe and a hydraulic non-pipe.
   for (const auto& connection : config.connections) {
-    auto from_elem =
-        element_container.get_element_by_id(connection.from.element_id);
-    auto to_elem =
-        element_container.get_element_by_id(connection.to.element_id);
-    if (from_elem && to_elem) {
-      from_elem->connect_to(to_elem, connection.from.port_type,
-                            connection.to.port_type);
+    const Connection* pipe_end = &connection.from;
+    const Connection* boundary = &connection.to;
+    auto* pipe = element_container.get_element_by_id<BasePipe>(pipe_end->element_id);
+    if (!pipe) {
+      std::swap(pipe_end, boundary);
+      pipe = element_container.get_element_by_id<BasePipe>(pipe_end->element_id);
     }
+    auto* non_pipe = element_container.get_element_by_id<NonPipe>(boundary->element_id);
+    if (!pipe || !non_pipe || pipe_end->index != 0 ||
+        pipe_end->port_type == boundary->port_type)
+      return PlantRepositoryResult::Error;
+    const auto end = pipe_end->port_type == Side::Left ? PipeEnd::Left : PipeEnd::Right;
+    if (HydraulicConnections::connect(*pipe, end, *non_pipe, boundary->index) != ConnectResult::Ok)
+      return PlantRepositoryResult::Error;
   }
 
   return PlantRepositoryResult::Ok;
@@ -98,31 +103,20 @@ std::vector<ElementConfig> to_element_configs(
 std::vector<ConnectionConfig> to_connection_configs(
     const std::vector<Element*>& elements) {
   std::vector<ConnectionConfig> configs;
-
-  std::unordered_map<ElementID, std::unordered_set<PortType>> seen;
-
-  for (const auto& element : elements) {
-    for (const auto& port : element->get_ports()) {
-      if (!port || !port->is_connected()) {
-        continue;
-      }
-      if (seen[element->get_ID()].contains(port->get_type())) {
-        continue;
-      }
-
-      ConnectionConfig config;
-
-      config.from = {.port_type = port->get_type(),
-                     .element_id = element->get_ID()};
-
-      config.to = {
-          .port_type = port->get_connected_to()->get_type(),
-          .element_id = port->get_connected_to()->get_owner().get_ID()};
-
-      configs.emplace_back(config);
-      seen[config.to.element_id].insert(config.to.port_type);
+  // Each hydraulic connection belongs to exactly one pipe endpoint.
+  for (const auto* element : elements) {
+    const auto* pipe = dynamic_cast<const BasePipe*>(element);
+    if (!pipe) continue;
+    if (const auto* peer = pipe->left_elem()) {
+      configs.push_back({{Side::Left, pipe->get_ID()},
+                         {Side::Right, peer->get_ID(), pipe->left_link().terminal.index}});
+    }
+    if (const auto* peer = pipe->right_elem()) {
+      configs.push_back({{Side::Right, pipe->get_ID()},
+                         {Side::Left, peer->get_ID(), pipe->right_link().terminal.index}});
     }
   }
+
   return configs;
 }
 

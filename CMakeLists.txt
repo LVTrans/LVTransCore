@@ -27,15 +27,18 @@ target_sources(
         src/elements/base_pipe.cpp
         src/elements/valve.cpp
         src/elements/reservoir.cpp
-        src/elements/element.cpp
+        src/elements/non_pipe.cpp
+        src/hydraulic_connections.cpp
         src/elements/pid_turbine.cpp
         src/elements/surge_shaft_standard.cpp
+        src/elements/controllable.cpp
+        src/elements/controller.cpp
+        src/elements/simple_connection.cpp
         src/elements/t_1in_2out_n.cpp
         src/elements/t_1in_2out_s.cpp
         src/elements/t_2in_1out_n.cpp
         src/elements/t_2in_1out_s.cpp
         src/plant.cpp
-        src/port.cpp
         src/element_container.cpp
         src/config/plant_config_repository.cpp
         src/config/element_parsers.cpp
@@ -72,18 +75,6 @@ elseif(MSVC)
 endif()
 
 target_link_libraries(lvtrans_core PUBLIC nlohmann_json::nlohmann_json)
-
-# if(LVTRANS_ENABLE_OPENMP)
-#     find_package(OpenMP)
-#
-#     if(OpenMP_CXX_FOUND)
-#         target_link_libraries(
-#             lvtrans_core
-#             PUBLIC
-#                 OpenMP::OpenMP_CXX
-#         )
-#     endif()
-# endif()
 
 if(LVTRANS_BUILD_TESTS)
     MESSAGE("Building tests...")

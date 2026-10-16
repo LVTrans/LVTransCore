@@ -174,6 +174,13 @@ int main() {
     // closing valve
     // ========================================================
 
+    // Evaluate the opening at the time being solved.
+    if (t < tc) {
+      tau = tau_i - (tau_i - tau_f) * std::pow(t / tc, em);
+    } else {
+      tau = tau_f;
+    }
+
     const double CV = tau * tau * CVP;
 
     // C+ characteristic arriving at valve
@@ -191,11 +198,6 @@ int main() {
     // Example output
     // --------------------------------------------------------
 
-    if (t < tc) {
-      tau = tau_i - (tau_i - tau_f) * std::pow(t / tc, em);
-    } else {
-      tau = tau_f;
-    }
     std::cout << t << "," << tau << "," << H[N] << "," << Q[N] << '\n';
     output_file << t << "," << tau << "," << H[N] << "," << Q[N] << '\n';
   }

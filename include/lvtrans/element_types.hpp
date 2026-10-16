@@ -12,11 +12,20 @@ namespace lvtrans {
 
 enum class ElementType : std::uint8_t {
   Pipe,
+  AlgebraicPipe,
   Reservoir,
   Valve,
+  ValveInternalServo,
+  SurgeShaftStandard,
+  PID,
+  PIDTurbine,
   ConstantLevelLeft,
   ConstantLevelRight,
-  AlgebraicPipe
+  SimpleConnection,
+  T1In2OutN,
+  T1In2OutS,
+  T2In1OutN,
+  T2In1OutS,
 };
 enum class PipeDimension { Circular, CrossSectional };
 using InitialPipeState = std::variant<double, std::vector<double>>;
@@ -81,8 +90,8 @@ struct ReservoirParameters {
 };
 
 struct LossCoefficients {
-  double cvp{};  //< Loss coefficient with positive flow relative to element
-  double cvm{};  //< Loss coefficient with negative flow relative to element
+  double cvp{1e5};  //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to element
 };
 
 struct DataPoint {
@@ -93,8 +102,6 @@ struct DataPoint {
 using ElementID = int;
 
 using ElementState = std::variant<ValveState, PipeState>;
-using ElementParameters =
-    std::variant<ValveParameters, PipeParameters, ReservoirParameters>;
 
 struct ScalarValue {
   std::string name{};
@@ -124,25 +131,16 @@ struct VectorValue {
 
   void print() const {
     std::cout << "VectorValue: name=" << name << " symbol=" << symbol
-              << " x_unit=" << x_unit << " y_unit=" << y_unit
-              << " size=" << values.size() << std::endl;
-
-    // for (size_t i = 0; i < values.size(); ++i) {
-    //   std::cout << "  x[" << i << "] = " << values[i].x << " y[" << i
-    //             << "] = " << values[i].y << std::endl;
-    // }
+              << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
+              << values.back() << " size=" << values.size() << std::endl;
   }
 
   std::string to_string() const {
     std::stringstream ss;
     ss << "VectorValue: name=" << name << " symbol=" << symbol
-       << " x_unit=" << x_unit << " y_unit=" << y_unit
-       << " size=" << values.size() << std::endl;
+       << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
+       << values.back() << " size=" << values.size() << std::endl;
 
-    // for (size_t i = 0; i < values.size(); ++i) {
-    //   ss << "  x[" << i << "] = " << values[i].x << " y[" << i
-    //      << "] = " << values[i].y << std::endl;
-    // }
     return ss.str();
   }
 };

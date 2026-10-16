@@ -3,6 +3,6 @@
 namespace lvtrans {
 
 T1In2OutS::T1In2OutS(const TConnectionParameters& parameters)
-    : m_params(parameters) {}
+    : NonPipe(1, 2), m_params(parameters) {}
 
 }  // namespace lvtrans

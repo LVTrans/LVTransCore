@@ -1,0 +1,190 @@
+{
+  "connections": [
+    {
+      "from": {
+        "element_id": 1,
+        "port_type": "left"
+      },
+      "to": {
+        "element_id": 2,
+        "port_type": "right"
+      }
+    },
+    {
+      "from": {
+        "element_id": 1,
+        "port_type": "right"
+      },
+      "to": {
+        "element_id": 4,
+        "port_type": "left"
+      }
+    },
+    {
+      "from": {
+        "element_id": 7,
+        "port_type": "left"
+      },
+      "to": {
+        "element_id": 4,
+        "port_type": "right"
+      }
+    },
+    {
+      "from": {
+        "element_id": 7,
+        "port_type": "right"
+      },
+      "to": {
+        "element_id": 3,
+        "port_type": "left"
+      }
+    },
+    {
+      "from": {
+        "element_id": 8,
+        "port_type": "left"
+      },
+      "to": {
+        "element_id": 3,
+        "port_type": "right"
+      }
+    },
+    {
+      "from": {
+        "element_id": 8,
+        "port_type": "right"
+      },
+      "to": {
+        "element_id": 5,
+        "port_type": "left"
+      }
+    },
+
+    {
+      "from": {
+        "element_id": 9,
+        "port_type": "right"
+      },
+      "to": {
+        "element_id": 6,
+        "port_type": "left"
+      }
+    },
+    {
+      "from": {
+        "element_id": 10,
+        "port_type": "left"
+      },
+      "to": {
+        "element_id": 5,
+        "port_type": "right"
+      }
+    },
+    {
+      "from": {
+        "element_id": 10,
+        "port_type": "right"
+      },
+      "to": {
+        "element_id": 12,
+        "port_type": "left"
+      }
+    },
+    {
+      "from": {
+        "element_id": 11,
+        "port_type": "left"
+      },
+      "to": {
+        "element_id": 6,
+        "port_type": "right"
+      }
+    }
+  ],
+  "elements": [
+    {
+      "id": 1,
+      "name": "Pipe 1",
+      "type": "NormalPipe",
+      "parameters": {}
+    },
+    {
+      "id": 2,
+      "name": "Reservoir 1",
+      "parameters": {},
+      "type": "ConstantLevelLeft"
+    },
+    {
+      "id": 3,
+      "name": "Valve 1",
+      "parameters": {},
+      "type": "Valve"
+    },
+    {
+      "id": 4,
+      "name": "Simple Connection 1",
+      "parameters": {},
+      "type": "SimpleConnection"
+    },
+    {
+      "id": 5,
+      "name": "T1In2OutN Junction 1",
+      "parameters": {},
+      "type": "T1In2OutN"
+    },
+    {
+      "id": 6,
+      "name": "Surge Shaft Standard 1",
+      "parameters": {},
+      "type": "SurgeShaftStandard"
+    },
+    {
+      "id": 7,
+      "name": "Pipe 2",
+      "parameters": {},
+      "type": "NormalPipe"
+    },
+    {
+      "id": 8,
+      "name": "Pipe 3",
+      "parameters": {},
+      "type": "NormalPipe"
+    },
+    {
+      "id": 9,
+      "name": "Pipe 4",
+      "parameters": {},
+      "type": "NormalPipe"
+    },
+    {
+      "id": 10,
+      "name": "Pipe 5",
+      "parameters": {},
+      "type": "NormalPipe"
+    },
+    {
+      "id": 11,
+      "name": "Pipe 6",
+      "parameters": {},
+      "type": "NormalPipe"
+    },
+    {
+      "id": 12,
+      "name": "Reservoir 2",
+      "parameters": {},
+      "type": "ConstantLevelRight"
+    }
+  ],
+  "format_version": 1,
+  "plant_meta": {
+    "name": "Plant 3"
+  },
+  "plant_state": {
+    "current_time": 10.0,
+    "num_iterations": 2
+  },
+  "simulation": {
+    "step_size": 0.5
+  }
+}

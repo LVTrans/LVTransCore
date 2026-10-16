@@ -123,52 +123,22 @@ int main(){
 }
 ```
 
-_Add elements to a plant_
+_Add and connect the existing elements_
 
 ```cpp
-int main(){
+Plant plant(0.1);
+auto* reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
+auto* pipe = plant.add_element<Pipe>(PipeParameters{}, 0.1).value();
+auto* valve = plant.add_element<Valve>(ValveParameters{}).value();
 
-    Reservoir reservoir1(ReservoirParameters{....});
-    Pipe pipe1(PipeParameters{....});
-    Valve valve1(ValveParameters{....});
+HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
+HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
+// R <--> P <--> V
 
-
-    PlantConfiguration plant_config{...};
-    Plant plant(plant_config);
-    // internally:
-    // {
-    //  std::vector<std::shared_ptr<Port>> ports;
-    //  ports.push_back(new Port(this));
-    //  ports.push_back(new Port(this));
-    // }
-
-
-
-    // 1. specify right and left here
-    plant.add_pipe(pipe1, reservoir1, valve1);
-    // internally:
-    // {
-    //  pipe1.connect_left(reservoir1);
-    //  {
-    //      ports[LEFT_IDX].connect(reservoir1);
-    //  }
-    //  pipe1.connect_right(valve1);
-    //  {
-    //      ports[RIGHT_IDX].connect(valve1);
-    //  }
-    // }
-    // or
-    plant.add_element(pipe1, reservoir1, valve1);
-    plant.add_element(reservoir, nullptr, pipe1);
-    // 2. specify after adding the pipe
-    plant.add_element(&pipe1);
-    pipe1.set_left(reservoir1); // automatically sets reservoir1's right pipe1?
-    pipe1.set_right(valve1);
-    // plant should now have all elements connected
-
+// A non-pipe can also have all its connections removed:
+HydraulicConnections::disconnect_all(*valve);
+// R <--> P --> X   
 ```
-
-
 
 _Read an elements state during simulation_
 ```cpp

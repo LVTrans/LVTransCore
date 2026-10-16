@@ -6,11 +6,11 @@
 #include <lvtrans/elements/reservoir.hpp>
 #include <lvtrans/elements/valve.hpp>
 #include <memory>
+#include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/plant.hpp"
-#include "lvtrans/port.hpp"
 
 inline double a = 1200.0;   // Wave propagation velocity [m/s]
 inline double f = 0.018;    // Darcy-Weisbach friction factor
@@ -43,6 +43,7 @@ int main() {
     return 1;
   }
 
+  output_file << "t,tau,H_valve,Q_valve\n";
   const auto system_dt = 0.1;
   const auto segments =
       calculate_nodes_temp(pipe_config.lambda, pipe_config.length, system_dt,
@@ -53,8 +54,9 @@ int main() {
 
   Plant plant(system_dt);
 
-  std::vector<double> H0_{};
-  std::vector<double> Q0_{};
+  const auto nodes = static_cast<std::size_t>(segments) + 1;
+  std::vector<double> H0_(nodes, 0.0);
+  std::vector<double> Q0_(nodes, 0.0);
 
   const double area = calculate_pipe_area(
       pipe_config.area, pipe_config.diameter, pipe_config.dimension);
@@ -71,12 +73,14 @@ int main() {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i < static_cast<size_t>(segments); i += 2) {
+  for (size_t i = 0; i < nodes; i += 2) {
     H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_[i] = Qi;
   }
 
-  auto pipe = plant.add_element<Pipe>(pipe_config, H0_, Q0_, 0.1).value();
+  pipe_config.H0 = H0_;
+  pipe_config.Q0 = Q0_;
+  auto pipe = plant.add_element<Pipe>(pipe_config, system_dt).value();
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
@@ -89,8 +93,18 @@ int main() {
 
   auto valve = plant.add_element<Valve>(valve_config).value();
 
-  pipe->connect_to(reservoir, PortType::Left, PortType::Right);
-  pipe->connect_to(valve, PortType::Right, PortType::Left);
+  HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
+  HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
+  auto pipe2 = plant.add_element<Pipe>(pipe_config, system_dt).value();
+  // auto reservoir2 = plant.add_element<ConstantLevelRight>(100.0).value();
+
+  if (HydraulicConnections::connect(*pipe2, PipeEnd::Left, *valve) !=
+      ConnectResult::Ok) {
+    throw std::runtime_error("Failed to connect the second pipe to the valve");
+  }
+  // assert(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *reservoir2)
+  // ==
+  //        ConnectResult::Ok);
 
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 

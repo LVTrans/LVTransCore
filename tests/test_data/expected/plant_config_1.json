@@ -82,7 +82,7 @@
                 "cvm": 0.0,
                 "cvp": 0.0
             },
-            "type": "Reservoir"
+            "type": "ConstantLevelLeft"
         },
         {
             "id": 3,
