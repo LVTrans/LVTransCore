@@ -1,13 +1,14 @@
 #pragma once
 #include <cmath>
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/elements/controllable.hpp"
 #include "lvtrans/elements/controller.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
 
-class Valve : public NonPipe {
+class Valve : public Controllable, public NonPipe {
  public:
   Valve(const ValveParameters& conf);
   Valve(const ValveParameters& conf, ValveState state);
@@ -26,13 +27,16 @@ class Valve : public NonPipe {
   void reset_state() override { m_state = ValveState{m_params.tau_i}; }
 
   double get_tau() const { return m_state.tau; }
+  virtual Controller* get_controller() const override { return m_controller; }
+  virtual void set_controller(Controller* controller) override {
+    m_controller = controller;
+  }
 
  private:
   double calculate_q() const;
-
   ValveParameters m_params{};
   ValveState m_state{};
-  Controller* m_controller{};
+  Controller* m_controller{nullptr};
 };
 
 }  // namespace lvtrans

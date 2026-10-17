@@ -6,13 +6,11 @@
 #include <unordered_map>
 #include <vector>
 #include "lvtrans/elements/base_pipe.hpp"
+#include "lvtrans/elements/controller.hpp"
 #include "lvtrans/elements/pipe.hpp"
 namespace lvtrans {
 
-enum class ElementAbstractType : std::uint8_t {
-  Pipe,
-  NonPipe,
-};
+enum class ElementAbstractType : std::uint8_t { Pipe, NonPipe, Controller };
 
 class ElementContainer {
  public:
@@ -39,10 +37,14 @@ class ElementContainer {
     if constexpr (std::is_base_of_v<BasePipe, T>) {
       m_pipes.emplace_back(std::move(element));
       m_element_indices[id] = {ElementAbstractType::Pipe, m_pipes.size() - 1};
-    } else {
+    } else if constexpr (std::is_base_of_v<NonPipe, T>) {
       m_non_pipes.emplace_back(std::move(element));
       m_element_indices[id] = {ElementAbstractType::NonPipe,
                                m_non_pipes.size() - 1};
+    } else {
+      m_controllers.emplace_back(std::move(element));
+      m_element_indices[id] = {ElementAbstractType::Controller,
+                               m_controllers.size() - 1};
     }
 
     m_element_id = std::max(m_element_id, id + 1);
@@ -59,6 +61,10 @@ class ElementContainer {
   }
   const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
     return m_non_pipes;
+  }
+
+  const std::vector<std::unique_ptr<Controller>>& get_controllers() const {
+    return m_controllers;
   }
 
   std::vector<Element*> get_elements() const;
@@ -86,6 +92,8 @@ class ElementContainer {
   ElementID m_element_id{1};
   std::vector<std::unique_ptr<Pipe>> m_pipes;
   std::vector<std::unique_ptr<NonPipe>> m_non_pipes;
+  std::vector<std::unique_ptr<Controller>> m_controllers;
+
   std::unordered_map<ElementID, std::pair<ElementAbstractType, size_t>>
       m_element_indices;
 };

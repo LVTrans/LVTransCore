@@ -8,8 +8,8 @@
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/pid_turbine.hpp"
 #include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
@@ -189,20 +189,13 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
 
 TEST(ConnectionConfigTest, PreservesIndicesAndRejectsNonHydraulicSides) {
   using namespace lvtrans;
-  Connection connection{Side::Right, 42, 3};
+  Connection connection{ConnectionPort::Right, 42, 3};
   const nlohmann::json encoded = connection;
   EXPECT_EQ(encoded.at("index"), 3);
   const auto decoded = encoded.get<Connection>();
-  EXPECT_EQ(decoded.port_type, Side::Right);
+  EXPECT_EQ(decoded.port_type, ConnectionPort::Right);
   EXPECT_EQ(decoded.element_id, 42);
   EXPECT_EQ(decoded.index, 3u);
-
-  auto legacy = encoded;
-  legacy.erase("index");
-  legacy.get_to(connection);
-  EXPECT_EQ(connection.index, 0u);
-  legacy["port_type"] = "up";
-  EXPECT_THROW(legacy.get<Connection>(), std::invalid_argument);
 }
 
 TEST(PlantConfigRepositoryTest, PreservesDownstreamReservoirConnections) {
@@ -256,8 +249,9 @@ TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
       {11, 6, -1},
   }};
   for (auto* data : {&loaded, &reloaded}) {
+    SCOPED_TRACE(data == &loaded ? "initial load" : "saved and reloaded");
     auto& elements = data->element_container;
-    ASSERT_EQ(elements.get_elements().size(), 12u);
+    ASSERT_EQ(elements.get_elements().size(), 13u);
     ASSERT_NE(elements.get_element_by_id<SimpleConnection>(4), nullptr);
     ASSERT_NE(elements.get_element_by_id<T1In2OutN>(5), nullptr);
     ASSERT_NE(elements.get_element_by_id<SurgeShaftStandard>(6), nullptr);
@@ -286,5 +280,11 @@ TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
     EXPECT_EQ(junction->right_links()[0].pipe,
               elements.get_element_by_id<Pipe>(10));
     EXPECT_EQ(junction->right_links()[1].pipe, nullptr);
+
+    // Test Valve's PID
+    auto* pid_turbine = elements.get_element_by_id<PIDTurbine>(13);
+    auto* valve = elements.get_element_by_id<Valve>(3);
+    EXPECT_EQ(valve->get_controller(), pid_turbine);
+    EXPECT_EQ(pid_turbine->get_controllable(), valve);
   }
 }

@@ -35,6 +35,11 @@ class Plant {
   const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
     return m_data.element_container.get_non_pipes();
   }
+
+  const std::vector<std::unique_ptr<Controller>>& get_controllers() const {
+    return m_data.element_container.get_controllers();
+  }
+
   std::vector<Element*> get_elements() const {
     return m_data.element_container.get_elements();
   }

@@ -10,7 +10,7 @@ enum class PipeEnd { Left, Right };
 
 struct TerminalId {
   Side side{};
-  std::size_t index{};
+  size_t index{};
   bool operator==(const TerminalId&) const = default;
 };
 
@@ -29,7 +29,7 @@ enum class ConnectResult { Ok, InvalidTerminal, AlreadyConnected };
 class HydraulicConnections {
  public:
   static ConnectResult connect(BasePipe& pipe, PipeEnd end, NonPipe& element,
-                               std::size_t terminal_index = 0);
+                               size_t terminal_index = 0);
   static void disconnect(BasePipe& pipe, PipeEnd end);
   static void disconnect_all(BasePipe& pipe);
   static void disconnect_all(NonPipe& element);
