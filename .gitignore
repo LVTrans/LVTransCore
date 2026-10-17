@@ -1,5 +1,6 @@
 # Prerequisites
 *.d
+perf.data
 
 # Compiled Object files
 *.slo

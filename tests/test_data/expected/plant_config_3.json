@@ -3,102 +3,112 @@
     {
       "from": {
         "element_id": 1,
-        "port_type": "left"
+        "port_type": "Left"
       },
       "to": {
         "element_id": 2,
-        "port_type": "right"
+        "port_type": "Right"
       }
     },
     {
       "from": {
         "element_id": 1,
-        "port_type": "right"
+        "port_type": "Right"
       },
       "to": {
         "element_id": 4,
-        "port_type": "left"
+        "port_type": "Left"
       }
     },
     {
       "from": {
         "element_id": 7,
-        "port_type": "left"
+        "port_type": "Left"
       },
       "to": {
         "element_id": 4,
-        "port_type": "right"
+        "port_type": "Right"
       }
     },
     {
       "from": {
         "element_id": 7,
-        "port_type": "right"
+        "port_type": "Right"
       },
       "to": {
         "element_id": 3,
-        "port_type": "left"
+        "port_type": "Left"
       }
     },
     {
       "from": {
         "element_id": 8,
-        "port_type": "left"
+        "port_type": "Left"
       },
       "to": {
         "element_id": 3,
-        "port_type": "right"
+        "port_type": "Right"
       }
     },
     {
       "from": {
         "element_id": 8,
-        "port_type": "right"
+        "port_type": "Right"
       },
       "to": {
         "element_id": 5,
-        "port_type": "left"
+        "port_type": "Left"
       }
     },
 
     {
       "from": {
         "element_id": 9,
-        "port_type": "right"
+        "port_type": "Right"
       },
       "to": {
         "element_id": 6,
-        "port_type": "left"
+        "port_type": "Left"
       }
     },
     {
       "from": {
         "element_id": 10,
-        "port_type": "left"
+        "port_type": "Left"
       },
       "to": {
         "element_id": 5,
-        "port_type": "right"
+        "port_type": "Right"
       }
     },
     {
       "from": {
         "element_id": 10,
-        "port_type": "right"
+        "port_type": "Right"
       },
       "to": {
         "element_id": 12,
-        "port_type": "left"
+        "port_type": "Left"
       }
     },
     {
       "from": {
         "element_id": 11,
-        "port_type": "left"
+        "port_type": "Left"
       },
       "to": {
         "element_id": 6,
-        "port_type": "right"
+        "port_type": "Right"
+      }
+    },
+    {
+      "from": {
+        "element_id": 3,
+        "port_type": "Controller"
+      },
+      "to": {
+        "element_id": 13,
+        "port_type": "Controllable"
       }
     }
   ],
@@ -174,6 +184,12 @@
       "name": "Reservoir 2",
       "parameters": {},
       "type": "ConstantLevelRight"
+    },
+    {
+      "id": 13,
+      "name": "PID Turbine 1",
+      "parameters": {},
+      "type": "PIDTurbine"
     }
   ],
   "format_version": 1,

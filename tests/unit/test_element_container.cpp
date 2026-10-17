@@ -98,8 +98,10 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
   auto reservoir = add_to<ConstantLevelLeft>(container);
   auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
   ASSERT_NE(reservoir->right_links()[0].pipe, nullptr);
   ASSERT_NE(valve->left_links()[0].pipe, nullptr);
 
@@ -110,8 +112,11 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
 
   auto replacement = add_to<Pipe>(container);
 
-  ASSERT_EQ(HydraulicConnections::connect(*replacement, PipeEnd::Left, *reservoir), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*replacement, PipeEnd::Right, *valve), ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*replacement, PipeEnd::Left, *reservoir),
+      ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*replacement, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
 
   EXPECT_EQ(replacement->left_elem(), reservoir);
   EXPECT_EQ(replacement->right_elem(), valve);
@@ -122,8 +127,10 @@ TEST(ElementContainerTest, DisconnectIsRepeatableAndPreservesOtherConnections) {
   auto reservoir = add_to<ConstantLevelLeft>(container);
   auto valve = container.add_element<Valve>(ValveParameters{}).value();
   auto pipe = add_to<Pipe>(container);
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
 
   ASSERT_EQ(pipe->left_elem(), reservoir);
   ASSERT_EQ(pipe->right_elem(), valve);
@@ -148,12 +155,14 @@ TEST(ElementContainerTest, ReconnectingUpdatesPipeNeighbors) {
   auto pipe = add_to<Pipe>(container);
   const Pipe& view = *pipe;
 
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *first), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *first),
+            ConnectResult::Ok);
   ASSERT_EQ(view.left_elem(), first);
   first->disconnect_all();
   ASSERT_EQ(view.left_elem(), nullptr);
 
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *second), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *second),
+            ConnectResult::Ok);
   EXPECT_EQ(view.left_elem(), second);
   HydraulicConnections::disconnect(*pipe, PipeEnd::Left);
   EXPECT_EQ(view.left_elem(), nullptr);
@@ -166,8 +175,10 @@ TEST(ElementContainerTest, RemovingNonPipeDisconnectsBothEndsOfSamePipe) {
   ElementContainer container;
   auto* pipe = container.add_element<Pipe>(PipeParameters{}, 0.1).value();
   auto* valve = container.add_element<Valve>(ValveParameters{}).value();
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *valve), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *valve),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
   EXPECT_EQ(valve->left_links()[0].pipe, pipe);
   EXPECT_EQ(valve->right_links()[0].pipe, pipe);
   container.remove_element_by_id(valve->get_ID());
