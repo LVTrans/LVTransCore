@@ -35,6 +35,11 @@ class Plant {
   const std::vector<std::unique_ptr<NonPipe>>& get_non_pipes() const {
     return m_data.element_container.get_non_pipes();
   }
+
+  const std::vector<std::unique_ptr<Controller>>& get_controllers() const {
+    return m_data.element_container.get_controllers();
+  }
+
   std::vector<Element*> get_elements() const {
     return m_data.element_container.get_elements();
   }
@@ -50,7 +55,7 @@ class Plant {
   ModificationResult modify_element(ElementID id,
                                     const ElementModification& mod) const;
 
-  void remove_element_by_id(ElementID id) {
+  bool remove_element_by_id(ElementID id) {
     return m_data.element_container.remove_element_by_id(id);
   }
 

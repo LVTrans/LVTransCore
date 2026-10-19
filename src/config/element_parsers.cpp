@@ -1,6 +1,8 @@
 #include "lvtrans/config/element_parsers.hpp"
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/pid_turbine.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/t_1in_2out_n.hpp"
@@ -113,6 +115,9 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
     case ElementType::SurgeShaftStandard:
       return std::make_unique<ConfiguredElementParser<
           SurgeShaftStandard, SurgeShaftStandardParameters>>();
+    case lvtrans::ElementType::PIDTurbine:
+      return std::make_unique<
+          ConfiguredElementParser<PIDTurbine, PIDTurbineParameters>>();
     default:
       return nullptr;
   }

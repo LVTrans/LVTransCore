@@ -25,10 +25,16 @@ struct ElementConfig {
   std::optional<ElementState> state;
 };
 
+enum class ConnectionPort : std::uint8_t {
+  Left,
+  Right,
+  Controller,
+  Controllable
+};
 struct Connection {
-  Side port_type;
+  ConnectionPort port_type;
   ElementID element_id;
-  std::size_t index{0};
+  size_t index{0};
 };
 
 struct ConnectionConfig {
@@ -95,33 +101,34 @@ NLOHMANN_JSON_SERIALIZE_ENUM(
                   {ElementType::SurgeShaftStandard, "SurgeShaftStandard"},
                   {ElementType::SimpleConnection, "SimpleConnection"},
                   {ElementType::T1In2OutN, "T1In2OutN"},
+                  {ElementType::PIDTurbine, "PIDTurbine"},
                   {ElementType::AlgebraicPipe, "AlgebraicPipe"}})
 
-inline void to_json(nlohmann::json& j, Side side) {
-  j = side == Side::Left ? "left" : "right";
-}
+NLOHMANN_JSON_SERIALIZE_ENUM(Side, {
+                                       {Side::Left, "Left"},
+                                       {Side::Right, "Right"},
+                                   })
+NLOHMANN_JSON_SERIALIZE_ENUM(ConnectionPort,
+                             {{ConnectionPort::Left, "Left"},
+                              {ConnectionPort::Right, "Right"},
+                              {ConnectionPort::Controller, "Controller"},
+                              {ConnectionPort::Controllable, "Controllable"}})
 
-inline void from_json(const nlohmann::json& j, Side& side) {
-  const auto value = j.get<std::string>();
-  if (value == "left")
-    side = Side::Left;
-  else if (value == "right")
-    side = Side::Right;
-  else
-    throw std::invalid_argument("Invalid hydraulic connection side");
-}
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
+
 inline void to_json(nlohmann::json& j, const Connection& value) {
   j = {{"port_type", value.port_type}, {"element_id", value.element_id}};
-  // Preserve existing files for single-slot elements.
-  if (value.index != 0) j["index"] = value.index;
+
+  if (value.index != 0) {
+    j["index"] = value.index;
+  }
 }
 inline void from_json(const nlohmann::json& j, Connection& value) {
   j.at("port_type").get_to(value.port_type);
   j.at("element_id").get_to(value.element_id);
-  value.index = j.value("index", std::size_t{0});
+  value.index = j.value("index", size_t{0});
 }
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ConnectionConfig, from, to)
-
+//
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
   std::visit([&](const auto& parameters) { j["parameters"] = parameters; },
@@ -144,7 +151,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       {ElementType::SurgeShaftStandard,
        {SurgeShaftStandardParameters{}, std::nullopt}},
       {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
-      {ElementType::PIDTurbine, {PIDTurbineParameters{}, ValveState{}}},
+      {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::ConstantLevelLeft, {ReservoirParameters{}, std::nullopt}},
       {ElementType::ConstantLevelRight, {ReservoirParameters{}, std::nullopt}},
       {ElementType::SimpleConnection, {LossCoefficients{}, std::nullopt}},

@@ -4,9 +4,9 @@
 
 namespace lvtrans {
 
-ConnectResult HydraulicConnections::connect(BasePipe& pipe, PipeEnd end,
+ConnectResult HydraulicConnections::connect(BasePipe& pipe, const PipeEnd end,
                                             NonPipe& element,
-                                            std::size_t terminal_index) {
+                                            const std::size_t terminal_index) {
   const auto side = end == PipeEnd::Left ? Side::Right : Side::Left;
   auto& slots = side == Side::Left ? element.m_left : element.m_right;
 
@@ -20,13 +20,14 @@ ConnectResult HydraulicConnections::connect(BasePipe& pipe, PipeEnd end,
     return ConnectResult::AlreadyConnected;
   }
 
-  boundary = {&element, {side, terminal_index}};
-  slots[terminal_index] = {&pipe, end};
+  boundary = {.element = &element,
+              .terminal = {.side = side, .index = terminal_index}};
+  slots[terminal_index] = {.pipe = &pipe, .end = end};
 
   return ConnectResult::Ok;
 }
 
-void HydraulicConnections::disconnect(BasePipe& pipe, PipeEnd end) {
+void HydraulicConnections::disconnect(BasePipe& pipe, const PipeEnd end) {
   auto& boundary = end == PipeEnd::Left ? pipe.m_left : pipe.m_right;
   if (!boundary.element) return;
 
@@ -42,14 +43,14 @@ void HydraulicConnections::disconnect_all(BasePipe& pipe) {
   disconnect(pipe, PipeEnd::Right);
 }
 
-void HydraulicConnections::disconnect_all(NonPipe& element) {
-  for (auto& link : element.m_left)
-    if (link.pipe) {
-      disconnect(*link.pipe, link.end);
+void HydraulicConnections::disconnect_all(const NonPipe& element) {
+  for (auto& [pipe, end] : element.m_left)
+    if (pipe) {
+      disconnect(*pipe, end);
     }
-  for (auto& link : element.m_right)
-    if (link.pipe) {
-      disconnect(*link.pipe, link.end);
+  for (auto& [pipe, end] : element.m_right)
+    if (pipe) {
+      disconnect(*pipe, end);
     }
 }
 }  // namespace lvtrans

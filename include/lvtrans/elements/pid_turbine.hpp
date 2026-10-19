@@ -1,11 +1,11 @@
 #pragma once
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/controllable.hpp"
-#include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/controller.hpp"
 
 namespace lvtrans {
 
-class PIDTurbine : public Element {
+class PIDTurbine : public Controller {
  public:
   explicit PIDTurbine(const PIDTurbineParameters& parameters);
   PIDTurbine();
@@ -17,13 +17,9 @@ class PIDTurbine : public Element {
   virtual std::optional<ElementState> get_state() const override;
   virtual ElementView read_view() const override;
   virtual void reset_state() override;
-  void set_controllable(Controllable* controllable) {
-    m_controllable = controllable;
-  }
 
  private:
   PIDTurbineParameters m_params{};
-  Controllable* m_controllable{nullptr};
 };
 
 }  // namespace lvtrans
