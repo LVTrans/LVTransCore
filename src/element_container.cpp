@@ -8,8 +8,9 @@ namespace lvtrans {
 std::vector<Element*> ElementContainer::get_elements_sorted() const {
   auto elements = get_elements();
 
-  std::sort(elements.begin(), elements.end(),
-            [](Element* a, Element* b) { return a->get_ID() < b->get_ID(); });
+  std::ranges::sort(elements, [](const Element* a, const Element* b) {
+    return a->get_ID() < b->get_ID();
+  });
   return elements;
 }
 
@@ -50,10 +51,10 @@ Element* ElementContainer::get_element_by_id(ElementID id) const {
   }
 }
 
-void ElementContainer::remove_element_by_id(ElementID id) {
-  auto it = m_element_indices.find(id);
+bool ElementContainer::remove_element_by_id(const ElementID id) {
+  const auto it = m_element_indices.find(id);
   if (it == m_element_indices.end()) {
-    return;
+    return false;
   }
 
   if (it->second.first == ElementAbstractType::Pipe) {
@@ -63,5 +64,6 @@ void ElementContainer::remove_element_by_id(ElementID id) {
   } else {
     remove_element_from(m_controllers, it->second.second);
   }
+  return true;
 }
 }  // namespace lvtrans

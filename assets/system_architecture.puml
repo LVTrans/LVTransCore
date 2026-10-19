@@ -14,11 +14,11 @@ abstract class Element {
 abstract class NonPipe {
   - left: vector<PipeLink>
   - right: vector<PipeLink>
+  # map<ElementID, Characteristics> c_plus{};
+  # map<ElementID, Characteristics> c_minus{};
   + left_links(): span<const PipeLink>
   + right_links(): span<const PipeLink>
   + disconnect_all()
-  # c_characteristic: double
-  # b_characteristic: double
   + set_c_characteristic(val): void
   + set_b_characteristic(val): void
   + get_Q(): double
@@ -111,7 +111,7 @@ class ConcreteElementParser {
 
 
 class HydraulicConnections {
-  {static} + connect(BasePipe&, PipeEnd, NonPipe&, index = 0): ConnectResult
+  {static} + connect(BasePipe&, PipeEnd, NonPipe&, index)
   {static} + disconnect(BasePipe&, PipeEnd)
   {static} + disconnect_all(BasePipe&)
   {static} + disconnect_all(NonPipe&)
@@ -135,6 +135,7 @@ HydraulicConnections ..> BasePipe : maintains links
 HydraulicConnections ..> NonPipe : maintains links
 BasePipe *-- BoundaryLink
 NonPipe *-- PipeLink
+BoundaryLink -- TerminalId
 Plant -- PlantData
 
 Element <|-- NonPipe
@@ -143,6 +144,7 @@ Element <|-- BasePipe
 NonPipe <|-- ConcreteNonPipe
 BasePipe <|-- ConcretePipe
 BasePipe "0..*" -- "0..2" NonPipe : hydraulic connections
+
 
 ElementParser <|-- ConcreteElementParser
 

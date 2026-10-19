@@ -286,5 +286,10 @@ TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
     auto* valve = elements.get_element_by_id<Valve>(3);
     EXPECT_EQ(valve->get_controller(), pid_turbine);
     EXPECT_EQ(pid_turbine->get_controllable(), valve);
+
+    EXPECT_EQ(elements.remove_element_by_id(13), true);
+    EXPECT_EQ(elements.get_element_by_id(13), nullptr);
+    EXPECT_EQ(valve->get_controller(), nullptr);
+    EXPECT_EQ(pid_turbine->get_controllable(), nullptr);
   }
 }

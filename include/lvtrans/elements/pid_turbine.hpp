@@ -17,18 +17,9 @@ class PIDTurbine : public Controller {
   virtual std::optional<ElementState> get_state() const override;
   virtual ElementView read_view() const override;
   virtual void reset_state() override;
-  virtual void disconnect_all() override { m_controllable = nullptr; }
-
-  virtual Controllable* get_controllable() const override {
-    return m_controllable;
-  }
-  virtual void set_controllable(Controllable* controllable) override {
-    m_controllable = controllable;
-  }
 
  private:
   PIDTurbineParameters m_params{};
-  Controllable* m_controllable{nullptr};
 };
 
 }  // namespace lvtrans

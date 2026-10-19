@@ -55,7 +55,7 @@ class Plant {
   ModificationResult modify_element(ElementID id,
                                     const ElementModification& mod) const;
 
-  void remove_element_by_id(ElementID id) {
+  bool remove_element_by_id(ElementID id) {
     return m_data.element_container.remove_element_by_id(id);
   }
 

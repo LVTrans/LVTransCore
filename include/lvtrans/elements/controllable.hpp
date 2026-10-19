@@ -7,8 +7,11 @@ namespace lvtrans {
 class Controller;
 class Controllable {
  public:
-  virtual Controller* get_controller() const = 0;
-  virtual void set_controller(Controller*) = 0;
   virtual ~Controllable() = default;
+  Controller* get_controller() const { return m_controller; }
+
+ protected:
+  Controller* m_controller{nullptr};
+  friend class ControllerConnections;
 };
 }  // namespace lvtrans

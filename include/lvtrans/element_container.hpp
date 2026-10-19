@@ -52,7 +52,7 @@ class ElementContainer {
   }
 
   template <typename T>
-  T* get_element_by_id(ElementID id) const {
+  T* get_element_by_id(const ElementID id) const {
     return dynamic_cast<T*>(get_element_by_id(id));
   }
 
@@ -70,7 +70,7 @@ class ElementContainer {
   std::vector<Element*> get_elements() const;
   std::vector<Element*> get_elements_sorted() const;
   Element* get_element_by_id(ElementID id) const;
-  void remove_element_by_id(ElementID id);
+  bool remove_element_by_id(ElementID id);
 
  private:
   template <typename T>

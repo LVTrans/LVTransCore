@@ -1,2 +1,8 @@
 #include "lvtrans/elements/controller.hpp"
-namespace lvtrans {}  // namespace lvtrans
+#include "lvtrans/controller_connections.hpp"
+namespace lvtrans {
+
+void Controller::disconnect_all() {
+  ControllerConnections::disconnect_all(*this);
+}
+}  // namespace lvtrans

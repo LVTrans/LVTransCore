@@ -4,6 +4,7 @@
 #include <string>
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
+#include "lvtrans/controller_connections.hpp"
 #include "lvtrans/elements/controllable.hpp"
 #include "lvtrans/elements/controller.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -90,8 +91,7 @@ PlantRepositoryResult PlantConfigRepository::load(
         continue;
       }
 
-      controllable->set_controller(controller);
-      controller->set_controllable(controllable);
+      ControllerConnections::connect(*controller, *controllable);
     }
   }
 

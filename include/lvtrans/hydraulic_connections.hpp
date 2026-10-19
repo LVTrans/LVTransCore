@@ -32,6 +32,6 @@ class HydraulicConnections {
                                size_t terminal_index = 0);
   static void disconnect(BasePipe& pipe, PipeEnd end);
   static void disconnect_all(BasePipe& pipe);
-  static void disconnect_all(NonPipe& element);
+  static void disconnect_all(const NonPipe& element);
 };
 }  // namespace lvtrans
