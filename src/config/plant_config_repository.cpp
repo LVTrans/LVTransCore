@@ -67,7 +67,7 @@ PlantRepositoryResult PlantConfigRepository::load(
       auto* non_pipe = container.get_element_by_id<NonPipe>(to->element_id);
 
       if (!pipe || !non_pipe) {
-        continue;
+        return PlantRepositoryResult::Error;
       }
 
       auto end = from->port_type == ConnectionPort::Left ? PipeEnd::Left
