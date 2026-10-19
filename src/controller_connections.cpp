@@ -5,6 +5,10 @@ namespace lvtrans {
 
 bool ControllerConnections::connect(Controller& controller,
                                     Controllable& controllable) {
+  if (controller.m_controllable || controllable.m_controller) {
+    return false;
+  }
+
   controller.m_controllable = &controllable;
   controllable.m_controller = &controller;
 
