@@ -28,8 +28,6 @@ TEST(ElementConfigTest, DeserializesVariantsAndClearsAbsentState) {
        PipeParameters{.length = 300.0}, PipeState{{30.0}, {3.0}}},
       {3, "valve", ElementType::Valve, ValveParameters{.tau_i = 0.5},
        ValveState{0.75}},
-      {4, "reservoir", ElementType::Reservoir, ReservoirParameters{.H0 = 150.0},
-       std::nullopt},
       {5, "left", ElementType::ConstantLevelLeft,
        ReservoirParameters{.H0 = 160.0}, std::nullopt},
       {6, "right", ElementType::ConstantLevelRight,

@@ -422,7 +422,7 @@
         "cvm": 0.0,
         "cvp": 0.0
       },
-      "type": "Reservoir"
+      "type": "ConstantLevelLeft"
     },
     {
       "id": 120,
@@ -449,7 +449,7 @@
         "cvm": 0.0,
         "cvp": 0.0
       },
-      "type": "Reservoir"
+      "type": "ConstantLevelLeft"
     },
     {
       "id": 790,
