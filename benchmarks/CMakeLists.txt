@@ -7,6 +7,7 @@ set(BENCHMARK_SOURCES
 
 
 add_executable(benchmarks ${BENCHMARK_SOURCES})
+add_executable(bench_plantA bench_plantA.cpp)
 
 
 
@@ -14,6 +15,11 @@ target_link_libraries(benchmarks
     PRIVATE
         lvtrans_core
         benchmark::benchmark
+)
+
+target_link_libraries(bench_plantA
+    PRIVATE
+        lvtrans_core
 )
 
 target_compile_options(benchmarks PRIVATE -Wall -Wextra -Wpedantic)

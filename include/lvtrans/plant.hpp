@@ -76,7 +76,9 @@ class Plant {
   void display() const;
   std::optional<ElementView> read_state(ElementID id) const;
   double get_current_time() const { return m_data.state.current_time; }
-  int get_num_terations() const { return m_data.state.num_iterations; }
+  std::uint64_t get_num_terations() const {
+    return m_data.state.num_iterations;
+  }
   double get_step_size() const { return m_data.config.step_size; }
 
  private:

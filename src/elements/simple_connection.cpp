@@ -10,7 +10,7 @@ SimpleConnection::SimpleConnection() : NonPipe(1, 1), m_params{} {}
 SimpleConnection::SimpleConnection(const LossCoefficients& loss_coeffs)
     : NonPipe(1, 1), m_params(loss_coeffs) {}
 
-double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) const {
+double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) {
   const auto Qp = calculate_Qp(id);
 
   if (ct == CharacteristicsType::CPlus) {
@@ -20,8 +20,7 @@ double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) const {
   }
 }
 
-double SimpleConnection::get_Q(CharacteristicsType, ElementID,
-                               const IterateInput) const {
+double SimpleConnection::get_Q(CharacteristicsType, ElementID, IterateInput) {
   Characteristics cp{};
   Characteristics cm{};
 

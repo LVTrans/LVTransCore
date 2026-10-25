@@ -51,6 +51,8 @@ PlantRepositoryResult PlantConfigRepository::load(
 
     if (!parser || parser->parse(container, element, plant.config.step_size) ==
                        ElementParseResult::Error) {
+      std::cerr << "Failed to parse element: " << element.name
+                << " of type: " << static_cast<int>(element.type) << '\n';
       return PlantRepositoryResult::Error;
     }
   }

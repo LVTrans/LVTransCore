@@ -25,9 +25,9 @@ class NonPipe : public Element {
   std::span<const PipeLink> right_links() const { return m_right; }
   virtual void disconnect_all() noexcept;
 
-  virtual double get_H(CharacteristicsType, ElementID) const { return 0.0; }
+  virtual double get_H(CharacteristicsType, ElementID) { return 0.0; }
   virtual double get_Q(CharacteristicsType, ElementID,
-                       const IterateInput = {}) const {
+                       const IterateInput = {}) {
     return 0.0;
   }
 

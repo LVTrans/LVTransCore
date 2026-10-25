@@ -37,6 +37,22 @@ struct PIDTurbineParameters {
   double servo_max{};          // Maximum servo opening [pu]
   double manual_default{};     // Initial manual opening [pu]
   bool power_droop{};  // Power-related rather than opening-related droop
+                       //
+  std::string to_str() const {
+    return std::format(
+        "PIDTurbineParameters: rated_power={}, rated_speed={}, "
+        "power_setpoint={}, "
+        "kp_grid={}, ti_grid={}, td_grid={}, kp_island={}, ti_island={}, "
+        "td_island={}, tip={}, ramp_time={}, droop={}, closing_time_high={}, "
+        "closing_time_low={}, opening_time_high={}, opening_time_low={}, "
+        "kappa_change={}, a={}, b={}, c={}, servo_max={}, manual_default={}, "
+        "power_droop={}",
+        rated_power, rated_speed, power_setpoint, kp_grid, ti_grid, td_grid,
+        kp_island, ti_island, td_island, tip, ramp_time, droop,
+        closing_time_high, closing_time_low, opening_time_high,
+        opening_time_low, kappa_change, a, b, c, servo_max, manual_default,
+        power_droop);
+  }
 };
 
 // Section 12.7, Table 12.7.
@@ -53,13 +69,29 @@ struct PIDPumpParameters {
 
 // Section 12.9, Table 12.8. Also used by Pelton Sump (section 12.19).
 struct SurgeShaftStandardParameters {
-  bool use_area{};            // Otherwise use diameter
-  double area{};              // Surface area [m^2]
-  double diameter{};          // Equivalent diameter [m]
-  double f{};                 // Shaft friction factor
-  LossCoefficients losses{};  // Positive: up into shaft; negative: down out
-  double initial_level{};     // H start [m from datum]
+  bool use_area{true};   // Otherwise use diameter
+  double area{10.0};     // Surface area [m^2]
+  double diameter{5.0};  // Equivalent diameter [m]
+  double f{50.0e-3};     // Shaft friction factor
+  double cvp{1e5};  //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to element
+  double initial_level{100.0};  // H start [m from datum]
+  std::string to_str() const {
+    return std::format(
+        "SurgeShaftStandardParameters: use_area={}, area={}, diameter={}, "
+        "f={}, cvp={}, cvm={}, initial_level={}",
+        use_area, area, diameter, f, cvp, cvm, initial_level);
+  }
 };
+
+// use Area = TRUE
+// Area [m2] = 10,000000E+0
+// D [m] = 5,000000E+0
+// f = 50,000000E-3
+// Cvp = 100,000000E+3
+// Cvm = 100,000000E+3
+// H start [m from datum] = 100,000000E+0
+// AUX-IO = True
 
 struct ShaftProfilePoint {
   double level{};  // L [m above the tunnel floor]
@@ -69,7 +101,8 @@ struct ShaftProfilePoint {
 // Section 12.10, Table 12.9. All ten profile points must be supplied with
 // strictly increasing levels. Interpolate between points; clamp area outside.
 struct SurgeShaftVariableParameters {
-  LossCoefficients losses{};
+  double cvp{1e5};  //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to element
   double initial_level{};     // H start [m from datum]
   double weir_width{};        // B [m]
   double weir_coefficient{};  // C
@@ -97,6 +130,10 @@ struct TConnectionParameters {
   double cv1{};  // Branch 1 to the junction
   double cv2{};  // Junction to branch 2
   double cv3{};  // Branch 3 to/from the junction
+  std::string to_str() const {
+    return std::format("TConnectionParameters: cv1={}, cv2={}, cv3={}", cv1,
+                       cv2, cv3);
+  }
 };
 
 // Section 12.17, Table 12.15. BEP/rated data must be mutually consistent.
@@ -174,6 +211,14 @@ struct ValveInternalServoParameters {
   bool use_cv_file{};
   std::string cv_file{};
   double diameter{};  // Inner valve diameter [m]
+  std::string to_str() const {
+    return std::format(
+        "ValveInternalServoParameters: losses={}, closing_time_high={}, "
+        "closing_time_low={}, switch_over={}, servo_time={}, "
+        "initial_opening={}, use_cv_file={}, cv_file={}, diameter={}",
+        losses.to_str(), closing_time_high, closing_time_low, switch_over,
+        servo_time, initial_opening, use_cv_file, cv_file, diameter);
+  }
 };
 
 // Section 12.22, Table 12.19. PRV = Pressure Release Valve.

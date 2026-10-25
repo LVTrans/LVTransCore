@@ -33,6 +33,10 @@ class Element {
   virtual ElementType get_type() const = 0;
   virtual ElementParameters get_parameters() const = 0;
   virtual std::optional<ElementState> get_state() const { return std::nullopt; }
+  template <typename T>
+  T get_state_as() const {
+    return get_state().has_value() ? std::get<T>(get_state().value()) : T{};
+  }
   virtual ElementView read_view() const { return ElementView{}; }
   virtual void reset_state() {};
   virtual ModificationResult modify(const ElementModification&) {

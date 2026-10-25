@@ -130,9 +130,7 @@ class BasePipe : public Element {
   virtual ElementParameters get_parameters() const override { return m_params; }
   ElementView read_view() const override;
   virtual void iterate(const double t = 0) override = 0;
-  std::optional<ElementState> get_state() const override {
-    return std::make_optional(m_state);
-  }
+  std::optional<ElementState> get_state() const override { return m_state; }
   void reset_state() override { m_state = m_initial_state; }
   ConnectResult connect_left(NonPipe& element);
   ConnectResult connect_right(NonPipe& element);

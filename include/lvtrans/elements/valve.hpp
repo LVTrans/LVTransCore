@@ -20,9 +20,8 @@ class Valve : public Controllable, public NonPipe {
   ElementType get_type() const override { return ElementType::Valve; }
   ElementView read_view() const override;
   void iterate(const double t = 0) override;
-  double get_H(CharacteristicsType ct, ElementID id) const override;
-  double get_Q(CharacteristicsType, ElementID id,
-               const IterateInput) const override;
+  double get_H(CharacteristicsType ct, ElementID id) override;
+  double get_Q(CharacteristicsType, ElementID id, const IterateInput) override;
 
   void reset_state() override { m_state = ValveState{m_params.tau_i}; }
 

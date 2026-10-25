@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <string>
 
 namespace lvtrans {
@@ -14,7 +15,7 @@ struct SimulationConfig {
 
 struct PlantState {
   double current_time{0};
-  int num_iterations{0};
+  std::uint64_t num_iterations{0};
 
   void reset() {
     current_time = 0;
