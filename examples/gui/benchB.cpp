@@ -1,4 +1,6 @@
 #include <GLFW/glfw3.h>
+#include <cfloat>
+#include <chrono>
 #include <cmath>
 #include <format>
 #include <iostream>
@@ -16,13 +18,34 @@
 #include "lvtrans/elements/valve.hpp"
 #include "lvtrans/plant.hpp"
 
+using Clock = std::chrono::steady_clock;
+
+using namespace lvtrans;
 struct PlotContainer {
   std::vector<double> time;
   std::vector<std::vector<double>> plots;
 };
 
+struct SimulationState {
+  Clock::time_point timer_iterations{Clock::now()};
+  double x_realtime{};
+  bool is_running{};
+  bool max_speed{};
+  int execution_speed{1};
+  std::uint64_t iterations_p_s{1};
+  std::uint64_t last_iteartions{};
+  int seconds{};
+  int minutes{};
+  int hours{};
+
+  void reset_time() {
+    seconds = 0;
+    minutes = 0;
+    hours = 0;
+  }
+};
+
 int main() {
-  // 1. Initialize GLFW & Open a Window
   glfwSetErrorCallback([](int code, const char* description) {
     std::cerr << "GLFW error " << code << ": " << description << '\n';
   });
@@ -39,14 +62,12 @@ int main() {
     return -1;
   }
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(1);  // Enable vsync
+  glfwSwapInterval(0);  // No VSync
 
-  // 2. Initialize ImGui & ImPlot Contexts
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImPlot::CreateContext();
 
-  // Setup Platform/Renderer backends
   if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) {
     std::cerr << "Failed to initialize the ImGui GLFW backend\n";
     ImPlot::DestroyContext();
@@ -65,92 +86,17 @@ int main() {
     return 1;
   }
 
-  // Simulation Data Variables
-  float sim_speed = 1.0f;
-  bool is_running = false;
-  // std::vector<double> time_steps;
-  // std::vector<double> object_position;
-  using namespace lvtrans;
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.WindowRounding = 0.0f;       // Sharp window corners
+  style.FrameRounding = 0.0f;        // Sharp button/input corners
+  style.ItemSpacing = ImVec2(8, 8);  // Tight horizontal and vertical spacing
 
-  double a = 1200.0;   // Wave propagation velocity [m/s]
-  double f = 0.018;    // Darcy-Weisbach friction factor
-  double tau_i = 1.0;  // Initial valve position
-  double tau_f = 0.0;  // Final valve position
-  double tc = 2.1;     // Valve operating/closure time [s]
-  double em = 0.75;    // Exponent defining valve motion
+  SimulationState sim_state{};
 
-  double HR = 150.0;    // Reservoir head above datum [m]
-  double CdA0 = 0.009;  // Valve coefficient/opening parameter
-
-  Plant plant(0.1);
-  PipeParameters pipe_config = {
-      .length = 600.0,
-      .diameter = 0.5,
-      .f = f,
-      .a = a,
-      .z0 = 10,
-      .z1 = 15,
-  };
-
-  const double sim_dt = plant.get_step_size();
-  const auto segments =
-      calculate_nodes_temp(pipe_config.lambda, pipe_config.length, sim_dt,
-                           pipe_config.a, pipe_config.rho);
-  const double dx = calculate_dx(pipe_config.length, segments);
-
-  const auto num_segments =
-      static_cast<size_t>(calculate_num_segments(segments));
-  std::vector<double> H0_(num_segments + 1, 0.0);
-  std::vector<double> Q0_(num_segments + 1, 0.0);
-
-  const double area = calculate_pipe_area(
-      pipe_config.area, pipe_config.diameter, pipe_config.dimension);
-  const double R = calculate_R(pipe_config.f, dx, pipe_config.diameter, area);
-
-  const double Q0 =
-      std::sqrt(2.0 * consts::g * CdA0 * CdA0 * HR /
-                (R * segments * 2.0 * consts::g * CdA0 * CdA0 + 1.0));
-
-  const double H0 = HR - R * segments * Q0 * Q0;
-
-  const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
-                              (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
-
-  for (size_t i = 0; i < H0_.size(); i += 2) {
-    H0_[i] = HR - static_cast<double>(i) * R * Qi * Qi;
-    Q0_[i] = Qi;
-  }
-  pipe_config.H0 = H0;
-  pipe_config.Q0 = Q0;
-
-  const double CVP = 0.5 * Q0 * Q0 / H0;
-  // auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  // auto CLL = plant.add_element<ConstantLevelLeft>(150.0).value();
-  // auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  // auto pipe3 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  // auto CLR = plant.add_element<ConstantLevelRight>(100.0).value();
-
-  ValveParameters valve_config{
-      .tau_i = tau_i,
-      .tau_f = tau_f,
-      .tc = tc,
-      .em = em,
-      .cvp = CVP,
-      .cvm = CVP,
-  };
-  //
-  // auto valve = plant.add_element<Valve>(valve_config).value();
-  // auto simple_connection = plant.add_element<SimpleConnection>().value();
-  //
-  // assert(pipe->connect_left(*CLL) == ConnectResult::Ok);
-  // assert(pipe->connect_right(*simple_connection) == ConnectResult::Ok);
-  // assert(pipe2->connect_left(*simple_connection) == ConnectResult::Ok);
-  // assert(pipe2->connect_right(*valve) == ConnectResult::Ok);
-  // assert(pipe3->connect_left(*valve) == ConnectResult::Ok);
-  // assert(pipe3->connect_right(*CLR) == ConnectResult::Ok);
-  //
-  // plant.display();
-  const double dt = 0.001;
+  double dt = 0.1;
+  Plant plant(dt);
 
   ReservoirParameters reservoir_params{
       .H0 = 100.000000E+0, .cvp = 100.000000E+3, .cvm = 100.000000E+3};
@@ -207,8 +153,6 @@ int main() {
 
   // clang-format off
   // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->Valve <->Pipe 4 <->Reservoir 2
-  //
-  // Adjust dt : 0.1->0.01->0.001->0.0001
   HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
   HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
 
@@ -221,15 +165,16 @@ int main() {
   HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
   HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
 
-
   PlotContainer plots{.time = std::vector<double>{},
                       .plots = std::vector<std::vector<double>>{
                           std::vector<double>{},
                           std::vector<double>{},
                           std::vector<double>{},
                       }};
-    plant.display();
+  plant.display();
   const double real_dt = ImGui::GetIO().DeltaTime;
+  auto stats_last = Clock::now();
+
   double acc = 0;
   while (!glfwWindowShouldClose(window)) {
     glfwPollEvents();
@@ -238,26 +183,65 @@ int main() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGui::DockSpaceOverViewport();
+    auto now = Clock::now();
+    if (std::chrono::duration<double>(now - sim_state.timer_iterations)
+            .count() >= 1.0) {
+      // sim_state.iterations_p_s =
+      // plant.get_num_terations() - sim_state.last_iteartions;
+      // sim_state.last_iteartions = plant.get_num_terations();
+      sim_state.seconds += sim_state.execution_speed;
+      sim_state.timer_iterations = now;
+
+      if (sim_state.seconds >= 60) {
+        sim_state.seconds -= 60;
+        sim_state.minutes++;
+        while (sim_state.seconds >= 60) {
+          sim_state.seconds -= 60;
+          sim_state.minutes++;
+        }
+        if (sim_state.minutes >= 60) {
+          sim_state.minutes = 0;
+          sim_state.hours++;
+          if (sim_state.hours >= 24) {
+            sim_state.hours = 0;
+          }
+        }
+      }
+    }
 
     // --- SIMULATION LOGIC ---
-    if (is_running) {
-      acc += real_dt * sim_speed;
-      while (acc >= sim_dt) {
-        plant.step();
-        plots.time.push_back(plant.get_current_time());
+    if (sim_state.is_running) {
+      if (sim_state.max_speed) {
+        auto deadline = Clock::now() + std::chrono::milliseconds(10);
 
-        plots.plots[0].push_back(pipe1->get_latest_H());
-        plots.plots[1].push_back(pipe1->get_latest_Q());
-        plots.plots[2].push_back(valve2->get_tau());
+        do {
+          for (int i = 0; i < 1024; ++i) {
+            plant.step();
+          }
 
-        if (plots.time.size() > 200) {
-          plots.time.erase(plots.time.begin());
-          plots.plots[0].erase(plots.plots[0].begin());
-          plots.plots[1].erase(plots.plots[1].begin());
-          plots.plots[2].erase(plots.plots[2].begin());
+        } while (Clock::now() < deadline);
+
+      } else {
+        acc += real_dt * sim_state.execution_speed;
+        while (acc >= dt) {
+          plant.step();
+          acc -= dt;
         }
+      }
 
-        acc -= sim_dt;
+      auto stats_now = Clock::now();
+      auto elapsed =
+          std::chrono::duration<double>(stats_now - stats_last).count();
+      if (elapsed > 1.0f) {
+        const auto iterations = plant.get_num_terations();
+        sim_state.iterations_p_s =
+            (iterations - sim_state.last_iteartions) / elapsed;
+
+        sim_state.x_realtime = sim_state.iterations_p_s * dt;
+
+        sim_state.last_iteartions = iterations;
+        stats_last = stats_now;
       }
     }
 
@@ -265,12 +249,10 @@ int main() {
     ImGui::SetNextWindowPos(ImVec2(20, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(340, 680), ImGuiCond_FirstUseEver);
     ImGui::Begin("Simulation Control Panel");
-    ImGui::Text("Status: %s", is_running ? "RUNNING" : "PAUSED");
-    ImGui::Text("Time: %.2f s", plant.get_current_time());
-    ImGui::Text("Iterations: %d", plant.get_num_terations());
+    ImGui::Text("Status: %s", sim_state.is_running ? "RUNNING" : "PAUSED");
 
-    if (ImGui::Button(is_running ? "Pause" : "Start")) {
-      is_running = !is_running;
+    if (ImGui::Button(sim_state.is_running ? "Pause" : "Start")) {
+      sim_state.is_running = !sim_state.is_running;
     }
     ImGui::SameLine();
     if (ImGui::Button("Reset")) {
@@ -279,18 +261,103 @@ int main() {
       plots.plots[1].clear();
       plots.plots[2].clear();
       plant.reset_state();
-      is_running = false;
+      sim_state.is_running = false;
+      sim_state.reset_time();
     }
+    ImGui::Separator();
+    ImGui::Checkbox("Max Speed", &sim_state.max_speed);
 
-    ImGui::SliderFloat("Simulation Speed", &sim_speed, 0.1f, 5.0f);
-    ImGui::Spacing();
-    ImGui::TextUnformatted("Reservoir head (m)");
-    ImGui::SetNextItemWidth(180.0f);
-    ImGui::Spacing();
+    ImGui::BeginGroup();
+    ImGui::Text("dT");
+    ImGui::SetNextItemWidth(110.0f);
+    ImGui::BeginDisabled(true);
+    ImGui::InputDouble("##dT", &dt, 1, 10);
+    ImGui::EndDisabled();
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    if (sim_state.max_speed) {
+      ImGui::BeginDisabled(true);
+    }
+    ImGui::Text("Execution speed (X realtime)");
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x - 100.0f);
+    ImGui::SliderInt("##slider_int", &sim_state.execution_speed, 1, 100);
+
+    if (sim_state.max_speed) {
+      ImGui::EndDisabled();
+    }
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    ImGui::Text(" ");
+
+    ImGui::SetNextItemWidth(100.0f);
+
+    if (sim_state.max_speed) {
+      ImGui::BeginDisabled(true);
+    }
+    ImGui::InputInt("##speed_int", &sim_state.execution_speed, 1, 10);
+
+    if (sim_state.max_speed) {
+      ImGui::EndDisabled();
+    }
+    ImGui::EndGroup();
+
+    ImGui::Separator();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Time");
+    ImGui::SetNextItemWidth(90.0f);
+    ImGui::BeginDisabled(true);
+    ImGui::Text("%02d:%02d:%02d", sim_state.hours, sim_state.minutes,
+                sim_state.seconds);
+    ImGui::EndDisabled();
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    ImGui::Text("x Realtime");
+
+    ImGui::SetNextItemWidth(90.0f);
+    ImGui::BeginDisabled(true);
+    ImGui::InputDouble("##x_realtime", &sim_state.x_realtime, 0.0f, 0.0f,
+                       "%.2f");
+    ImGui::EndDisabled();
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Iterations");
+
+    ImGui::SetNextItemWidth(90.0f);
+    ImGui::BeginDisabled(true);
+    ImGui::Text("%li", plant.get_num_terations());
+    ImGui::EndDisabled();
+    ImGui::EndGroup();
+
+    ImGui::SameLine();
+
+    ImGui::BeginGroup();
+    ImGui::Text("Iterations/s");
+
+    ImGui::SetNextItemWidth(90.0f);
+    ImGui::BeginDisabled(true);
+    ImGui::InputScalar("##iterations_p_s", ImGuiDataType_U64,
+                       &sim_state.iterations_p_s, 0);
+    ImGui::EndDisabled();
+    ImGui::EndGroup();
+
     ImGui::SeparatorText("Element States");
     for (const auto& e : plant.get_elements()) {
       ImGui::PushID(e->get_ID());
-      const auto title = std::format("Element {} ({})", e->get_ID(), element_type_to_str(e->get_type()));
+      const auto title = std::format("Element {} ({})", e->get_ID(),
+                                     element_type_to_str(e->get_type()));
 
       if (ImGui::CollapsingHeader(title.c_str(),
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -309,18 +376,17 @@ int main() {
               value);
           ImGui::Spacing();
         }
-            // display the elements parameters 
-                //
+
         auto params = e->get_parameters();
         ImGui::Spacing();
         ImGui::SeparatorText("Element Params");
         ImGui::PushTextWrapPos(0.0f);
-          std::visit(
-              [](const auto& state) {
-                const auto text = state.to_str();
-                ImGui::TextUnformatted(text.c_str());
-              },
-              params);
+        std::visit(
+            [](const auto& state) {
+              const auto text = state.to_str();
+              ImGui::TextUnformatted(text.c_str());
+            },
+            params);
         ImGui::PopTextWrapPos();
         ImGui::Unindent();
       }
@@ -329,39 +395,42 @@ int main() {
     ImGui::End();
 
     // --- UI WINDOW 2: REAL-TIME GRAPH (Using ImPlot) ---
-    ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(880, 680), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Data Analytics");
-    ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
-    if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
-      if (ImPlot::BeginPlot("Pipe Head at Valve")) {
-        ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
-                          ImPlotAxisFlags_AutoFit);
-        ImPlot::PlotLine("H at valve", plots.time.data(), plots.plots[0].data(),
-                         static_cast<int>(plots.time.size()));
-        ImPlot::EndPlot();
-      }
-
-      if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
-        ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)", ImPlotAxisFlags_AutoFit,
-                          ImPlotAxisFlags_AutoFit);
-        ImPlot::PlotLine("Q at valve", plots.time.data(), plots.plots[1].data(),
-                         static_cast<int>(plots.time.size()));
-        ImPlot::EndPlot();
-      }
-      if (ImPlot::BeginPlot("Valve Tau")) {
-        ImPlot::SetupAxes("Time (s)", "Valve opening (0-1)",
-                          ImPlotAxisFlags_AutoFit, ImPlotAxisFlags_None);
-        ImPlot::SetupAxisLimits(ImAxis_Y1, -0.05, 1.05, ImPlotCond_Always);
-        ImPlot::PlotLine("Tau at valve", plots.time.data(),
-                         plots.plots[2].data(),
-                         static_cast<int>(plots.time.size()));
-        ImPlot::EndPlot();
-      }
-      ImPlot::EndAlignedPlots();
-    }
-    ImPlot::PopStyleVar();
-    ImGui::End();
+    // ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
+    // ImGui::SetNextWindowSize(ImVec2(880, 680), ImGuiCond_FirstUseEver);
+    // ImGui::Begin("Data Analytics");
+    // ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
+    // if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
+    //   if (ImPlot::BeginPlot("Pipe Head at Valve")) {
+    //     ImPlot::SetupAxes("Time (s)", "Head H (m)", ImPlotAxisFlags_AutoFit,
+    //                       ImPlotAxisFlags_AutoFit);
+    //     ImPlot::PlotLine("H at valve", plots.time.data(),
+    //     plots.plots[0].data(),
+    //                      static_cast<int>(plots.time.size()));
+    //     ImPlot::EndPlot();
+    //   }
+    //
+    //   if (ImPlot::BeginPlot("Pipe Flow at Valve")) {
+    //     ImPlot::SetupAxes("Time (s)", "Flow Q (m³/s)",
+    //     ImPlotAxisFlags_AutoFit,
+    //                       ImPlotAxisFlags_AutoFit);
+    //     ImPlot::PlotLine("Q at valve", plots.time.data(),
+    //     plots.plots[1].data(),
+    //                      static_cast<int>(plots.time.size()));
+    //     ImPlot::EndPlot();
+    //   }
+    //   if (ImPlot::BeginPlot("Reservoir 1 Q ")) {
+    //     ImPlot::SetupAxes("Time (s)", "Q [m³/s]", ImPlotAxisFlags_AutoFit,
+    //                       ImPlotAxisFlags_None);
+    //     ImPlot::SetupAxisLimits(ImAxis_Y1, -0.05, 1.05, ImPlotCond_Always);
+    //     ImPlot::PlotLine("Tau at valve", plots.time.data(),
+    //                      plots.plots[2].data(),
+    //                      static_cast<int>(plots.time.size()));
+    //     ImPlot::EndPlot();
+    //   }
+    //   ImPlot::EndAlignedPlots();
+    // }
+    // ImPlot::PopStyleVar();
+    // ImGui::End();
 
     // --- RENDER THE FRAME ---
     int display_w, display_h;
