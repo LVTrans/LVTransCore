@@ -58,6 +58,9 @@
         "cvm": 0.0,
         "cvp": 0.0
       },
+      "state": {
+        "Q": 0.0
+      },
       "type": "ConstantLevelLeft"
     },
     {
