@@ -63,6 +63,12 @@ class ReservoirParser : public ElementParser {
                            double step_size) override;
 };
 
+class SurgeShaftStandardParser : public ElementParser {
+ public:
+  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
+                           double step_size) override;
+};
+
 // create a parser depending on the element type
 class ParserFactory {
  public:

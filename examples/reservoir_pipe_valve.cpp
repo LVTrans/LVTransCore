@@ -8,10 +8,12 @@
 #include <memory>
 #include <stdexcept>
 #include "lvtrans/const.hpp"
+#include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/plant.hpp"
 
 inline double a = 1200.0;   // Wave propagation velocity [m/s]
@@ -91,13 +93,16 @@ int main() {
   valve_config.cvp = CVP;
 
   auto valve = plant.add_element<Valve>(valve_config).value();
+  auto surge_shaft =
+      plant.add_element<SurgeShaftStandard>(SurgeShaftStandardParameters{}, dt)
+          .value();
 
   HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
-  HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);
+  HydraulicConnections::connect(*pipe, PipeEnd::Right, *surge_shaft);
   auto pipe2 = plant.add_element<Pipe>(pipe_config, system_dt).value();
   // auto reservoir2 = plant.add_element<ConstantLevelRight>(100.0).value();
 
-  if (HydraulicConnections::connect(*pipe2, PipeEnd::Left, *valve) !=
+  if (HydraulicConnections::connect(*pipe2, PipeEnd::Left, *surge_shaft) !=
       ConnectResult::Ok) {
     throw std::runtime_error("Failed to connect the second pipe to the valve");
   }

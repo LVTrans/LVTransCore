@@ -95,6 +95,22 @@ ElementParseResult ReservoirParser::parse(ElementContainer& container,
   return ElementParseResult::Success;
 }
 
+ElementParseResult SurgeShaftStandardParser::parse(ElementContainer& container,
+                                                   ElementConfig& element,
+                                                   double dt) {
+  const auto& parameters =
+      std::get<SurgeShaftStandardParameters>(element.parameters);
+  SurgeShaftStandard* surge_shaft = nullptr;
+  surge_shaft =
+      container
+          .add_element_with_id<SurgeShaftStandard>(element.id, parameters, dt)
+          .value_or(nullptr);
+  if (!surge_shaft) return ElementParseResult::Error;
+  surge_shaft->set_name(element.name);
+
+  return ElementParseResult::Success;
+}
+
 std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
   switch (type) {
     case ElementType::Pipe:
@@ -106,15 +122,14 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();
+    case ElementType::SurgeShaftStandard:
+      return std::make_unique<SurgeShaftStandardParser>();
     case ElementType::SimpleConnection:
       return std::make_unique<
           ConfiguredElementParser<SimpleConnection, LossCoefficients>>();
     case ElementType::T1In2OutN:
       return std::make_unique<
           ConfiguredElementParser<T1In2OutN, TConnectionParameters>>();
-    case ElementType::SurgeShaftStandard:
-      return std::make_unique<ConfiguredElementParser<
-          SurgeShaftStandard, SurgeShaftStandardParameters>>();
     case lvtrans::ElementType::PIDTurbine:
       return std::make_unique<
           ConfiguredElementParser<PIDTurbine, PIDTurbineParameters>>();

@@ -6,15 +6,18 @@
 namespace lvtrans {
 
 struct SurgeShaftState {
-  double Q{0.0};  // Flow [m^3/s]
-  double H{0.0};  // Head [m from datum]
-  double L{0.0};  // Shaft length [m]
+  double Q{};  // Flow [m^3/s]
+  double H{};  // Head [m from datum]
+  double L{};  // Shaft length [m]
+  double Hb{};
+  double Cv{};  //
+  double H_liquid{};
+  double H_liquid_0{};
 };
 
 class SurgeShaftStandard : public NonPipe {
  public:
-  SurgeShaftStandard(const SurgeShaftStandardParameters& parameters,
-                     double dt = 0.1);
+  SurgeShaftStandard(const SurgeShaftStandardParameters& parameters, double dt);
   const SurgeShaftStandardParameters& config() const { return m_params; }
   virtual void iterate(const double t = 0) override;
   virtual ElementType get_type() const override {
@@ -26,6 +29,10 @@ class SurgeShaftStandard : public NonPipe {
   virtual ModificationResult modify(const ElementModification&) override {
     return ModificationResult::Ok;
   }
+
+  double get_H(CharacteristicsType, ElementID) override;
+  double get_Q(CharacteristicsType, ElementID,
+               const IterateInput = {}) override;
 
  private:
   SurgeShaftStandardParameters m_params;

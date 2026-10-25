@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -37,6 +38,14 @@ class NonPipe : public Element {
     } else {
       m_c_minus.insert_or_assign(id, c);
     }
+  }
+
+  const BasePipe* left(std::size_t index = 0) const {
+    return m_left.empty() ? nullptr : m_left[index].pipe;
+  }
+
+  const BasePipe* right(std::size_t index = 0) const {
+    return m_right.empty() ? nullptr : m_right[index].pipe;
   }
 
  protected:
