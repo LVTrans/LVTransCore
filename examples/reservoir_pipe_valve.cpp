@@ -9,7 +9,9 @@
 #include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
+#include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/element.hpp"
+#include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/plant.hpp"
 
 inline double a = 1200.0;   // Wave propagation velocity [m/s]
@@ -49,11 +51,8 @@ int main() {
       calculate_nodes_temp(pipe_config.lambda, pipe_config.length, system_dt,
                            pipe_config.a, pipe_config.rho);
   const double dx = calculate_dx(pipe_config.length, segments);
-
   const double dt = dx / a;
-
   Plant plant(system_dt);
-
   const auto nodes = static_cast<std::size_t>(segments) + 1;
   std::vector<double> H0_(nodes, 0.0);
   std::vector<double> Q0_(nodes, 0.0);

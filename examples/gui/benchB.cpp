@@ -1,5 +1,6 @@
 #include <GLFW/glfw3.h>
 #include <cmath>
+#include <format>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
@@ -123,11 +124,11 @@ int main() {
   pipe_config.Q0 = Q0;
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
-  auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto CLL = plant.add_element<ConstantLevelLeft>(150.0).value();
-  auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto pipe3 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
-  auto CLR = plant.add_element<ConstantLevelRight>(100.0).value();
+  // auto pipe = plant.add_element<Pipe>(pipe_config, sim_dt).value();
+  // auto CLL = plant.add_element<ConstantLevelLeft>(150.0).value();
+  // auto pipe2 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
+  // auto pipe3 = plant.add_element<Pipe>(pipe_config, sim_dt).value();
+  // auto CLR = plant.add_element<ConstantLevelRight>(100.0).value();
 
   ValveParameters valve_config{
       .tau_i = tau_i,
@@ -137,18 +138,89 @@ int main() {
       .cvp = CVP,
       .cvm = CVP,
   };
+  //
+  // auto valve = plant.add_element<Valve>(valve_config).value();
+  // auto simple_connection = plant.add_element<SimpleConnection>().value();
+  //
+  // assert(pipe->connect_left(*CLL) == ConnectResult::Ok);
+  // assert(pipe->connect_right(*simple_connection) == ConnectResult::Ok);
+  // assert(pipe2->connect_left(*simple_connection) == ConnectResult::Ok);
+  // assert(pipe2->connect_right(*valve) == ConnectResult::Ok);
+  // assert(pipe3->connect_left(*valve) == ConnectResult::Ok);
+  // assert(pipe3->connect_right(*CLR) == ConnectResult::Ok);
+  //
+  // plant.display();
+  const double dt = 0.001;
 
-  auto valve = plant.add_element<Valve>(valve_config).value();
-  auto simple_connection = plant.add_element<SimpleConnection>().value();
+  ReservoirParameters reservoir_params{
+      .H0 = 100.000000E+0, .cvp = 100.000000E+3, .cvm = 100.000000E+3};
 
-  assert(pipe->connect_left(*CLL) == ConnectResult::Ok);
-  assert(pipe->connect_right(*simple_connection) == ConnectResult::Ok);
-  assert(pipe2->connect_left(*simple_connection) == ConnectResult::Ok);
-  assert(pipe2->connect_right(*valve) == ConnectResult::Ok);
-  assert(pipe3->connect_left(*valve) == ConnectResult::Ok);
-  assert(pipe3->connect_right(*CLR) == ConnectResult::Ok);
+  PipeParameters pipe_params = {
+      .H0 = 0.0,
+      .Q0 = 0.0,
+      .length = 100,
+      .diameter = 1,
+      .area = 785.400000E-3,
+      .periphery = 3.141600E+0,
+      .epsilon = 10.000000E-3,
+      .ny = 1.1e-6,
+      .rho = 1e3,
+      .f = 10e-3,
+      .a = 1.2e3,
+      .z0 = 0,
+      .z1 = 0,
+      .lambda = 500e3,
+      .f_max = 100.0,
+      .use_diameter = true,
+      .use_full_moody = false,
+      .use_Dh = false,
+  };
+  LossCoefficients simple_connection_params{.cvp = 1e5, .cvm = 1e5};
 
-  plant.display();
+  ValveParameters valve_params{.tau_i = 1.0,
+                               .tau_f = 0.0,
+                               .tc = 2.1,
+                               .em = 0.75,
+                               .cda0 = 0.009,
+                               .cvp = 1e5,
+                               .cvm = 1e5,
+                               .closing_time_h = 10,
+                               .closing_time_l = 10,
+                               .switch_over = 0.5,
+                               .tks = 1.0,
+                               .tau_0 = 1.0,
+                               .diameter = 1.0};
+
+  auto reservoir_left =
+      plant.add_element<ConstantLevelLeft>(reservoir_params).value();
+  auto pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto simple_conn1 =
+      plant.add_element<SimpleConnection>(simple_connection_params).value();
+  auto valve2 = plant.add_element<Valve>(valve_params).value();
+  auto pipe22 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto pipe4 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto simple_conn2 =
+      plant.add_element<SimpleConnection>(simple_connection_params).value();
+  auto reservoir_right =
+      plant.add_element<ConstantLevelRight>(reservoir_params).value();
+
+  // clang-format off
+  // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->Valve <->Pipe 4 <->Reservoir 2
+  //
+  // Adjust dt : 0.1->0.01->0.001->0.0001
+  HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
+  HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
+
+  HydraulicConnections::connect(*pipe22, PipeEnd::Left, *simple_conn1);
+  HydraulicConnections::connect(*pipe22, PipeEnd::Right, *simple_conn2);
+
+  HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2);
+  HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2);
+
+  HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
+  HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
+
 
   PlotContainer plots{.time = std::vector<double>{},
                       .plots = std::vector<std::vector<double>>{
@@ -156,6 +228,7 @@ int main() {
                           std::vector<double>{},
                           std::vector<double>{},
                       }};
+    plant.display();
   const double real_dt = ImGui::GetIO().DeltaTime;
   double acc = 0;
   while (!glfwWindowShouldClose(window)) {
@@ -173,9 +246,9 @@ int main() {
         plant.step();
         plots.time.push_back(plant.get_current_time());
 
-        plots.plots[0].push_back(pipe->get_latest_H());
-        plots.plots[1].push_back(pipe->get_latest_Q());
-        plots.plots[2].push_back(valve->get_tau());
+        plots.plots[0].push_back(pipe1->get_latest_H());
+        plots.plots[1].push_back(pipe1->get_latest_Q());
+        plots.plots[2].push_back(valve2->get_tau());
 
         if (plots.time.size() > 200) {
           plots.time.erase(plots.time.begin());
@@ -217,7 +290,8 @@ int main() {
     ImGui::SeparatorText("Element States");
     for (const auto& e : plant.get_elements()) {
       ImGui::PushID(e->get_ID());
-      const auto title = "Element " + std::to_string(e->get_ID());
+      const auto title = std::format("Element {} ({})", e->get_ID(), element_type_to_str(e->get_type()));
+
       if (ImGui::CollapsingHeader(title.c_str(),
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
         const auto view = e->read_view();
@@ -235,6 +309,18 @@ int main() {
               value);
           ImGui::Spacing();
         }
+            // display the elements parameters 
+                //
+        auto params = e->get_parameters();
+        ImGui::Spacing();
+        ImGui::SeparatorText("Element Params");
+        ImGui::PushTextWrapPos(0.0f);
+          std::visit(
+              [](const auto& state) {
+                const auto text = state.to_str();
+                ImGui::TextUnformatted(text.c_str());
+              },
+              params);
         ImGui::PopTextWrapPos();
         ImGui::Unindent();
       }
