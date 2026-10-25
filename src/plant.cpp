@@ -40,9 +40,14 @@ void Plant::step() {
 
   const auto& pipes = m_data.element_container.get_pipes();
   const auto& non_pipes = m_data.element_container.get_non_pipes();
+  const auto& controllers = m_data.element_container.get_controllers();
 
   for (auto& pipe : pipes) {
     pipe->iterate(t);
+  }
+
+  for (auto& controller : controllers) {
+    controller->iterate(t);
   }
 
   for (auto& non_pipe : non_pipes) {

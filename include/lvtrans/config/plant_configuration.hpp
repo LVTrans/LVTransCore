@@ -61,6 +61,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
@@ -73,7 +74,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectionParameters, cv1, cv2,
                                                 cv3);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SurgeShaftStandardParameters,
                                                 use_area, area, diameter, f,
-                                                losses, initial_level);
+                                                cvm, cvp, initial_level);
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PIDTurbineParameters, rated_power, rated_speed, power_setpoint, kp_grid,
@@ -144,7 +145,6 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   static const std::unordered_map<ElementType, ElementDefaults> defaults{
       {ElementType::Pipe, {PipeParameters{}, PipeState{}}},
       {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
-      {ElementType::Reservoir, {ReservoirParameters{}, std::nullopt}},
       {ElementType::Valve, {ValveParameters{}, ValveState{}}},
       {ElementType::ValveInternalServo,
        {ValveInternalServoParameters{}, ValveState{}}},
@@ -152,8 +152,10 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
        {SurgeShaftStandardParameters{}, std::nullopt}},
       {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
       {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
-      {ElementType::ConstantLevelLeft, {ReservoirParameters{}, std::nullopt}},
-      {ElementType::ConstantLevelRight, {ReservoirParameters{}, std::nullopt}},
+      {ElementType::ConstantLevelLeft,
+       {ReservoirParameters{}, ReservoirState{}}},
+      {ElementType::ConstantLevelRight,
+       {ReservoirParameters{}, ReservoirState{}}},
       {ElementType::SimpleConnection, {LossCoefficients{}, std::nullopt}},
       {ElementType::T1In2OutN, {TConnectionParameters{}, std::nullopt}},
       {ElementType::T1In2OutS, {TConnectionParameters{}, std::nullopt}},

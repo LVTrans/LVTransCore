@@ -16,19 +16,12 @@ class Reservoir : public NonPipe {
 
   ElementType get_type() const override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
-  std::optional<ElementState> get_state() const override { return {}; }
+  std::optional<ElementState> get_state() const override { return {m_state}; }
   void reset_state() override {}
   ElementView read_view() const override;
 
-  // double get_H(CharacteristicsType, ElementID) const override {
-  //   return m_params.H0;
-  // }
-  // double get_Q(CharacteristicsType, ElementID,
-  //              const IterateInput = {}) const override {
-  //   return (m_params.H0 - m_c_characteristics) / m_b_characteristics;
-  // }
-
  protected:
   ReservoirParameters m_params;
+  ReservoirState m_state;
 };
 }  // namespace lvtrans

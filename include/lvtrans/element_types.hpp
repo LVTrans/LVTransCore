@@ -2,9 +2,12 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <format>
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string_view>
+#include <type_traits>
 #include <variant>
 #include <vector>
 
@@ -27,10 +30,79 @@ enum class ElementType : std::uint8_t {
   T2In1OutN,
   T2In1OutS,
 };
+
+constexpr std::string_view element_type_to_str(ElementType type) {
+  switch (type) {
+    case ElementType::Pipe:
+      return "Pipe";
+    case ElementType::AlgebraicPipe:
+      return "AlgebraicPipe";
+    case ElementType::Reservoir:
+      return "Reservoir";
+    case ElementType::Valve:
+      return "Valve";
+    case ElementType::ValveInternalServo:
+      return "ValveInternalServo";
+    case ElementType::SurgeShaftStandard:
+      return "SurgeShaftStandard";
+    case ElementType::PID:
+      return "PID";
+    case ElementType::PIDTurbine:
+      return "PIDTurbine";
+    case ElementType::ConstantLevelLeft:
+      return "ConstantLevelLeft";
+    case ElementType::ConstantLevelRight:
+      return "ConstantLevelRight";
+    case ElementType::SimpleConnection:
+      return "SimpleConnection";
+    case ElementType::T1In2OutN:
+      return "T1In2OutN";
+    case ElementType::T1In2OutS:
+      return "T1In2OutS";
+    case ElementType::T2In1OutN:
+      return "T2In1OutN";
+    case ElementType::T2In1OutS:
+      return "T2In1OutS";
+    default:
+      return "UnknownElementType";
+  }
+}
+
 enum class PipeDimension { Circular, CrossSectional };
 using InitialPipeState = std::variant<double, std::vector<double>>;
 
-// #### PIPE ####
+namespace detail {
+
+template <typename Range, typename Formatter>
+std::string parameter_sequence_to_str(const Range& values, Formatter format) {
+  std::string result{"["};
+  bool first = true;
+  for (const auto& value : values) {
+    if (!first) {
+      result += ", ";
+    }
+    result += format(value);
+    first = false;
+  }
+  result += "]";
+  return result;
+}
+
+inline std::string initial_pipe_state_to_str(const InitialPipeState& state) {
+  return std::visit(
+      [](const auto& value) -> std::string {
+        if constexpr (std::is_same_v<std::decay_t<decltype(value)>, double>) {
+          return std::format("{}", value);
+        } else {
+          return parameter_sequence_to_str(
+              value, [](double sample) { return std::format("{}", sample); });
+        }
+      },
+      state);
+}
+
+}  // namespace detail
+
 struct PipeParameters {
   InitialPipeState H0{100.0};
   InitialPipeState Q0{100.0};
@@ -55,6 +127,20 @@ struct PipeParameters {
                         // area
   bool use_full_moody{};
   bool use_Dh{true};  //< Use hydraulic diameter
+                      //
+                      //
+  std::string to_str() const {
+    return std::format(
+        "PipeParameters: H0={}, Q0={}, length={}, diameter={}, area={}, "
+        "periphery={}, epsilon={}, ny={}, rho={}, f={}, a={}, z0={}, z1={}, "
+        "lambda={}, f_max={}, dimension={}, use_diameter={}, "
+        "use_full_moody={}, "
+        "use_Dh={}",
+        detail::initial_pipe_state_to_str(H0),
+        detail::initial_pipe_state_to_str(Q0), length, diameter, area,
+        periphery, epsilon, ny, rho, f, a, z0, z1, lambda, f_max,
+        static_cast<int>(dimension), use_diameter, use_full_moody, use_Dh);
+  }
 };
 
 struct PipeState {
@@ -76,7 +162,15 @@ struct ValveParameters {
   double switch_over{0.5};
   double tks{1.0};
   double tau_0{1.0};
-  double diameter{1};  ///< internal diameter
+  double diameter{1.0};  ///< internal diameter
+  std::string to_str() const {
+    return std::format(
+        "ValveParameters: tau_i={}, tau_f={}, tc={}, em={}, cda0={}, cvp={}, "
+        "cvm={}, closing_time_h={}, closing_time_l={}, switch_over={}, tks={}, "
+        "tau_0={}, diameter={}",
+        tau_i, tau_f, tc, em, cda0, cvp, cvm, closing_time_h, closing_time_l,
+        switch_over, tks, tau_0, diameter);
+  }
 };
 
 struct ValveState {
@@ -84,14 +178,26 @@ struct ValveState {
 };
 
 struct ReservoirParameters {
-  double H0{};      //< Nominal geodesic level of the reservoir from datum.
-  double cvp{1e5};  //< Loss coefficient with positive flow relative to element
-  double cvm{1e5};  //< Loss coefficient with negative flow relative to element
+  double H0{100.0};  //< Nominal geodesic level of the reservoir from datum.
+  double cvp{1e5};   //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to elements
+  std::string to_str() const {
+    return std::format("ReservoirParameters: H0={}, cvp={}, cvm={}", H0, cvp,
+                       cvm);
+  }
+};
+
+struct ReservoirState {
+  double Q{};
 };
 
 struct LossCoefficients {
   double cvp{1e5};  //< Loss coefficient with positive flow relative to element
   double cvm{1e5};  //< Loss coefficient with negative flow relative to element
+
+  std::string to_str() const {
+    return std::format("LossCoefficients: cvp={}, cvm={}", cvp, cvm);
+  }
 };
 
 struct DataPoint {
@@ -101,7 +207,7 @@ struct DataPoint {
 
 using ElementID = int;
 
-using ElementState = std::variant<ValveState, PipeState>;
+using ElementState = std::variant<ValveState, PipeState, ReservoirState>;
 
 struct ScalarValue {
   std::string name{};

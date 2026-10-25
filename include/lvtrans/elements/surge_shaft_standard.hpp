@@ -5,9 +5,16 @@
 
 namespace lvtrans {
 
+struct SurgeShaftState {
+  double Q{0.0};  // Flow [m^3/s]
+  double H{0.0};  // Head [m from datum]
+  double L{0.0};  // Shaft length [m]
+};
+
 class SurgeShaftStandard : public NonPipe {
  public:
-  explicit SurgeShaftStandard(const SurgeShaftStandardParameters& parameters);
+  SurgeShaftStandard(const SurgeShaftStandardParameters& parameters,
+                     double dt = 0.1);
   const SurgeShaftStandardParameters& config() const { return m_params; }
   virtual void iterate(const double t = 0) override;
   virtual ElementType get_type() const override {
@@ -22,6 +29,8 @@ class SurgeShaftStandard : public NonPipe {
 
  private:
   SurgeShaftStandardParameters m_params;
+  SurgeShaftState m_state;
+  double m_dt{};  // Time step [s]
 };
 
 }  // namespace lvtrans

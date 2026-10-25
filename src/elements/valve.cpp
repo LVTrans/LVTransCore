@@ -31,7 +31,7 @@ void Valve::iterate(const double t) {
   }
 }
 
-double Valve::get_H(CharacteristicsType ct, ElementID id) const {
+double Valve::get_H(CharacteristicsType ct, ElementID id) {
   const auto Qp = calculate_q();
   if (ct == CharacteristicsType::CPlus) {
     return m_c_plus.at(id).c - m_c_plus.at(id).b * Qp;
@@ -40,7 +40,7 @@ double Valve::get_H(CharacteristicsType ct, ElementID id) const {
   }
 }
 
-double Valve::get_Q(CharacteristicsType, ElementID, const IterateInput) const {
+double Valve::get_Q(CharacteristicsType, ElementID, const IterateInput) {
   return calculate_q();
 }
 
