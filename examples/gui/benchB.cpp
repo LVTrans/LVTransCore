@@ -1,3 +1,4 @@
+
 #include <GLFW/glfw3.h>
 #include <algorithm>
 #include <chrono>
@@ -19,42 +20,28 @@
 using Clock = std::chrono::steady_clock;
 using namespace lvtrans;
 
-struct SimulationState {
-  bool is_running = false;
-  bool max_speed = true;
-  int execution_speed = 1;
-};
+// LabVIEW-style indicators: I/s is sampled each second; X realtime is
+// simulated seconds divided by active (not paused) wall-clock seconds.
 
 int main() {
-  glfwSetErrorCallback([](int code, const char* description) {
-    std::cerr << "GLFW error " << code << ": " << description << '\n';
-  });
   if (!glfwInit()) return 1;
-
-  const char* glsl_version = "#version 130";
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
   GLFWwindow* window =
-      glfwCreateWindow(560, 380, "LVTrans Benchmark A", nullptr, nullptr);
+      glfwCreateWindow(520, 300, "LVTrans BenchA", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     return 1;
   }
   glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);  // Do not cap GUI updates with VSync.
+  glfwSwapInterval(0);  // Max Speed must not be capped by VSync.
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
-  ImGui::GetStyle().WindowRounding = 0.0f;
-  ImGui::GetStyle().FrameRounding = 0.0f;
-
-  if (!ImGui_ImplGlfw_InitForOpenGL(window, true)) {
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return 1;
-  }
-  if (!ImGui_ImplOpenGL3_Init(glsl_version)) {
+  if (!ImGui_ImplGlfw_InitForOpenGL(window, true) ||
+      !ImGui_ImplOpenGL3_Init("#version 130")) {
+    std::cerr << "ImGui initialization failed\n";
+    ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
     glfwDestroyWindow(window);
@@ -62,7 +49,8 @@ int main() {
     return 1;
   }
 
-  // Identical plant parameters and topology to the supplied BenchA code.
+  // BenchA: reservoir -> pipe -> reservoir. Keep identical parameters in
+  // LabVIEW.
   constexpr double dt = 0.1;
   Plant plant(dt);
 
@@ -120,150 +108,126 @@ int main() {
       plant.add_element<ConstantLevelRight>(reservoir_params).value();
 
   // clang-format off
-  // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->Valve <->Pipe 4 <->Reservoir 2
-  HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
-  HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
+    // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->Valve <->Pipe 4 <->Reservoir 2
+    HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
+    HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
 
-  HydraulicConnections::connect(*pipe22, PipeEnd::Left, *simple_conn1);
-  HydraulicConnections::connect(*pipe22, PipeEnd::Right, *simple_conn2);
+    HydraulicConnections::connect(*pipe22, PipeEnd::Left, *simple_conn1);
+    HydraulicConnections::connect(*pipe22, PipeEnd::Right, *simple_conn2);
 
-  HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2);
-  HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2);
+    HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2);
+    HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2);
 
-  HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
-  HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
+    HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
+    HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
 
-  SimulationState sim{};
-  BenchmarkMetrics metrics{};
-  metrics.reset(static_cast<std::uint64_t>(plant.get_num_terations()),
-                plant.get_current_time());
 
-  // Slider mode accumulates demanded simulated time. Max Speed bypasses it.
-  double accumulator = 0.0;
-  auto last_frame = Clock::now();
-  bool invalid_hydraulics = false;
+    auto steps = [&]() -> std::uint64_t {
+      return static_cast<std::uint64_t>(plant.get_num_terations());
+    };
+    BenchStats stats;
+    stats.reset(steps());
+    bool running = false;
+    bool max_speed = true;
+    bool invalid = false;
+    int speed = 1;
+    double accumulator = 0.0;
+    auto last_frame = Clock::now();
 
-  while (!glfwWindowShouldClose(window)) {
-    glfwPollEvents();
-    if (glfwWindowShouldClose(window)) break;
+    while (!glfwWindowShouldClose(window)) {
+      glfwPollEvents();
+      const auto now = Clock::now();
+      const double wall_dt =
+          std::chrono::duration<double>(now - last_frame).count();
+      last_frame = now;
 
-    const auto frame_now = Clock::now();
-    const double wall_dt =
-        std::chrono::duration<double>(frame_now - last_frame).count();
-    last_frame = frame_now;
-
-    if (sim.is_running) {
-      // Batching means no per-step clock or GUI overhead.
-      const auto deadline = Clock::now() + std::chrono::milliseconds(50);
-      if (sim.max_speed) {
-        do {
-          for (int i = 0; i < 1024; ++i) plant.step();
-        } while (Clock::now() < deadline);
-      } else {
-        const int speed = std::clamp(sim.execution_speed, 1, 100);
-        accumulator += wall_dt * static_cast<double>(speed);
-        // Drop excessive catch-up work after stalls or when the CPU is slower
-        // than the requested speed, rather than freezing the controls.
-        accumulator = std::min(accumulator, 1.0);
-        while (accumulator >= dt && Clock::now() < deadline) {
-          plant.step();
-          accumulator -= dt;
+      if (running) {
+        if (max_speed) {
+          // Run without sleeping; return to GUI approximately every 50 ms.
+          const auto deadline = Clock::now() + std::chrono::milliseconds(50);
+          do {
+            for (int i = 0; i < 1024; ++i) plant.step();
+          } while (Clock::now() < deadline);
+        } else {
+          accumulator += std::min(wall_dt, 0.25) * speed;
+          while (accumulator >= dt) {
+            plant.step();
+            accumulator -= dt;
+          }
         }
+        stats.update(steps(), dt);
+        // if (!std::isfinite(pipe->get_latest_H()) ||
+        //     !std::isfinite(pipe->get_latest_Q())) {
+        //   running = false;
+        //   stats.iterations_per_second = 0.0;
+        //   invalid = true;
+        // }
       }
-      metrics.update(static_cast<std::uint64_t>(plant.get_num_terations()),
-                     plant.get_current_time());
 
-    }
+      ImGui_ImplOpenGL3_NewFrame();
+      ImGui_ImplGlfw_NewFrame();
+      ImGui::NewFrame();
+      ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
+      ImGui::SetNextWindowSize(ImVec2(495, 275), ImGuiCond_FirstUseEver);
+      ImGui::Begin("Simulation Controls");
 
-    ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
-    ImGui::SetNextWindowPos(ImVec2(12, 12), ImGuiCond_FirstUseEver);
-    ImGui::SetNextWindowSize(ImVec2(530, 345), ImGuiCond_FirstUseEver);
-    ImGui::Begin("Simulation Control Panel", nullptr,
-                 ImGuiWindowFlags_NoCollapse);
-
-    ImGui::Text("Status: %s", sim.is_running ? "RUNNING" : "PAUSED");
-    if (ImGui::Button(sim.is_running ? "Pause" : "Start")) {
-      if (sim.is_running) {
-        metrics.pause(static_cast<std::uint64_t>(plant.get_num_terations()),
-                      plant.get_current_time());
-        sim.is_running = false;
-      } else if (!invalid_hydraulics) {
-        metrics.resume(static_cast<std::uint64_t>(plant.get_num_terations()));
-        sim.is_running = true;
+      if (ImGui::Button(running ? "Pause" : "Start")) {
+        if (running) {
+          stats.update(steps(), dt);
+          stats.iterations_per_second = 0.0;
+          running = false;
+        } else if (!invalid) {
+          stats.resume(steps());
+          running = true;
+        }
+        accumulator = 0.0;
+        last_frame = Clock::now();
       }
-      accumulator = 0.0;
-      last_frame = Clock::now();
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Reset")) {
-      plant.reset_state();
-      sim.is_running = false;
-      invalid_hydraulics = false;
-      accumulator = 0.0;
-      metrics.reset(static_cast<std::uint64_t>(plant.get_num_terations()),
-                    plant.get_current_time());
-      last_frame = Clock::now();
+      ImGui::SameLine();
+      if (ImGui::Button("Reset")) {
+        plant.reset_state();
+        stats.reset(steps());
+        running = false;
+        invalid = false;
+        accumulator = 0.0;
+        last_frame = Clock::now();
+      }
+
+      if (ImGui::Checkbox("Max Speed", &max_speed)) {
+        accumulator = 0.0;
+        last_frame = Clock::now();
+      }
+      ImGui::Text("dT: %.3f s", dt);
+      ImGui::BeginDisabled(max_speed);
+      ImGui::SliderInt("Execution speed", &speed, 1, 100);
+      ImGui::EndDisabled();
+
+      const auto count = steps();
+      const auto t =
+          static_cast<std::uint64_t>(std::max(0.0, plant.get_current_time()));
+      ImGui::Separator();
+      ImGui::Text("Time: %02llu:%02llu:%02llu",
+                  static_cast<unsigned long long>(t / 3600),
+                  static_cast<unsigned long long>((t / 60) % 60),
+                  static_cast<unsigned long long>(t % 60));
+      ImGui::Text("I: %llu", static_cast<unsigned long long>(count));
+      ImGui::Text("I/s: %.0f", stats.iterations_per_second);
+      ImGui::Text("X Realtime: %.1f", stats.x_realtime);
+      if (invalid) ImGui::Text("Simulation stopped: non-finite H/Q");
+      ImGui::End();
+
+      int width, height;
+      glfwGetFramebufferSize(window, &width, &height);
+      glViewport(0, 0, width, height);
+      glClear(GL_COLOR_BUFFER_BIT);
+      ImGui::Render();
+      ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+      glfwSwapBuffers(window);
     }
 
-    if (ImGui::Checkbox("Max Speed", &sim.max_speed)) {
-      accumulator = 0.0;  // No stale slider backlog when changing modes.
-      last_frame = Clock::now();
-    }
-    ImGui::SameLine();
-    ImGui::Text("dT: %.4f s", dt);
-    ImGui::BeginDisabled(sim.max_speed);
-    ImGui::SetNextItemWidth(235.0f);
-    ImGui::SliderInt("Execution speed (x realtime)", &sim.execution_speed, 1,
-                     100);
-    ImGui::EndDisabled();
-    sim.execution_speed = std::clamp(sim.execution_speed, 1, 100);
-
-    const double sim_time = plant.get_current_time();
-    const auto whole_seconds =
-        static_cast<std::uint64_t>(std::floor(std::max(0.0, sim_time)));
-    const auto hours = whole_seconds / 3600;
-    const auto minutes = (whole_seconds / 60) % 60;
-    const auto seconds = whole_seconds % 60;
-    const auto iterations =
-        static_cast<std::uint64_t>(plant.get_num_terations());
-
-    ImGui::Separator();
-    ImGui::Text("Time: %02llu:%02llu:%02llu",
-                static_cast<unsigned long long>(hours),
-                static_cast<unsigned long long>(minutes),
-                static_cast<unsigned long long>(seconds));
-    ImGui::Text("Iterations: %llu",
-                static_cast<unsigned long long>(iterations));
-    ImGui::Text("Iterations/s (1 s sample): %.0f",
-                metrics.iterations_per_second);
-    ImGui::Text("X Realtime (active-wall average): %.1fx", metrics.x_realtime);
-    ImGui::Text("Average iterations/s: %.0f",
-                metrics.average_iterations_per_second);
-    ImGui::Text("Active wall time: %.2f s", metrics.active_seconds());
-    if (invalid_hydraulics) {
-      ImGui::TextColored(ImVec4(1.0f, 0.45f, 0.3f, 1.0f),
-                         "Non-finite pipe H or Q; simulation stopped.");
-    }
-    ImGui::End();
-
-    int framebuffer_width = 0;
-    int framebuffer_height = 0;
-    glfwGetFramebufferSize(window, &framebuffer_width, &framebuffer_height);
-    glViewport(0, 0, framebuffer_width, framebuffer_height);
-    glClearColor(0.1f, 0.1f, 0.14f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(window);
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
+    glfwTerminate();
   }
-
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext();
-  glfwDestroyWindow(window);
-  glfwTerminate();
-  return 0;
-}
