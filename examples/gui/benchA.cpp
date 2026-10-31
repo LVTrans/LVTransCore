@@ -4,7 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
-#include "benchmark_metrics.hpp"
+#include "helpers.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
@@ -45,6 +45,13 @@ int main() {
     glfwTerminate();
     return 1;
   }
+
+  ImGuiIO& io = ImGui::GetIO();
+  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;  // Enable Docking
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.WindowRounding = 0.0f;       // Sharp window corners
+  style.FrameRounding = 0.0f;        // Sharp button/input corners
+  style.ItemSpacing = ImVec2(8, 8);  // Tight horizontal and vertical spacing
 
   // BenchA: reservoir -> pipe -> reservoir. Keep identical parameters in
   // LabVIEW.
@@ -121,6 +128,7 @@ int main() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+    ImGui::DockSpaceOverViewport();
     ImGui::SetNextWindowPos(ImVec2(10, 10), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(495, 275), ImGuiCond_FirstUseEver);
     ImGui::Begin("Simulation Controls");

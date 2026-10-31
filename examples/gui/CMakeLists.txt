@@ -32,12 +32,27 @@ target_include_directories(lvtrans_gui_dependencies SYSTEM PUBLIC
 target_link_libraries(lvtrans_gui_dependencies PUBLIC glfw OpenGL::GL ${CMAKE_DL_LIBS})
 target_compile_features(lvtrans_gui_dependencies PUBLIC cxx_std_20)
 
-add_executable(benchA benchA.cpp)
+set(
+  LVTRANS_GUI_EXAMPLES
+  gui
+  benchA
+  benchB
+)
 
-target_link_libraries(benchA PRIVATE lvtrans_gui_dependencies lvtrans_core)
-target_compile_options(benchA PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
 
-add_executable(benchB benchB.cpp)
+foreach(example IN LISTS LVTRANS_GUI_EXAMPLES)
+    add_executable(
+    ${example}
+    ${example}.cpp
+  )
 
-target_link_libraries(benchB PRIVATE lvtrans_gui_dependencies lvtrans_core)
-target_compile_options(benchB PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+
+    target_link_libraries(
+    ${example}
+    PRIVATE
+    lvtrans_gui_dependencies
+    lvtrans_core)
+
+    target_compile_options(${example}
+    PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+endforeach()
