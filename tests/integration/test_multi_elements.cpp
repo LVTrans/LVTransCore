@@ -237,7 +237,7 @@ TEST(MultiElementsTest, Complex) {
       .use_full_moody = false,
       .use_Dh = false,
   };
-  // C_01.txt and C_02.txt specify the same directional coefficients.
+
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
   // Valve.txt: internal-servo valve, tau_0 = 1, Cv file disabled.
@@ -296,12 +296,10 @@ TEST(MultiElementsTest, Complex) {
   std::string line;
   ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));  // Header.
   ASSERT_EQ(line, "Time(s)	P1_H0	P1_HN	P1_Q1	P1_Q2	P2_H0	P2_HN	P2_Q1	P2_Q2	P3_H0	P3_HN	P3_Q1	P3_Q2	P4_H0	P4_HN	P4_Q1	P4_Q2");
-  output_file << std::setprecision(7);
+  output_file << std::setprecision(8);
 
-  // Allow six-decimal reference rounding and small implementation differences.
-  // Across this reference run, max errors were 3.08e-6 m and 5.21e-7 m3/s.
-  constexpr double head_tolerance = 5e-6;  // m
-  constexpr double flow_tolerance = 1e-6;  // m3/s
+  constexpr double head_tolerance = 5e-6;  
+  constexpr double flow_tolerance = 1e-6; 
   int row = 0;
   while (std::getline(reference, line)) {
     std::replace(line.begin(), line.end(), ',', '.');
