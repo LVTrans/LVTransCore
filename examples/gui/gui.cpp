@@ -17,6 +17,8 @@
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/valve.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
 #include "plot_data.hpp"
@@ -25,7 +27,7 @@ using Clock = std::chrono::steady_clock;
 using namespace lvtrans;
 
 namespace {
-// Fit the Y axis tightly around the data, with 5% breathing room.
+// Keep near-constant data from filling the plot or repeating two-decimal ticks.
 void setup_y_limits(std::span<const double> values) {
   bool has_value = false;
   double minimum = 0.0;
@@ -45,11 +47,9 @@ void setup_y_limits(std::span<const double> values) {
   if (!has_value) return;
 
   const double range = maximum - minimum;
-  const double padding =
-      range > 1e-12 * std::max({1.0, std::abs(minimum), std::abs(maximum)})
-          ? range * 0.05
-          : std::max(1e-6,
-                     0.05 * std::max(std::abs(minimum), std::abs(maximum)));
+  const double magnitude = std::max(std::abs(minimum), std::abs(maximum));
+  // At least 0.1 units of total span keeps the two-decimal labels readable.
+  const double padding = std::max({range * 0.05, magnitude * 0.05, 0.05});
   ImPlot::SetupAxisLimits(ImAxis_Y1, minimum - padding, maximum + padding,
                           ImPlotCond_Always);
 }
@@ -106,17 +106,18 @@ int main() {
   // BenchA: reservoir -> pipe -> reservoir.
   constexpr double dt = 0.1;
   Plant plant(dt);
-  ReservoirParameters reservoir_params{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
+  ReservoirParameters reservoir_params{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
+  ReservoirParameters reservoir_params2{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
   PipeParameters pipe_params{.H0 = 0.0,
                              .Q0 = 0.0,
-                             .length = 100,
+                             .length = 1000,
                              .diameter = 1,
                              .area = 785.400000e-3,
                              .periphery = 3.141600,
                              .epsilon = 10e-3,
                              .ny = 1.1e-6,
                              .rho = 1e3,
-                             .f = 10e-3,
+                             .f = 0.01,
                              .a = 1.2e3,
                              .z0 = 0,
                              .z1 = 0,
@@ -126,14 +127,11 @@ int main() {
                              .use_full_moody = false,
                              .use_Dh = false};
 
-  auto reservoir_left =
-      plant.add_element<ConstantLevelLeft>(reservoir_params).value();
+  auto left = plant.add_element<ConstantLevelLeft>(reservoir_params).value();
   auto pipe = plant.add_element<Pipe>(pipe_params, dt).value();
-  auto reservoir_right =
-      plant.add_element<ConstantLevelRight>(reservoir_params).value();
-  HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir_left);
-
-  HydraulicConnections::connect(*pipe, PipeEnd::Right, *reservoir_right);
+  auto right = plant.add_element<ConstantLevelRight>(reservoir_params2).value();
+  HydraulicConnections::connect(*pipe, PipeEnd::Left, *left);
+  HydraulicConnections::connect(*pipe, PipeEnd::Right, *right);
 
   auto steps = [&]() -> std::uint64_t {
     return static_cast<std::uint64_t>(plant.get_num_terations());
@@ -321,9 +319,15 @@ int main() {
             std::visit(
                 [&](const auto& value) {
                   using Value = std::decay_t<decltype(value)>;
-                  const auto title = std::format("Element {}: {}",
-                                                 view.element_id, value.name);
+                  const auto title =
+                      std::format("Element ({}) {}: {}",
+                                  element_type_to_str(
+                                      plant.get_element_by_id(view.element_id)
+                                          .value()
+                                          ->get_type()),
+                                  view.element_id, value.name);
                   if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
+                    ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
                     if constexpr (std::is_same_v<Value, ScalarValue>) {
                       const auto label =
                           value.unit.empty()
@@ -340,7 +344,12 @@ int main() {
                           static_cast<std::size_t>(history.count)));
                       ImPlotSpec spec;
                       spec.Offset = history.offset;
-                      ImPlot::PlotLine(value.name.c_str(), history.time.data(),
+                      // A stable hidden ID preserves the color and visibility
+                      // when the displayed value changes.
+                      const auto legend = std::format(
+                          "{}: {:.2f}{}{}###series", value.name, value.value,
+                          value.unit.empty() ? "" : " ", value.unit);
+                      ImPlot::PlotLine(legend.c_str(), history.time.data(),
                                        history.values.data(), history.count,
                                        spec);
                     } else {
@@ -357,17 +366,21 @@ int main() {
                                      : std::format("Distance ({})",
                                                    value.x_unit));
                       ImPlot::SetupAxes(x_label.c_str(), label.c_str(),
-                                        ImPlotAxisFlags_AutoFit,
                                         ImPlotAxisFlags_AutoFit);
                       setup_y_limits(value.values);
                       if (!value.values.empty()) {
+                        const auto legend = std::format(
+                            "{}: start {:.2f}, end {:.2f}{}{}###series",
+                            value.name, value.values.front(),
+                            value.values.back(),
+                            value.y_unit.empty() ? "" : " ", value.y_unit);
                         if (value.x_values.empty()) {
                           ImPlot::PlotLine(
-                              value.name.c_str(), value.values.data(),
+                              legend.c_str(), value.values.data(),
                               static_cast<int>(value.values.size()));
                         } else {
                           ImPlot::PlotLine(
-                              value.name.c_str(), value.x_values.data(),
+                              legend.c_str(), value.x_values.data(),
                               value.values.data(),
                               static_cast<int>(value.values.size()));
                         }

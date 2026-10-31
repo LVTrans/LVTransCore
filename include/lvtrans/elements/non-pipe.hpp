@@ -11,7 +11,7 @@ namespace lvtrans {
 
 class BasePipe;
 
-enum class CharacteristicsType { CPlus, CMinus };
+enum class CharacteristicsType { Plus, Minus };
 
 struct Characteristics {
   double c{};
@@ -33,7 +33,7 @@ class NonPipe : public Element {
   }
 
   void set_characteristics(Characteristics c, int id) {
-    if (c.type == CharacteristicsType::CPlus) {
+    if (c.type == CharacteristicsType::Plus) {
       m_c_plus.insert_or_assign(id, c);
     } else {
       m_c_minus.insert_or_assign(id, c);

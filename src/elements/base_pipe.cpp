@@ -33,13 +33,13 @@ void BasePipe::update_boundaries() {
   const auto L1 = grid.num_segments;
 
   if (auto* left = left_elem()) {
-    m_state.H[L0] = left->get_H(CharacteristicsType::CMinus, get_ID());
-    m_state.Q[L0] = left->get_Q(CharacteristicsType::CMinus, get_ID());
+    m_state.H[L0] = left->get_H(CharacteristicsType::Minus, get_ID());
+    m_state.Q[L0] = left->get_Q(CharacteristicsType::Minus, get_ID());
   }
 
   if (auto* right = right_elem()) {
-    m_state.H[L1] = right->get_H(CharacteristicsType::CPlus, get_ID());
-    m_state.Q[L1] = right->get_Q(CharacteristicsType::CPlus, get_ID());
+    m_state.H[L1] = right->get_H(CharacteristicsType::Plus, get_ID());
+    m_state.Q[L1] = right->get_Q(CharacteristicsType::Plus, get_ID());
   }
 }
 

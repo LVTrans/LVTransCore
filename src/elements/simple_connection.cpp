@@ -11,57 +11,54 @@ SimpleConnection::SimpleConnection(const LossCoefficients& loss_coeffs)
     : NonPipe(1, 1), m_params(loss_coeffs) {}
 
 double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) {
-  const auto Qp = calculate_Qp(id);
+  const auto Qp = calculate_Qp();
 
-  if (ct == CharacteristicsType::CPlus) {
-    return m_c_plus.at(id).c - m_c_plus.at(id).b * Qp;
+  if (ct == CharacteristicsType::Plus) {
+    const auto& characteristic = m_c_plus.at(id);
+    auto cp = characteristic.c;
+    auto bp = characteristic.b;
+    return cp - bp * Qp;
   } else {
-    return m_c_minus.at(id).c + m_c_minus.at(id).b * Qp;
+    const auto& characteristic = m_c_minus.at(id);
+    auto cm = characteristic.c;
+    auto bm = characteristic.b;
+    return cm + bm * Qp;
   }
 }
 
 double SimpleConnection::get_Q(CharacteristicsType, ElementID, IterateInput) {
-  Characteristics cp{};
-  Characteristics cm{};
-
-  if (const auto* pipe = left_links()[0].pipe) {
-    cp = m_c_plus.at(pipe->get_ID());
-  }
-
-  if (const auto* pipe = right_links()[0].pipe) {
-    cm = m_c_minus.at(pipe->get_ID());
-  }
-
-  return (cp.c - cm.c) / (cp.b + cm.b);
+  return calculate_Qp();
 }
 
-double SimpleConnection::calculate_Qp(ElementID) const {
+double SimpleConnection::calculate_Qp() const {
   const auto cvm = m_params.cvm;
   const auto cvp = m_params.cvp;
-  auto Cp1 = 0.0;
-  auto Bp1 = 0.0;
-  auto Cm2 = 0.0;
-  auto Bm2 = 0.0;
+  auto cp = 0.0;
+  auto bp = 0.0;
+  auto cm = 0.0;
+  auto bm = 0.0;
 
-  if (const auto* pipe = left_links()[0].pipe) {
+  if (const auto* pipe = left()) {
     const auto& characteristic = m_c_plus.at(pipe->get_ID());
-    Cp1 = characteristic.c;
-    Bp1 = characteristic.b;
+    cp = characteristic.c;
+    bp = characteristic.b;
   }
 
-  if (const auto* pipe = right_links()[0].pipe) {
+  if (const auto* pipe = right()) {
     const auto& characteristic = m_c_minus.at(pipe->get_ID());
-    Cm2 = characteristic.c;
-    Bm2 = characteristic.b;
+    cm = characteristic.c;
+    bm = characteristic.b;
   }
 
-  if ((Cp1 - Cm2) >= 0.0) {
-    const auto CvB = cvp * (Bp1 + Bm2);
-    return -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (Cp1 - Cm2));
+  if ((cp - cm) >= 0.0) {
+    const auto CvB = cvp * (bp + bm);
+    return -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (cp - cm));
   } else {
-    const auto CvB = cvm * (Bp1 + Bm2);
-    return CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (Cp1 - Cm2));
+    const auto CvB = cvm * (bp + bm);
+    return CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (cp - cm));
   }
 }
+
+ElementView SimpleConnection::read_view() const { return {}; }
 
 }  // namespace lvtrans

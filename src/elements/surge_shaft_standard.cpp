@@ -17,7 +17,7 @@ double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID id,
                                  const IterateInput) {
   const auto Ha = get_H(ct, id);
 
-  if (ct == CharacteristicsType::CPlus) {
+  if (ct == CharacteristicsType::Plus) {
     const auto Cp1 = m_c_plus.at(id).c;
     const auto Bp1 = m_c_plus.at(id).b;
     return (Cp1 - Ha) / Bp1;  // plus
