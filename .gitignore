@@ -74,3 +74,5 @@ imgui.ini
 imgui.ini
 .idea
 output.csv
+bench_results.csv
+.~lock.bench_results.csv#

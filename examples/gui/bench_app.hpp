@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <chrono>
 #include <cstdint>
+#include <fstream>
 #include <iostream>
 #include "helpers.hpp"
 #include "imgui.h"
@@ -29,11 +30,15 @@ struct BenchApp {
   bool running = false;
   bool max_speed = true;
   bool invalid = false;
+  bool write_to_file = false;
   int speed = 1;
   double dt_accumulator = 0.0;
+  std::ofstream file;
+  std::uint64_t last_written_interval = 0;
   Clock::time_point last_frame = Clock::now();
 
-  explicit BenchApp(Plant& p) : plant(p), dt{plant.get_step_size()} {}
+  explicit BenchApp(Plant& p)
+      : plant(p), dt{plant.get_step_size()}, file("bench_results.csv") {}
   ~BenchApp() { shutdown(); }
 
   [[nodiscard]] int init() {
@@ -74,6 +79,9 @@ struct BenchApp {
     style.WindowRounding = 0.0f;
     style.FrameRounding = 0.0f;
     style.ItemSpacing = ImVec2(8, 8);
+
+    file << "Time,Iterations,IterationsPerSecond,XRealtime\n";
+    file.flush();
     return 0;
   }
   auto steps() -> std::uint64_t {
@@ -88,6 +96,18 @@ struct BenchApp {
       draw_frame();
     }
     shutdown();
+  }
+
+  void write_results_to_file() {
+    const auto iterations = steps();
+    const auto interval = iterations / 1'000'000;
+    // A frame may advance past a boundary without landing exactly on it.
+    if (interval <= last_written_interval) return;
+
+    file << plant.get_current_time() << ',' << iterations << ','
+         << stats.iterations_per_second << ',' << stats.x_realtime << '\n';
+    file.flush();
+    last_written_interval = interval;
   }
 
   void draw_frame() {
@@ -122,6 +142,9 @@ struct BenchApp {
         }
       }
       stats.update(steps(), dt);
+      if (write_to_file) {
+        write_results_to_file();
+      }
     }
   }
 
@@ -161,6 +184,7 @@ struct BenchApp {
     if (ImGui::Button("Reset")) {
       plant.reset_state();
       stats.reset(steps());
+      last_written_interval = 0;
       running = false;
       invalid = false;
       dt_accumulator = 0.0;
@@ -171,6 +195,9 @@ struct BenchApp {
       dt_accumulator = 0.0;
       last_frame = Clock::now();
     }
+
+    ImGui::Checkbox("Write results to file", &write_to_file);
+
     ImGui::Text("dT: %.3f s", dt);
     ImGui::BeginDisabled(max_speed);
     ImGui::SliderInt("Execution speed", &speed, 1, 100);
