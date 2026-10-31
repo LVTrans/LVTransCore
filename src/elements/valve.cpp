@@ -33,7 +33,7 @@ void Valve::iterate(const double t) {
 
 double Valve::get_H(CharacteristicsType ct, ElementID id) {
   const auto Qp = calculate_q();
-  if (ct == CharacteristicsType::CPlus) {
+  if (ct == CharacteristicsType::Plus) {
     return m_c_plus.at(id).c - m_c_plus.at(id).b * Qp;
   } else {
     return m_c_minus.at(id).c + m_c_minus.at(id).b * Qp;

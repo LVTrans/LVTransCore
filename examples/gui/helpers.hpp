@@ -1,6 +1,9 @@
+#pragma once
+
 #include <algorithm>
 #include <chrono>
 #include <cmath>
+#include <cstdint>
 struct BenchStats {
   using Clock = std::chrono::steady_clock;
   Clock::time_point last_tick{};

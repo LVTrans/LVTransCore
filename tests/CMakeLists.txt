@@ -8,6 +8,7 @@ set(TEST_SOURCES
   unit/test_plant.cpp
   unit/test_plant_config_repo.cpp
   unit/test_T_junction.cpp
+  unit/test_gui_plot_data.cpp
   integration/test_multi_elements.cpp
 )
 

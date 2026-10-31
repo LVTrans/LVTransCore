@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>
-#include "benchmark_metrics.hpp"
+#include "helpers.hpp"
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"

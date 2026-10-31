@@ -9,8 +9,8 @@ Pipe::Pipe(const double dt) : BasePipe(PipeParameters{}, dt) {}
 Pipe::Pipe(PipeParameters params, const double dt) : BasePipe(params, dt) {}
 
 void Pipe::iterate(const double) {
-  const auto& grid = m_derived_data.grid;
-  const auto& coefficients = m_derived_data.coefficients;
+  const auto& grid = m_derived.grid;
+  const auto& coefficients = m_derived.coefficients;
   constexpr size_t L0 = 0;
   const auto L1 = grid.num_segments;
 
@@ -44,7 +44,7 @@ void Pipe::iterate(const double) {
     Characteristics c;
     c.c = H[L0 + 1] - coefficients.B * Q[L0 + 1];
     c.b = coefficients.R * std::abs(Q[L0 + 1]) + coefficients.B;
-    c.type = CharacteristicsType::CMinus;
+    c.type = CharacteristicsType::Minus;
 
     left->set_characteristics(c, get_ID());
   }
@@ -54,7 +54,7 @@ void Pipe::iterate(const double) {
     Characteristics c;
     c.c = H[L1 - 1] + coefficients.B * Q[L1 - 1];
     c.b = coefficients.B + coefficients.R * std::abs(Q[L1 - 1]);
-    c.type = CharacteristicsType::CPlus;
+    c.type = CharacteristicsType::Plus;
 
     right->set_characteristics(c, get_ID());
   }
