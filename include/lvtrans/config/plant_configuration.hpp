@@ -59,9 +59,11 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
     z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q, H, L, H_liquid, Cv,
+                                   H_liquid_0, H_liquid, Hb)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
@@ -95,7 +97,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ElementType, {{ElementType::Pipe, "NormalPipe"},
-                  {ElementType::Reservoir, "Reservoir"},
                   {ElementType::Valve, "Valve"},
                   {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
@@ -129,7 +130,7 @@ inline void from_json(const nlohmann::json& j, Connection& value) {
   j.at("element_id").get_to(value.element_id);
   value.index = j.value("index", size_t{0});
 }
-//
+
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
   std::visit([&](const auto& parameters) { j["parameters"] = parameters; },
@@ -175,6 +176,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
         j.at("parameters").get_to(parameter_values);
       },
       value.parameters);
+
   if (state && j.contains("state") && !j.at("state").is_null()) {
     auto& parsed_state = value.state.emplace(*state);
     std::visit([&](auto& state_values) { j.at("state").get_to(state_values); },

@@ -5,16 +5,6 @@
 
 namespace lvtrans {
 
-struct SurgeShaftState {
-  double Q{};  // Flow [m^3/s]
-  double H{};  // Head [m from datum]
-  double L{};  // Shaft length [m]
-  double Hb{};
-  double Cv{};  //
-  double H_liquid{};
-  double H_liquid_0{};
-};
-
 class SurgeShaftStandard : public NonPipe {
  public:
   SurgeShaftStandard(const SurgeShaftStandardParameters& parameters, double dt);

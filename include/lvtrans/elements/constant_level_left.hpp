@@ -28,19 +28,20 @@ class ConstantLevelLeft : public Reservoir {
     double CvB{0.0};
     double Qp{0.0};
 
-    const auto& characteristic = m_c_minus.at(id);
-    const auto& Cm = characteristic.c;
-    const auto& Bm = characteristic.b;
     const auto& H0 = m_params.H0;
     const auto& cvp = m_params.cvp;
     const auto& cvm = m_params.cvm;
 
-    if ((H0 - Cm) >= 0.0) {
-      CvB = cvp * Bm;
-      Qp = -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (H0 - Cm));
+    const auto& characteristic = m_c_minus.at(id);
+    const auto& cm = characteristic.c;
+    const auto& bm = characteristic.b;
+
+    if ((H0 - cm) >= 0.0) {
+      CvB = cvp * bm;
+      Qp = -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (H0 - cm));
     } else {
-      CvB = cvm * Bm;
-      Qp = CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (H0 - Cm));
+      CvB = cvm * bm;
+      Qp = CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (H0 - cm));
     }
     m_state.Q = Qp;
 

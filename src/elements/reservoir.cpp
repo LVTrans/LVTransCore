@@ -32,10 +32,10 @@ ElementView Reservoir::read_view() const {
       .element_id = m_ID,
       .values =
           {
-              ScalarValue{.name = "Reservoir Head",
-                          .unit = "m",
-                          .symbol = "HR",
-                          .value = m_params.H0},
+              ScalarValue{.name = "Flow Rate",
+                          .unit = "m³/s",
+                          .symbol = "Q",
+                          .value = m_state.Q},
           },
   };
 }

@@ -200,6 +200,16 @@ struct LossCoefficients {
   }
 };
 
+struct SurgeShaftState {
+  double Q{};  // Flow [m^3/s]
+  double H{};  // Head [m from datum]
+  double L{};  // Shaft length [m]
+  double Hb{};
+  double Cv{};  //
+  double H_liquid{};
+  double H_liquid_0{};
+};
+
 struct DataPoint {
   double x{};
   double y{};
@@ -207,7 +217,8 @@ struct DataPoint {
 
 using ElementID = int;
 
-using ElementState = std::variant<ValveState, PipeState, ReservoirState>;
+using ElementState =
+    std::variant<ValveState, PipeState, ReservoirState, SurgeShaftState>;
 
 struct ScalarValue {
   std::string name{};
@@ -234,6 +245,8 @@ struct VectorValue {
   std::string x_unit{};
   std::string y_unit{};
   std::vector<double> values{};
+  // Empty means node indices; otherwise must have the same size as values.
+  std::vector<double> x_values{};
 
   void print() const {
     std::cout << "VectorValue: name=" << name << " symbol=" << symbol

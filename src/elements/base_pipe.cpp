@@ -16,10 +16,10 @@ BasePipe::~BasePipe() { disconnect_all(); }
 
 BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
-      m_derived_data{calculate_pipe_data(p, system_dt)},
-      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived_data.grid.num_nodes)},
+      m_derived{calculate_pipe_data(p, system_dt)},
+      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},
       m_initial_state{m_state} {
-  const auto& grid = m_derived_data.grid;
+  const auto& grid = m_derived.grid;
   m_state.Z.resize(grid.num_nodes);
   double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
   for (size_t i{0}; i < grid.num_nodes; i++) {
@@ -28,7 +28,7 @@ BasePipe::BasePipe(PipeParameters p, double system_dt)
 }
 
 void BasePipe::update_boundaries() {
-  const auto& grid = m_derived_data.grid;
+  const auto& grid = m_derived.grid;
   constexpr size_t L0 = 0;
   const auto L1 = grid.num_segments;
 
@@ -64,16 +64,31 @@ void BasePipe::disconnect_right() noexcept {
 }
 
 ElementView BasePipe::read_view() const {
+  const auto& grid = m_derived.grid;
   VectorValue H = {
       .name = "Head flow",
+      .x_unit = "m",
       .y_unit = "m",
-      .values = m_state.H,
   };
   VectorValue Q = {
       .name = "Flow rate",
+      .x_unit = "m",
       .y_unit = "m³/s",
-      .values = m_state.Q,
   };
+
+  H.values.resize(grid.staggered_nodes);
+  H.x_values.reserve(grid.num_nodes);
+  Q.values.resize(grid.staggered_nodes);
+  Q.x_values.reserve(grid.num_nodes);
+
+  for (std::size_t i = 0; i < grid.num_nodes; i += 2) {
+    const double x = static_cast<double>(i) * grid.dx;
+    H.values[i / 2] = m_state.H[i];
+    H.x_values.push_back(x);
+    Q.values[i / 2] = m_state.Q[i];
+    Q.x_values.push_back(x);
+  }
+
   return {
       .element_id = m_ID,
       .values =
@@ -124,7 +139,7 @@ PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
   coefficients.area = calculate_pipe_area(p.area, p.diameter, p.dimension);
   coefficients.R = calculate_R(p.f, grid.dx, coefficients.hydraulic_diameter,
                                coefficients.area);
-  coefficients.B = calculate_B(p.a, coefficients.area);
+  coefficients.B = calculate_B(grid.wave_speed, coefficients.area);
   coefficients.lambda =
       calculate_lambda(p.lambda, grid.dx, p.rho, coefficients.area);
   return data;

@@ -9,8 +9,8 @@ Pipe::Pipe(const double dt) : BasePipe(PipeParameters{}, dt) {}
 Pipe::Pipe(PipeParameters params, const double dt) : BasePipe(params, dt) {}
 
 void Pipe::iterate(const double) {
-  const auto& grid = m_derived_data.grid;
-  const auto& coefficients = m_derived_data.coefficients;
+  const auto& grid = m_derived.grid;
+  const auto& coefficients = m_derived.coefficients;
   constexpr size_t L0 = 0;
   const auto L1 = grid.num_segments;
 

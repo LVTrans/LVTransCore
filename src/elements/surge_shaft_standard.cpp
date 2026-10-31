@@ -1,6 +1,6 @@
 #include "lvtrans/elements/surge_shaft_standard.hpp"
-#include <stdexcept>
 #include "lvtrans/const.hpp"
+#include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
@@ -29,7 +29,7 @@ double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID id,
 }
 
 void SurgeShaftStandard::iterate(const double) {
-  double dFa, Fa, dQ{}, Cv, Q{}, L{}, dL{}, Hb, dHa, dHb;
+  double dFa, Fa, dQ{}, Cv, Q{}, L{}, dL{}, Hb{}, dHa{}, dHb;
   double eps = 0.000001;
   double epsL = 0.01;
   int N = 0;
@@ -135,11 +135,14 @@ void SurgeShaftStandard::iterate(const double) {
 }
 
 std::optional<ElementState> SurgeShaftStandard::get_state() const {
-  return std::nullopt;
+  return m_state;
 }
 
 ElementView SurgeShaftStandard::read_view() const {
-  return ElementView{.element_id = get_ID(), .values = {}};
+  return ElementView{.element_id = get_ID(),
+                     .values = {
+                         ScalarValue{.name = "H", .value = m_state.H},
+                     }};
 }
 
 }  // namespace lvtrans

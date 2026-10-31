@@ -128,6 +128,7 @@ class BasePipe : public Element {
   virtual ~BasePipe() = 0;
   ElementType get_type() const override { return ElementType::Pipe; }
   virtual ElementParameters get_parameters() const override { return m_params; }
+  // Display profiles export even nodes at spacing 2 * dx, as in LVTrans.
   ElementView read_view() const override;
   virtual void iterate(const double t = 0) override = 0;
   std::optional<ElementState> get_state() const override { return m_state; }
@@ -136,8 +137,10 @@ class BasePipe : public Element {
   ConnectResult connect_right(NonPipe& element);
 
   const PipeParameters& config() const { return m_params; }
-  double get_R() const { return m_derived_data.coefficients.R; }
-  double get_B() const { return m_derived_data.coefficients.B; }
+  double get_R() const { return m_derived.coefficients.R; }
+  double get_B() const { return m_derived.coefficients.B; }
+  // Raw solver arrays include intermediate odd nodes. Use read_view() for
+  // the LVTrans-compatible spatial profiles.
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
@@ -160,7 +163,7 @@ class BasePipe : public Element {
  protected:
   PipeParameters m_params{};
 
-  const PipeDerivedData m_derived_data;
+  const PipeDerivedData m_derived;
   PipeState m_state{};
   PipeState m_initial_state{};
 };
