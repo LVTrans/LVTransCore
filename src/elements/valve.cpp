@@ -54,13 +54,13 @@ double Valve::calculate_q() const {
   auto Bm2 = 0.0;
 
   // We can't guarantee that both endpoints are connected to pipes
-  if (const auto* pipe = left_links()[0].pipe) {
+  if (const auto* pipe = left()) {
     const auto& characteristic = m_c_plus.at(pipe->get_ID());
     Cp1 = characteristic.c;
     Bp1 = characteristic.b;
   }
 
-  if (const auto* pipe = right_links()[0].pipe) {
+  if (const auto* pipe = right()) {
     const auto& characteristic = m_c_minus.at(pipe->get_ID());
     Cm2 = characteristic.c;
     Bm2 = characteristic.b;
