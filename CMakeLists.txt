@@ -14,8 +14,8 @@ FetchContent_MakeAvailable(json)
 
 
 option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
-option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
-option(LVTRANS_BUILD_GUI "Build the ImGui simulation dashboard" OFF)
+option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" ON)
+option(LVTRANS_BUILD_GUI "Build the ImGui simulation dashboard" ON)
 option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
 
 add_library(lvtrans_core)
