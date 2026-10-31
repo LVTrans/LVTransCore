@@ -38,7 +38,7 @@ class Element {
     return get_state().has_value() ? std::get<T>(get_state().value()) : T{};
   }
   virtual ElementView read_view() const { return ElementView{}; }
-  virtual void reset_state() {};
+  virtual void reset_state() = 0;
   virtual ModificationResult modify(const ElementModification&) {
     return ModificationResult::Ok;
   }

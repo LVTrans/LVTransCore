@@ -17,7 +17,7 @@ class Reservoir : public NonPipe {
   ElementType get_type() const override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {m_state}; }
-  void reset_state() override {}
+  void reset_state() override { m_state = ReservoirState{}; }
   ElementView read_view() const override;
 
  protected:

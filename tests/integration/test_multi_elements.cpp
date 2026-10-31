@@ -240,10 +240,6 @@ TEST(MultiElementsTest, Complex) {
 
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
-  // Valve.txt: internal-servo valve, tau_0 = 1, Cv file disabled.
-  // ValveInternalServo is not implemented yet. For this unactuated case,
-  // hold Valve at the initial opening instead of imposing a closure curve.
-  // The servo timing parameters below are retained but not simulated by Valve.
   ValveParameters valve_params{.tau_i = 1.0,
                                .tau_f = 1.0,
                                .cvp = 10e3,

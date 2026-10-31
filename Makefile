@@ -17,14 +17,10 @@ gui:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target gui -j "$$(nproc)"
 	./build/examples/gui/gui
-benchA:
+bench-gui:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
-	cmake --build build --target benchA -j "$$(nproc)"
-	./build/examples/gui/benchA
-benchB:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
-	cmake --build build --target benchB -j "$$(nproc)"
-	./build/examples/gui/benchB
+	cmake --build build --target bench -j "$$(nproc)"
+	./build/examples/gui/bench
 clean:
 	rm -rf build
 format:

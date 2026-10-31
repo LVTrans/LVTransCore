@@ -12,10 +12,11 @@ class SimpleConnection : public NonPipe {
   double get_Q(CharacteristicsType, ElementID,
                const IterateInput = {}) override;
 
-  virtual ElementType get_type() const override {
+  ElementType get_type() const override {
     return ElementType::SimpleConnection;
   }
-  virtual ElementParameters get_parameters() const override { return m_params; }
+  ElementParameters get_parameters() const override { return m_params; }
+  void reset_state() override {}
   ElementView read_view() const override;
 
  private:

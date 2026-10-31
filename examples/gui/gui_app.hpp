@@ -1,7 +1,9 @@
+#pragma once
+
 #include <GLFW/glfw3.h>
+#include <implot.h>
 #include <algorithm>
 #include <chrono>
-#include <cmath>
 #include <cstdint>
 #include <format>
 #include <iostream>
@@ -15,187 +17,76 @@
 #include "implot.h"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
-#include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_level_right.hpp"
-#include "lvtrans/elements/simple_connection.hpp"
-#include "lvtrans/elements/valve.hpp"
-#include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
 #include "plot_data.hpp"
-
 using Clock = std::chrono::steady_clock;
 using namespace lvtrans;
 
-namespace {
-// Fit the Y axis tightly around the data, with 5% breathing room.
-void setup_y_limits(std::span<const double> values) {
-  bool has_value = false;
-  double minimum = 0.0;
-  double maximum = 0.0;
-
-  for (double value : values) {
-    if (!std::isfinite(value)) continue;
-    if (!has_value) {
-      minimum = maximum = value;
-      has_value = true;
-    } else {
-      minimum = std::min(minimum, value);
-      maximum = std::max(maximum, value);
-    }
-  }
-
-  if (!has_value) return;
-
-  const double range = maximum - minimum;
-  const double padding =
-      range > 1e-12 * std::max({1.0, std::abs(minimum), std::abs(maximum)})
-          ? range * 0.05
-          : std::max(1e-6,
-                     0.05 * std::max(std::abs(minimum), std::abs(maximum)));
-  ImPlot::SetupAxisLimits(ImAxis_Y1, minimum - padding, maximum + padding,
-                          ImPlotCond_Always);
-}
-
-int TimeFormatter(double value, char* buff, int size, void* user_data) {
-  unsigned long long t = static_cast<unsigned long long>(value);
-
-  std::string time_str =
-      std::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60);
-
-  return std::snprintf(buff, size, "%s", time_str.c_str());
-}
-}  // namespace
-
-int main() {
-  glfwSetErrorCallback([](int code, const char* description) {
-    std::cerr << "GLFW error " << code << ": " << description << '\n';
-  });
-  if (!glfwInit()) return 1;
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-  GLFWwindow* window =
-      glfwCreateWindow(1280, 800, "LVTrans Simulation", nullptr, nullptr);
-  if (!window) {
-    glfwTerminate();
-    return 1;
-  }
-  glfwMakeContextCurrent(window);
-  glfwSwapInterval(0);
-
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-  ImPlot::CreateContext();
-  const bool glfw_ready = ImGui_ImplGlfw_InitForOpenGL(window, true);
-  const bool opengl_ready =
-      glfw_ready && ImGui_ImplOpenGL3_Init("#version 130");
-  if (!opengl_ready) {
-    std::cerr << "ImGui initialization failed\n";
-    if (glfw_ready) ImGui_ImplGlfw_Shutdown();
-    ImPlot::DestroyContext();
-    ImGui::DestroyContext();
-    glfwDestroyWindow(window);
-    glfwTerminate();
-    return 1;
-  }
-
-  ImGuiIO& io = ImGui::GetIO();
-  io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-  ImGuiStyle& style = ImGui::GetStyle();
-  style.WindowRounding = 0.0f;
-  style.FrameRounding = 0.0f;
-  style.ItemSpacing = ImVec2(8, 8);
-
-  // BenchA: reservoir -> pipe -> reservoir.
-  constexpr double dt = 0.1;
-  Plant plant(dt);
-
-  ReservoirParameters reservoir_params{
-      .H0 = 100.000000E+0, .cvp = 100.000000E+3, .cvm = 100.000000E+3};
-
-  PipeParameters pipe_params = {
-      .H0 = 0.0,
-      .Q0 = 0.0,
-      .length = 100,
-      .diameter = 1,
-      .area = 785.400000E-3,
-      .periphery = 3.141600E+0,
-      .epsilon = 10.000000E-3,
-      .ny = 1.1e-6,
-      .rho = 1e3,
-      .f = 10e-3,
-      .a = 1.2e3,
-      .z0 = 0,
-      .z1 = 0,
-      .lambda = 500e3,
-      .f_max = 100.0,
-      .use_diameter = true,
-      .use_full_moody = false,
-      .use_Dh = false,
-  };
-  LossCoefficients simple_connection_params{.cvp = 1e5, .cvm = 1e5};
-
-  ValveParameters valve_params{.tau_i = 1.0,
-                               .tau_f = 0.0,
-                               .tc = 2.1,
-                               .em = 0.75,
-                               .cda0 = 0.009,
-                               .cvp = 1e5,
-                               .cvm = 1e5,
-                               .closing_time_h = 10,
-                               .closing_time_l = 10,
-                               .switch_over = 0.5,
-                               .tks = 1.0,
-                               .tau_0 = 1.0,
-                               .diameter = 1.0};
-
-  auto reservoir_left =
-      plant.add_element<ConstantLevelLeft>(reservoir_params).value();
-  auto pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
-  auto simple_conn1 =
-      plant.add_element<SimpleConnection>(simple_connection_params).value();
-  auto valve2 = plant.add_element<Valve>(valve_params).value();
-  auto pipe22 = plant.add_element<Pipe>(pipe_params, dt).value();
-  auto pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
-  auto pipe4 = plant.add_element<Pipe>(pipe_params, dt).value();
-  auto simple_conn2 =
-      plant.add_element<SimpleConnection>(simple_connection_params).value();
-  auto reservoir_right =
-      plant.add_element<ConstantLevelRight>(reservoir_params).value();
-
-  // clang-format off
-    // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->Valve <->Pipe 4 <->Reservoir 2
-    HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
-    HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
-
-    HydraulicConnections::connect(*pipe22, PipeEnd::Left, *simple_conn1);
-    HydraulicConnections::connect(*pipe22, PipeEnd::Right, *simple_conn2);
-
-    HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2);
-    HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2);
-
-    HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
-    HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
-
-  auto steps = [&]() -> std::uint64_t {
-    return static_cast<std::uint64_t>(plant.get_num_terations());
-  };
-
+struct GuiApp {
+  Plant& plant;
   PlotContainer plots;
-  constexpr std::uint64_t graph_sampling_steps[] = {1, 5, 10, 20, 50, 100};
-  const char* graph_intervals[] = {
+  GLFWwindow* window{nullptr};
+  double dt = 0.1;
+  const std::uint64_t graph_sampling_steps[6] = {1, 5, 10, 20, 50, 100};
+  const char* graph_intervals[6]{
       "0.1 s (every step)", "0.5 s", "1.0 s", "2.0 s", "5.0 s", "10.0 s"};
   int graph_interval = 2;
-  plots.set_sampling_steps(graph_sampling_steps[graph_interval]);
   BenchStats stats{};
-  stats.reset(steps());
   bool running = false;
   bool max_speed = true;
   bool invalid = false;
   int speed = 1;
   double dt_accumulator = 0.0;
-  auto last_frame = Clock::now();
+  Clock::time_point last_frame = Clock::now();
 
-  auto add_data_point = [&]() {
+  explicit GuiApp(Plant& p) : plant(p), dt{plant.get_step_size()} {}
+  ~GuiApp() { shutdown(); }
+
+  [[nodiscard]] int init() {
+    glfwSetErrorCallback([](int code, const char* description) {
+      std::cerr << "GLFW error " << code << ": " << description << '\n';
+    });
+    if (!glfwInit()) return 1;
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+    window =
+        glfwCreateWindow(1280, 800, "LVTrans Simulation", nullptr, nullptr);
+    if (!window) {
+      glfwTerminate();
+      return 1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImPlot::CreateContext();
+    const bool glfw_ready = ImGui_ImplGlfw_InitForOpenGL(window, true);
+    const bool opengl_ready =
+        glfw_ready && ImGui_ImplOpenGL3_Init("#version 130");
+    if (!opengl_ready) {
+      std::cerr << "ImGui initialization failed\n";
+      if (glfw_ready) ImGui_ImplGlfw_Shutdown();
+      ImPlot::DestroyContext();
+      ImGui::DestroyContext();
+      glfwDestroyWindow(window);
+      glfwTerminate();
+      return 1;
+    }
+
+    ImGuiIO& io = ImGui::GetIO();
+    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.WindowRounding = 0.0f;
+    style.FrameRounding = 0.0f;
+    style.ItemSpacing = ImVec2(8, 8);
+    return 0;
+  }
+  auto steps() -> std::uint64_t {
+    return static_cast<std::uint64_t>(plant.get_num_terations());
+  };
+
+  auto add_data_point() {
     const auto step = steps();
     if (!plots.sample_due(step)) return;
     std::vector<ElementView> views;
@@ -207,11 +98,29 @@ int main() {
     plots.sample(step, plant.get_current_time(), std::move(views));
   };
 
-  add_data_point();
+  void spin() {
+    add_data_point();
 
-  while (!glfwWindowShouldClose(window)) {
-    glfwPollEvents();
+    while (!glfwWindowShouldClose(window)) {
+      glfwPollEvents();
+      advance_plant();
+      render();
+      draw_frame();
+    }
+    shutdown();
+  }
 
+  void draw_frame() {
+    int width, height;
+    glfwGetFramebufferSize(window, &width, &height);
+    glViewport(0, 0, width, height);
+    glClear(GL_COLOR_BUFFER_BIT);
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    glfwSwapBuffers(window);
+  }
+
+  void advance_plant() {
     const auto t =
         static_cast<std::uint64_t>(std::max(0.0, plant.get_current_time()));
 
@@ -242,7 +151,24 @@ int main() {
       }
       stats.update(steps(), dt);
     }
+  }
 
+  void shutdown() {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImPlot::DestroyContext();
+    ImGui::DestroyContext();
+    glfwDestroyWindow(window);
+    glfwTerminate();
+  }
+
+  void render() {
+    render_ui();
+    render_element_states();
+    plot_element_data();
+  }
+
+  void render_ui() {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
@@ -294,11 +220,18 @@ int main() {
 
     const auto count = steps();
     ImGui::Separator();
+
+    const auto t =
+        static_cast<std::uint64_t>(std::max(0.0, plant.get_current_time()));
+
+    std::string time_str =
+        std::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60);
     ImGui::Text("Time: %s", time_str.c_str());
     ImGui::Text("I: %llu", static_cast<unsigned long long>(count));
     ImGui::Text("I/s: %.0f", stats.iterations_per_second);
     ImGui::Text("X Realtime: %.1f", stats.x_realtime);
-
+  }
+  void render_element_states() {
     ImGui::SeparatorText("Element States");
     for (const auto& e : plant.get_elements()) {
       ImGui::PushID(e->get_ID());
@@ -349,7 +282,9 @@ int main() {
     }
 
     ImGui::End();
+  }
 
+  void plot_element_data() {
     ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(880, 760), ImGuiCond_FirstUseEver);
     if (ImGui::Begin("Data Analytics")) {
@@ -362,10 +297,15 @@ int main() {
             std::visit(
                 [&](const auto& value) {
                   using Value = std::decay_t<decltype(value)>;
-                  const auto title = std::format("Element ({}) {}: {}",
-                                     element_type_to_str(plant.get_element_by_id(view.element_id).value()->get_type()),
-                                                 view.element_id, value.name);
+                  const auto title =
+                      std::format("Element ({}) {}: {}",
+                                  element_type_to_str(
+                                      plant.get_element_by_id(view.element_id)
+                                          .value()
+                                          ->get_type()),
+                                  view.element_id, value.name);
                   if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
+                    ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
                     if constexpr (std::is_same_v<Value, ScalarValue>) {
                       const auto label =
                           value.unit.empty()
@@ -382,7 +322,12 @@ int main() {
                           static_cast<std::size_t>(history.count)));
                       ImPlotSpec spec;
                       spec.Offset = history.offset;
-                      ImPlot::PlotLine(value.name.c_str(), history.time.data(),
+                      // A stable hidden ID preserves the color and visibility
+                      // when the displayed value changes.
+                      const auto legend = std::format(
+                          "{}: {:.2f}{}{}###series", value.name, value.value,
+                          value.unit.empty() ? "" : " ", value.unit);
+                      ImPlot::PlotLine(legend.c_str(), history.time.data(),
                                        history.values.data(), history.count,
                                        spec);
                     } else {
@@ -399,17 +344,21 @@ int main() {
                                      : std::format("Distance ({})",
                                                    value.x_unit));
                       ImPlot::SetupAxes(x_label.c_str(), label.c_str(),
-                                        ImPlotAxisFlags_AutoFit,
                                         ImPlotAxisFlags_AutoFit);
                       setup_y_limits(value.values);
                       if (!value.values.empty()) {
+                        const auto legend = std::format(
+                            "{}: start {:.2f}, end {:.2f}{}{}###series",
+                            value.name, value.values.front(),
+                            value.values.back(),
+                            value.y_unit.empty() ? "" : " ", value.y_unit);
                         if (value.x_values.empty()) {
                           ImPlot::PlotLine(
-                              value.name.c_str(), value.values.data(),
+                              legend.c_str(), value.values.data(),
                               static_cast<int>(value.values.size()));
                         } else {
                           ImPlot::PlotLine(
-                              value.name.c_str(), value.x_values.data(),
+                              legend.c_str(), value.x_values.data(),
                               value.values.data(),
                               static_cast<int>(value.values.size()));
                         }
@@ -428,20 +377,5 @@ int main() {
       ImPlot::PopStyleVar();
     }
     ImGui::End();
-
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-    glViewport(0, 0, width, height);
-    glClear(GL_COLOR_BUFFER_BIT);
-    ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-    glfwSwapBuffers(window);
   }
-
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImPlot::DestroyContext();
-  ImGui::DestroyContext();
-  glfwDestroyWindow(window);
-  glfwTerminate();
-}
+};

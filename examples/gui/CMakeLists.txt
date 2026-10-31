@@ -35,8 +35,7 @@ target_compile_features(lvtrans_gui_dependencies PUBLIC cxx_std_20)
 set(
   LVTRANS_GUI_EXAMPLES
   gui
-  benchA
-  benchB
+  bench
 )
 
 

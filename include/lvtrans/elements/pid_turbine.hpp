@@ -12,11 +12,11 @@ class PIDTurbine : public Controller {
   ~PIDTurbine();
   const PIDTurbineParameters& config() const { return m_params; }
   void iterate(const double t = 0) override;
-  virtual ElementType get_type() const override;
-  virtual ElementParameters get_parameters() const override;
-  virtual std::optional<ElementState> get_state() const override;
-  virtual ElementView read_view() const override;
-  virtual void reset_state() override;
+  ElementType get_type() const override;
+  ElementParameters get_parameters() const override;
+  std::optional<ElementState> get_state() const override;
+  ElementView read_view() const override;
+  void reset_state() override;
 
  private:
   PIDTurbineParameters m_params{};
