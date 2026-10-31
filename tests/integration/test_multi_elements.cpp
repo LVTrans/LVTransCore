@@ -109,7 +109,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   output_file.close();
 
   const auto expected_file_path =
-      get_mock_data_file_path("expected/reservoir_pipe_valve.csv");
+      get_mock_data_file_path("expected/reservoir_pipe_valve_g982.csv");
 
   EXPECT_TRUE(compare_csv_files(test_file_path, expected_file_path));
 }

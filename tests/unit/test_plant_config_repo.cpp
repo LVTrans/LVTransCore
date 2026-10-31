@@ -88,8 +88,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(pipe->get_ID(), 2);
   EXPECT_EQ(valve->get_ID(), 3);
 
-  // EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
-
+  EXPECT_EQ(reservoir->get_state_as<ReservoirState>().Q, 0.0);
   const auto& config = pipe->config();
   EXPECT_DOUBLE_EQ(config.length, 100.0);
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
