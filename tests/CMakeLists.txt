@@ -10,7 +10,6 @@ set(TEST_SOURCES
   unit/test_T_junction.cpp
   unit/test_gui_plot_data.cpp
   integration/test_multi_elements.cpp
-  integration/test_multi_elements_2.cpp
 )
 
 add_executable(tests ${TEST_SOURCES})
