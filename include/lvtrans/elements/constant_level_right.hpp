@@ -16,18 +16,18 @@ class ConstantLevelRight : public Reservoir {
   }
 
   void iterate(double) override {
-    if (const auto* pipe = left()) get_Qp(pipe->get_ID());
+    if (const auto* pipe = left()) calculate_q(pipe->get_ID());
   }
 
   double get_H(CharacteristicsType, ElementID id) override {
-    return m_c_plus.at(id).c - m_c_plus.at(id).b * get_Qp(id);
+    return m_c_plus.at(id).c - m_c_plus.at(id).b * calculate_q(id);
   }
   double get_Q(CharacteristicsType, ElementID id,
                const IterateInput = {}) override {
-    return get_Qp(id);
+    return calculate_q(id);
   }
 
-  double get_Qp(ElementID id) {
+  double calculate_q(ElementID id) {
     double CvB{0.0};
     double Qp{0.0};
 

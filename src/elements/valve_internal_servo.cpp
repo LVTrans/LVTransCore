@@ -54,7 +54,6 @@ void ValveInternalServo::iterate(double) {
     m_state.rate_limited = true;
   }
 
-  // Report the new boundary solution; pipes consume it next iteration.
   const double q = calculate_q();
   if (const auto* pipe = left()) {
     const auto& c = m_c_plus.at(pipe->get_ID());
@@ -64,6 +63,21 @@ void ValveInternalServo::iterate(double) {
     const auto& c = m_c_minus.at(pipe->get_ID());
     m_state.H2 = c.c + c.b * q;
   }
+}
+
+double ValveInternalServo::get_H(CharacteristicsType type, ElementID id) {
+  const double q = calculate_q();
+  if (type == CharacteristicsType::Plus) {
+    const auto& c = m_c_plus.at(id);
+    return c.c - c.b * q;
+  } else {
+    const auto& c = m_c_minus.at(id);
+    return c.c + c.b * q;
+  }
+}
+
+double ValveInternalServo::get_Q(CharacteristicsType, ElementID, IterateInput) {
+  return calculate_q();
 }
 
 void ValveInternalServo::reset_state() {
@@ -93,25 +107,6 @@ double ValveInternalServo::calculate_q() {
   }
   m_state.Q = q;
   return q;
-}
-
-double ValveInternalServo::get_H(CharacteristicsType type, ElementID id) {
-  const double q = calculate_q();
-  if (type == CharacteristicsType::Plus) {
-    const auto& c = m_c_plus.at(id);
-    const auto h = c.c - c.b * q;
-    m_state.H1 = h;
-    return h;
-  } else {
-    const auto& c = m_c_minus.at(id);
-    const auto h = c.c + c.b * q;
-    m_state.H2 = h;
-    return h;
-  }
-}
-
-double ValveInternalServo::get_Q(CharacteristicsType, ElementID, IterateInput) {
-  return calculate_q();
 }
 
 ElementView ValveInternalServo::read_view() const {
