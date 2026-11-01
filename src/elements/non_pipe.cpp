@@ -1,4 +1,5 @@
 #include "lvtrans/elements/non-pipe.hpp"
+#include "lvtrans/elements/base_pipe.hpp"
 namespace lvtrans {
 NonPipe::~NonPipe() { disconnect_all(); }
 

@@ -59,7 +59,7 @@ void Plant::step() {
   }
 }
 
-void Plant::run_steps(size_t num_steps) {
+void Plant::step(size_t num_steps) {
   for (size_t i = 0; i < num_steps; ++i) {
     step();
   }

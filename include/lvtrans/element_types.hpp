@@ -177,6 +177,15 @@ struct ValveState {
   double tau{};
 };
 
+struct ValveInternalServoState {
+  double tau{};       // Actual opening; also the servo/limiter feedback value.
+  double setpoint{};  // Requested opening.
+  bool rate_limited{};
+  double Q{};
+  double H1{};
+  double H2{};
+};
+
 struct ReservoirParameters {
   double H0{100.0};  //< Nominal geodesic level of the reservoir from datum.
   double cvp{1e5};   //< Loss coefficient with positive flow relative to element
@@ -217,8 +226,8 @@ struct DataPoint {
 
 using ElementID = int;
 
-using ElementState =
-    std::variant<ValveState, PipeState, ReservoirState, SurgeShaftState>;
+using ElementState = std::variant<ValveState, PipeState, ReservoirState,
+                                  SurgeShaftState, ValveInternalServoState>;
 
 struct ScalarValue {
   std::string name{};

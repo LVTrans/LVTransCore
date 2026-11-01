@@ -18,13 +18,11 @@ double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID id,
   const auto Ha = get_H(ct, id);
 
   if (ct == CharacteristicsType::Plus) {
-    const auto Cp1 = m_c_plus.at(id).c;
-    const auto Bp1 = m_c_plus.at(id).b;
-    return (Cp1 - Ha) / Bp1;  // plus
+    const auto& characteristics = m_c_plus.at(id);
+    return (characteristics.c - Ha) / characteristics.b;
   } else {
-    const auto Cm2 = m_c_minus.at(id).c;
-    const auto Bm2 = m_c_minus.at(id).b;
-    return (-Cm2 + Ha) / Bm2;  // minus
+    const auto& characteristics = m_c_minus.at(id);
+    return (-characteristics.c + Ha) / characteristics.b;
   }
 }
 
@@ -40,25 +38,17 @@ void SurgeShaftStandard::iterate(const double) {
 
   auto& p = m_params;
 
-  auto Cp1 = 0.0;
-  auto Bp1 = 0.0;
-  auto Cm2 = 0.0;
-  auto Bm2 = 0.0;
-
+  Characteristics cp{}, cm{};
   if (const auto* pipe = left()) {
-    const auto& characteristic = m_c_plus.at(pipe->get_ID());
-    Cp1 = characteristic.c;
-    Bp1 = characteristic.b;
+    cp = m_c_plus.at(pipe->get_ID());
   }
 
   if (const auto* pipe = right()) {
-    const auto& characteristic = m_c_minus.at(pipe->get_ID());
-    Cm2 = characteristic.c;
-    Bm2 = characteristic.b;
+    cm = m_c_minus.at(pipe->get_ID());
   }
 
-  double Sc = (Cp1 / Bp1) + (Cm2 / Bm2);
-  double Sb = (1.0 / Bp1) + (1.0 / Bm2);
+  double Sc = (cp.c / cp.b) + (cm.c / cm.b);
+  double Sb = (1.0 / cp.b) + (1.0 / cm.b);
   double Ca = Sc / Sb;
   double Ba = 1.0 / Sb;
 

@@ -61,6 +61,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveInternalServoState, tau, setpoint,
+                                   rate_limited)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q, H, L, H_liquid, Cv,
                                    H_liquid_0, H_liquid, Hb)
@@ -85,7 +87,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     kappa_change, a, b, c, servo_max, manual_default, power_droop)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoParameters,
-                                                losses, closing_time_high,
+                                                cvp, cvm, closing_time_high,
                                                 closing_time_low, switch_over,
                                                 servo_time, initial_opening,
                                                 use_cv_file, cv_file, diameter)
@@ -98,6 +100,7 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ElementType, {{ElementType::Pipe, "NormalPipe"},
                   {ElementType::Valve, "Valve"},
+                  {ElementType::ValveInternalServo, "ValveInternalServo"},
                   {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
                   {ElementType::SurgeShaftStandard, "SurgeShaftStandard"},
@@ -148,7 +151,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
       {ElementType::Valve, {ValveParameters{}, ValveState{}}},
       {ElementType::ValveInternalServo,
-       {ValveInternalServoParameters{}, ValveState{}}},
+       {ValveInternalServoParameters{}, ValveInternalServoState{}}},
       {ElementType::SurgeShaftStandard,
        {SurgeShaftStandardParameters{}, std::nullopt}},
       {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},

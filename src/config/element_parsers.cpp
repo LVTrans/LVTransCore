@@ -7,6 +7,7 @@
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/t_1in_2out_n.hpp"
 #include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 namespace lvtrans {
 
 namespace {
@@ -41,6 +42,22 @@ ElementParseResult ValveParser::parse(ElementContainer& container,
 
   valve.value()->set_name(element.name);
 
+  return ElementParseResult::Success;
+}
+
+ElementParseResult ValveInternalServoParser::parse(ElementContainer& container,
+                                                   ElementConfig& element,
+                                                   double step_size) {
+  const auto& config =
+      std::get<ValveInternalServoParameters>(element.parameters);
+  const auto state =
+      element.state ? std::get<ValveInternalServoState>(*element.state)
+                    : ValveInternalServoState{config.initial_opening,
+                                              config.initial_opening, false};
+  auto valve = container.add_element_with_id<ValveInternalServo>(
+      element.id, config, step_size, state);
+  if (!valve) return ElementParseResult::Error;
+  valve.value()->set_name(element.name);
   return ElementParseResult::Success;
 }
 
@@ -122,6 +139,8 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
       return std::make_unique<ReservoirParser>();
     case ElementType::Valve:
       return std::make_unique<ValveParser>();
+    case ElementType::ValveInternalServo:
+      return std::make_unique<ValveInternalServoParser>();
     case ElementType::SurgeShaftStandard:
       return std::make_unique<SurgeShaftStandardParser>();
     case ElementType::SimpleConnection:

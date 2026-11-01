@@ -297,13 +297,11 @@ struct GuiApp {
             std::visit(
                 [&](const auto& value) {
                   using Value = std::decay_t<decltype(value)>;
-                  const auto title =
-                      std::format("Element ({}) {}: {}",
-                                  element_type_to_str(
-                                      plant.get_element_by_id(view.element_id)
-                                          .value()
-                                          ->get_type()),
-                                  view.element_id, value.name);
+                  auto element =
+                      plant.get_element_by_id(view.element_id).value();
+                  const auto title = std::format(
+                      "{} ({}): {} ", element->get_name(),
+                      element_type_to_str(element->get_type()), value.name);
                   if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
                     ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
                     if constexpr (std::is_same_v<Value, ScalarValue>) {

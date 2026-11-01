@@ -202,7 +202,8 @@ struct PumpCentrifugalParameters {
 
 // Section 12.21, Table 12.18. Cv files contain opening [pu] and Cv columns.
 struct ValveInternalServoParameters {
-  LossCoefficients losses{};
+  double cvp{1e5};  //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to element
   double closing_time_high{};  // Extrapolated closing/opening time [s]
   double closing_time_low{};   // Extrapolated closing/opening time [s]
   double switch_over{};        // Servo changeover opening [pu]
@@ -211,13 +212,14 @@ struct ValveInternalServoParameters {
   bool use_cv_file{};
   std::string cv_file{};
   double diameter{};  // Inner valve diameter [m]
+                      //
   std::string to_str() const {
     return std::format(
-        "ValveInternalServoParameters: losses={}, closing_time_high={}, "
+        "ValveInternalServoParameters: cvp={}, cvm={}, closing_time_high={}, "
         "closing_time_low={}, switch_over={}, servo_time={}, "
         "initial_opening={}, use_cv_file={}, cv_file={}, diameter={}",
-        losses.to_str(), closing_time_high, closing_time_low, switch_over,
-        servo_time, initial_opening, use_cv_file, cv_file, diameter);
+        cvp, cvm, closing_time_high, closing_time_low, switch_over, servo_time,
+        initial_opening, use_cv_file, cv_file, diameter);
   }
 };
 

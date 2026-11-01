@@ -20,7 +20,7 @@
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
 #include "plot_data.hpp"
@@ -90,23 +90,23 @@ auto plant2() {
 
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
-  ValveParameters valve_params{.tau_i = 1.0,
-                               .tau_f = 1.0,
-                               .cvp = 10e3,
-                               .cvm = 10e3,
-                               .closing_time_h = 10,
-                               .closing_time_l = 10,
-                               .switch_over = 500e-3,
-                               .tks = 1.0,
-                               .tau_0 = 1.0,
-                               .diameter = 1.0};
+  ValveInternalServoParameters valve_params{.cvp = 10e3,
+                                            .cvm = 10e3,
+                                            .closing_time_high = 10,
+                                            .closing_time_low = 10,
+                                            .switch_over = 500e-3,
+                                            .servo_time = 1.0,
+                                            .initial_opening = 1.0,
+                                            .use_cv_file = false,
+                                            .cv_file = "cv-file.txt",
+                                            .diameter = 1.0};
 
   auto reservoir_left =
       plant->add_element<ConstantLevelLeft>(reservoir_params).value();
   auto pipe1 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto simple_conn1 =
       plant->add_element<SimpleConnection>(simple_connection_params).value();
-  auto valve2 = plant->add_element<Valve>(valve_params).value();
+  auto valve = plant->add_element<ValveInternalServo>(valve_params, dt).value();
   auto pipe2 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto pipe3 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto pipe4 = plant->add_element<Pipe>(pipe_params, dt).value();
@@ -115,6 +115,15 @@ auto plant2() {
   auto reservoir_right =
       plant->add_element<ConstantLevelRight>(reservoir_params2).value();
 
+  reservoir_left->set_name("Reservoir Left");
+  pipe1->set_name("Pipe 1");
+  pipe2->set_name("Pipe 2");
+  pipe3->set_name("Pipe 3");
+  pipe4->set_name("Pipe 4");
+  simple_conn1->set_name("Simple Connection 1");
+  simple_conn2->set_name("Simple Connection 2");
+  valve->set_name("Valve");
+
   HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
   HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1);
 
@@ -122,9 +131,9 @@ auto plant2() {
   HydraulicConnections::connect(*pipe2, PipeEnd::Right, *simple_conn2);
 
   HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2);
-  HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2);
+  HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve);
 
-  HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2);
+  HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve);
   HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
   return plant;
 };

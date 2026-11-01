@@ -26,6 +26,7 @@ target_sources(
         src/elements/pipe.cpp
         src/elements/base_pipe.cpp
         src/elements/valve.cpp
+        src/elements/valve_internal_servo.cpp
         src/elements/reservoir.cpp
         src/elements/non_pipe.cpp
         src/hydraulic_connections.cpp
