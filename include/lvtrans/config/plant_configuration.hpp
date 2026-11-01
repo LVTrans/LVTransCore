@@ -64,8 +64,8 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveInternalServoState, tau, setpoint,
                                    rate_limited)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q, H, L, H_liquid, Cv,
-                                   H_liquid_0, H_liquid, Hb)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q1, Q2, Q3, H1, H2, H3, L,
+                                   H_liquid, Cv, H_liquid_0, H_liquid, Hb)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,

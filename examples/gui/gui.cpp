@@ -20,6 +20,7 @@
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
@@ -138,8 +139,70 @@ auto plant2() {
   return plant;
 };
 
+auto plant3() {
+  // The element exports omit the timestep; use the same dt as plants 1 and 2.
+  constexpr double dt = 0.1;
+  auto plant = std::make_unique<Plant>(dt);
+
+  const ReservoirParameters dammen_params{
+      .H0 = 350.0, .cvp = 10e3, .cvm = 10e3};
+  const ReservoirParameters elva_params{.H0 = 5.0, .cvp = 100e3, .cvm = 100e3};
+  const SurgeShaftStandardParameters shaft_params{.use_area = true,
+                                                  .area = 314.159265,
+                                                  .diameter = 20.0,
+                                                  .f = 50e-3,
+                                                  .cvp = 10e3,
+                                                  .cvm = 10e3,
+                                                  .initial_level = 350.0};
+
+  const PipeParameters tun1_params{.H0 = 345.0,
+                                   .Q0 = 34.0,
+                                   .length = 4000.0,
+                                   .diameter = 8.0,
+                                   .area = 0.0,
+                                   .periphery = 0.0,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 60e-3,
+                                   .a = 1.2e3,
+                                   .z0 = 330.0,
+                                   .z1 = 330.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+
+  auto tun2_params = tun1_params;
+  tun2_params.length = 500.0;
+  tun2_params.diameter = 3.0;
+  tun2_params.f = 10e-3;
+  tun2_params.z1 = 0.0;
+  tun2_params.lambda = 50e6;
+
+  auto dammen = plant->add_element<ConstantLevelLeft>(dammen_params).value();
+  auto tun1 = plant->add_element<Pipe>(tun1_params, dt).value();
+  auto shaft = plant->add_element<SurgeShaftStandard>(shaft_params, dt).value();
+  auto tun2 = plant->add_element<Pipe>(tun2_params, dt).value();
+  auto elva = plant->add_element<ConstantLevelRight>(elva_params).value();
+
+  dammen->set_name("dammen");
+  tun1->set_name("tun1");
+  shaft->set_name("svingesjakt");
+  tun2->set_name("tun2");
+  elva->set_name("elva");
+
+  // dammen -> tun1 -> svingesjakt -> tun2 -> elva
+  HydraulicConnections::connect(*tun1, PipeEnd::Left, *dammen);
+  HydraulicConnections::connect(*tun1, PipeEnd::Right, *shaft);
+  HydraulicConnections::connect(*tun2, PipeEnd::Left, *shaft);
+  HydraulicConnections::connect(*tun2, PipeEnd::Right, *elva);
+  return plant;
+}
+
 int main() {
-  auto plant = plant2();
+  auto plant = plant3();
   GuiApp app(*plant);
   if (app.init() != 0) {
     std::cerr << "Failed to initialize GUI application.\n";

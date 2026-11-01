@@ -21,11 +21,13 @@ class ConstantLevelLeft : public Reservoir {
   }
 
   double get_H(CharacteristicsType, ElementID id) override {
-    return m_c_minus.at(id).c + m_c_minus.at(id).b * calculate_q(id);
+    const auto& c = m_c_minus.at(id);
+    const auto q = calculate_q(id);
+
+    return c.c + c.b * q;
   }
-  double get_Q(CharacteristicsType, ElementID id,
-               const IterateInput = {}) override {
-    return calculate_q(id);
+  double get_Q(CharacteristicsType, ElementID, const IterateInput) override {
+    return m_state.Q;
   }
 
   double calculate_q(ElementID id) {

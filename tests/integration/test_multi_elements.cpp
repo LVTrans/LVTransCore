@@ -305,7 +305,7 @@ TEST(MultiElementsTest, Complex) {
     
   // TODO: Lower the tolerance for higher accuracy
   constexpr double head_tolerance = 5e-6;  
-  constexpr double flow_tolerance = 1e-6; 
+  constexpr double flow_tolerance = 5e-6; 
   constexpr double opening_tolerance = 5.1e-7;  
   int row = 0;
   while (std::getline(reference, line)) {

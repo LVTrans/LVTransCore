@@ -19,16 +19,21 @@ class SurgeShaftStandard : public NonPipe {
   ModificationResult modify(const ElementModification&) override {
     return ModificationResult::Ok;
   }
-  void reset_state() override { m_state = SurgeShaftState{}; }
+  void reset_state() override;
 
   double get_H(CharacteristicsType, ElementID) override;
   double get_Q(CharacteristicsType, ElementID,
                const IterateInput = {}) override;
 
  private:
+  void initialize_from_pipes();
   SurgeShaftStandardParameters m_params;
   SurgeShaftState m_state;
   double m_dt{};  // Time step [s]
+  double m_area{};
+  double m_diameter{};
+  double m_base_elevation{};
+  bool m_initialized{false};
 };
 
 }  // namespace lvtrans

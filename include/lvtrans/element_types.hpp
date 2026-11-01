@@ -210,11 +210,17 @@ struct LossCoefficients {
 };
 
 struct SurgeShaftState {
-  double Q{};  // Flow [m^3/s]
-  double H{};  // Head [m from datum]
-  double L{};  // Shaft length [m]
+  double H1{};
+  double Q1{};
+  double H2{};
+  double Q2{};
+  double H3{};
+  double Q3{};
+
+  // double H{};
+  double L{};
   double Hb{};
-  double Cv{};  //
+  double Cv{};
   double H_liquid{};
   double H_liquid_0{};
 };
