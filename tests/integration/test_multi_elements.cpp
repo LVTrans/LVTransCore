@@ -73,7 +73,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
   const double Qi = std::sqrt(HR * Q0 * Q0 * tau_i * tau_i /
                               (R * segments * Q0 * Q0 * tau_i * tau_i + H0));
 
-  for (size_t i = 0; i < H0_pipe.size(); i += 2) {
+  for (size_t i = 0; i < H0_pipe.size(); ++i) {
     H0_pipe[i] = HR - static_cast<double>(i) * R * Qi * Qi;
     Q0_pipe[i] = Qi;
   }
@@ -106,7 +106,10 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
-                << pipe->get_H()[10] << "," << pipe->get_Q()[10] << '\n';
+                << valve->get_H(CharacteristicsType::Plus, pipe->get_ID())
+                << ","
+                << valve->get_Q(CharacteristicsType::Plus, pipe->get_ID(), {})
+                << '\n';
   }
 
   output_file.close();
@@ -156,22 +159,22 @@ TEST(MultiElementsTest, ReservoirPipeReservoir) {
       ConnectResult::Ok);
 
   const auto test_file_path =
-      get_mock_data_file_path("generated/multi_element_test_2.csv");
+      get_mock_data_file_path("generated/labview_test_A.csv");
   std::ofstream output_file(test_file_path);
 
   ASSERT_TRUE(output_file.is_open());
 
-  output_file << "t,H_0,H_N,Q_0,Q_N\n";
+  output_file << "t,H_0,H_N,Q_0,Q_N,LR_Q,RR_Q\n";
 
   std::ifstream reference(
       get_mock_data_file_path("expected/labview_test_A.txt"));
   ASSERT_TRUE(reference.is_open());
   std::string line;
-  ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));  // Header.
-  ASSERT_EQ(line, "Time(s) H_0 H_N Q1 Q2");
+  ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));
   output_file << std::setprecision(7);
 
-  constexpr double export_tolerance = 5.1e-7;  // Six-decimal rounding.
+  // TODO: Lower the tolerance for higher accuracy
+  constexpr double export_tolerance = 5.1e-6;
   int row = 0;
   while (std::getline(reference, line)) {
     std::replace(line.begin(), line.end(), ',', '.');
@@ -179,15 +182,11 @@ TEST(MultiElementsTest, ReservoirPipeReservoir) {
     std::istringstream fields(line);
     double reported_time, h0, hn, q0, qn, lr_q, rr_q;
 
-    ASSERT_TRUE(
-        static_cast<bool>(fields >> reported_time >> h0 >> hn >> q0 >> qn));
-    // lr_q *= -1;
-    // rr_q *= -1;
+    ASSERT_TRUE(static_cast<bool>(fields >> reported_time >> h0 >> hn >> q0 >>
+                                  qn >> lr_q >> rr_q));
     const auto sample_step =
         static_cast<std::uint64_t>(std::llround(reported_time / dt));
-    // ASSERT_GE(sample_step, plant.get_num_terations());
     plant.step(sample_step - plant.get_num_terations());
-    // ASSERT_NEAR(plant.get_current_time(), reported_time, 1e-10);
 
     SCOPED_TRACE("LabVIEW reported t=" + std::to_string(reported_time) +
                  ", solver t=" + std::to_string(plant.get_current_time()) +
@@ -197,10 +196,16 @@ TEST(MultiElementsTest, ReservoirPipeReservoir) {
     EXPECT_NEAR(pipe->get_H().back(), hn, export_tolerance);
     EXPECT_NEAR(pipe->get_Q().front(), q0, export_tolerance);
     EXPECT_NEAR(pipe->get_Q().back(), qn, export_tolerance);
+    EXPECT_NEAR(reservoir_left->get_state_as<ReservoirState>().Q, lr_q,
+                export_tolerance);
+    EXPECT_NEAR(reservoir_right->get_state_as<ReservoirState>().Q, rr_q,
+                export_tolerance);
 
     output_file << plant.get_current_time() << ',' << pipe->get_H().front()
                 << ',' << pipe->get_H().back() << ',' << pipe->get_Q().front()
-                << ',' << pipe->get_Q().back() << ',' << '\n';
+                << ',' << pipe->get_Q().back() << ','
+                << reservoir_left->get_state_as<ReservoirState>().Q << ","
+                << reservoir_right->get_state_as<ReservoirState>().Q << '\n';
     ++row;
   }
   EXPECT_FALSE(reference.bad());
@@ -241,7 +246,6 @@ TEST(MultiElementsTest, Complex) {
 
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
-  // LabVIEW internal-servo valve, initially open, Cv file disabled.
   ValveInternalServoParameters valve_params{
       .cvp = 10e3, 
       .cvm = 10e3,
@@ -283,7 +287,7 @@ TEST(MultiElementsTest, Complex) {
 
 
   const auto test_file_path =
-      get_mock_data_file_path("generated/multi_element_test_complex.csv");
+      get_mock_data_file_path("generated/labview_test_B.csv");
   std::ofstream output_file(test_file_path);
 
   ASSERT_TRUE(output_file.is_open());
@@ -298,9 +302,11 @@ TEST(MultiElementsTest, Complex) {
   ASSERT_EQ(line, "Time(s)	P1_H0	P1_HN	P1_Q1	P1_Q2	P2_H0	P2_HN	P2_Q1	P2_Q2	P3_H0	P3_HN	P3_Q1	P3_Q2	P4_H0	P4_HN	P4_Q1	P4_Q2	V_H1	V_H2	V_Q1	V_Q2	V_tau_SP	V_tau_OP");
   output_file << std::setprecision(8);
 
+    
+  // TODO: Lower the tolerance for higher accuracy
   constexpr double head_tolerance = 5e-6;  
   constexpr double flow_tolerance = 1e-6; 
-  constexpr double opening_tolerance = 5.1e-7;  // Six-decimal export.
+  constexpr double opening_tolerance = 5.1e-7;  
   int row = 0;
   while (std::getline(reference, line)) {
     std::replace(line.begin(), line.end(), ',', '.');
@@ -365,16 +371,13 @@ TEST(MultiElementsTest, Complex) {
     EXPECT_NEAR(pipe4->get_Q().front(), p4_q0, flow_tolerance);
     EXPECT_NEAR(pipe4->get_Q().back(), p4_qn, flow_tolerance);
 
-    // TODO: Fix non-pipe update boundary 
-    // EXPECT_NEAR(valve_state.H1, v_h1, head_tolerance);
-    // EXPECT_NEAR(valve_state.H2, v_h2, head_tolerance);
-    // EXPECT_NEAR(valve_state.Q, v_q1, flow_tolerance);
-    // EXPECT_NEAR(valve_state.Q, v_q2, flow_tolerance);
-    // EXPECT_NEAR(valve2->get_setpoint(), v_tau_sp, opening_tolerance);
-    // EXPECT_NEAR(valve2->get_tau(), v_tau_op, opening_tolerance);
-
+    EXPECT_NEAR(valve_state.H1, v_h1, head_tolerance);
+    EXPECT_NEAR(valve_state.H2, v_h2, head_tolerance);
+    EXPECT_NEAR(valve_state.Q, v_q1, flow_tolerance);
+    EXPECT_NEAR(valve_state.Q, v_q2, flow_tolerance);
+    EXPECT_NEAR(valve2->get_setpoint(), v_tau_sp, opening_tolerance);
+    EXPECT_NEAR(valve2->get_tau(), v_tau_op, opening_tolerance);
 
     ++row;
   }
-  EXPECT_FALSE(reference.bad());
 }

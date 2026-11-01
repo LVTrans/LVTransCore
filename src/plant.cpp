@@ -43,6 +43,10 @@ void Plant::step() {
   const auto& controllers = m_data.element_container.get_controllers();
 
   for (auto& pipe : pipes) {
+    pipe->update_boundaries();
+  }
+
+  for (auto& pipe : pipes) {
     pipe->iterate(t);
   }
 
@@ -52,10 +56,6 @@ void Plant::step() {
 
   for (auto& non_pipe : non_pipes) {
     non_pipe->iterate(t);
-  }
-
-  for (auto& pipe : pipes) {
-    pipe->update_boundaries();
   }
 }
 

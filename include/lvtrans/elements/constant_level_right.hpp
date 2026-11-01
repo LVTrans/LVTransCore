@@ -2,6 +2,7 @@
 #pragma once
 
 #include <cmath>
+#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/reservoir.hpp"
 namespace lvtrans {
 class ConstantLevelRight : public Reservoir {
@@ -12,6 +13,10 @@ class ConstantLevelRight : public Reservoir {
 
   ElementType get_type() const override {
     return ElementType::ConstantLevelRight;
+  }
+
+  void iterate(double) override {
+    if (const auto* pipe = left()) get_Qp(pipe->get_ID());
   }
 
   double get_H(CharacteristicsType, ElementID id) override {

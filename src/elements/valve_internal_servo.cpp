@@ -53,6 +53,17 @@ void ValveInternalServo::iterate(double) {
     m_state.tau = -max_rate * m_dt + previous;
     m_state.rate_limited = true;
   }
+
+  // Report the new boundary solution; pipes consume it next iteration.
+  const double q = calculate_q();
+  if (const auto* pipe = left()) {
+    const auto& c = m_c_plus.at(pipe->get_ID());
+    m_state.H1 = c.c - c.b * q;
+  }
+  if (const auto* pipe = right()) {
+    const auto& c = m_c_minus.at(pipe->get_ID());
+    m_state.H2 = c.c + c.b * q;
+  }
 }
 
 void ValveInternalServo::reset_state() {

@@ -16,6 +16,10 @@ class ConstantLevelLeft : public Reservoir {
     return ElementType::ConstantLevelLeft;
   }
 
+  void iterate(double) override {
+    if (const auto* pipe = right()) get_Qp(pipe->get_ID());
+  }
+
   double get_H(CharacteristicsType, ElementID id) override {
     return m_c_minus.at(id).c + m_c_minus.at(id).b * get_Qp(id);
   }

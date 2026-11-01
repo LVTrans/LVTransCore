@@ -93,7 +93,8 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_DOUBLE_EQ(config.length, 100.0);
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
   EXPECT_DOUBLE_EQ(config.f, 1.0);
-  EXPECT_DOUBLE_EQ(config.a, 1.0);
+  // Match the 10 segments in the saved initial profile.
+  EXPECT_DOUBLE_EQ(config.a, 40.0);
   EXPECT_DOUBLE_EQ(config.z0, 0.0);
   EXPECT_DOUBLE_EQ(config.z1, 100.0);
   EXPECT_DOUBLE_EQ(config.lambda, 0.0);
@@ -138,6 +139,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
 //
 // Circulation loop:
 //  P680 — V350 — P470 — V790 — P260 — V630 — back to P680
+// Synthetic fixture wave speeds match the node counts of its saved profiles.
 TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   using namespace lvtrans;
   PlantData loaded, reloaded;

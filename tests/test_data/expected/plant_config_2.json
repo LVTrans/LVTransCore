@@ -166,7 +166,7 @@
       "id": 720,
       "name": "Main transfer",
       "parameters": {
-        "a": 1200.0,
+        "a": 2000.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -194,7 +194,7 @@
       "id": 260,
       "name": "Loop west",
       "parameters": {
-        "a": 1200.0,
+        "a": 3300.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -222,7 +222,7 @@
       "id": 410,
       "name": "Main intake",
       "parameters": {
-        "a": 1200.0,
+        "a": 2400.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -250,7 +250,7 @@
       "id": 550,
       "name": "Auxiliary outlet",
       "parameters": {
-        "a": 1200.0,
+        "a": 4800.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -278,7 +278,7 @@
       "id": 680,
       "name": "Loop north",
       "parameters": {
-        "a": 1200.0,
+        "a": 5400.0,
         "area": 0.0,
         "diameter": 0.5,
         "dimension": "Circular",
@@ -309,7 +309,7 @@
       "id": 230,
       "name": "Auxiliary intake",
       "parameters": {
-        "a": 1200.0,
+        "a": 2800.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -337,7 +337,7 @@
       "id": 470,
       "name": "Loop east",
       "parameters": {
-        "a": 1200.0,
+        "a": 4000.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -369,7 +369,7 @@
       "id": 160,
       "name": "Main outlet",
       "parameters": {
-        "a": 1200.0,
+        "a": 1800.0,
         "area": 0.0,
         "diameter": 0.5,
         "dimension": "Circular",

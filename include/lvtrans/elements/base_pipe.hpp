@@ -131,7 +131,10 @@ class BasePipe : public Element {
   ElementView read_view() const override;
   void iterate(const double t = 0) override = 0;
   std::optional<ElementState> get_state() const override { return m_state; }
-  void reset_state() override { m_state = m_initial_state; }
+  void reset_state() override {
+    m_state = m_initial_state;
+    update_characteristics();
+  }
   ConnectResult connect_left(NonPipe& element);
   ConnectResult connect_right(NonPipe& element);
 
@@ -143,6 +146,7 @@ class BasePipe : public Element {
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
   void update_boundaries();
+  void update_characteristics();
 
   const BoundaryLink& left_link() const { return m_left; }
   const BoundaryLink& right_link() const { return m_right; }
