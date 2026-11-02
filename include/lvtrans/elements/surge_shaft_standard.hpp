@@ -16,6 +16,8 @@ struct SurgeShaftDerivedData {
 class SurgeShaftStandard : public NonPipe {
  public:
   SurgeShaftStandard(const SurgeShaftStandardParameters& parameters, double dt);
+  SurgeShaftStandard(const SurgeShaftStandardParameters& parameters, double dt,
+                     const SurgeShaftState& state);
   const SurgeShaftStandardParameters& config() const { return m_params; }
   void iterate(const double t = 0) override;
   ElementType get_type() const override {

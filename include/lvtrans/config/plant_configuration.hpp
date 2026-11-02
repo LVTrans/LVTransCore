@@ -153,7 +153,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       {ElementType::ValveInternalServo,
        {ValveInternalServoParameters{}, ValveInternalServoState{}}},
       {ElementType::SurgeShaftStandard,
-       {SurgeShaftStandardParameters{}, std::nullopt}},
+       {SurgeShaftStandardParameters{}, SurgeShaftState{}}},
       {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
       {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::ConstantLevelLeft,

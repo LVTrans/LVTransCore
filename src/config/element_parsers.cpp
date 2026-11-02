@@ -117,11 +117,14 @@ ElementParseResult SurgeShaftStandardParser::parse(ElementContainer& container,
                                                    double dt) {
   const auto& parameters =
       std::get<SurgeShaftStandardParameters>(element.parameters);
+
   SurgeShaftStandard* surge_shaft = nullptr;
-  surge_shaft =
-      container
-          .add_element_with_id<SurgeShaftStandard>(element.id, parameters, dt)
-          .value_or(nullptr);
+  const auto state = element.state ? std::get<SurgeShaftState>(*element.state)
+                                   : SurgeShaftState{};
+  surge_shaft = container
+                    .add_element_with_id<SurgeShaftStandard>(
+                        element.id, parameters, dt, state)
+                    .value_or(nullptr);
   if (!surge_shaft) return ElementParseResult::Error;
   surge_shaft->set_name(element.name);
 

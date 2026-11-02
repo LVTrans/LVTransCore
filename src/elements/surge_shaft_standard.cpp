@@ -38,6 +38,13 @@ SurgeShaftStandard::SurgeShaftStandard(
   reset_state();
 }
 
+SurgeShaftStandard::SurgeShaftStandard(
+    const SurgeShaftStandardParameters& parameters, double dt,
+    const SurgeShaftState& state)
+    : SurgeShaftStandard(parameters, dt) {
+  m_state = state;
+}
+
 void SurgeShaftStandard::reset_state() {
   m_state = {};
   m_state.H1 = m_state.H2 = m_state.H3 = m_params.H_start;
