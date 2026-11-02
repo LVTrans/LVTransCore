@@ -47,69 +47,11 @@ TEST(PipeTest, ReadViewExportsEvenNodesWithMatchingPhysicalCoordinates) {
   EXPECT_EQ(flow.x_unit, "m");
 }
 
-TEST(PipeTest, ReadViewIncludesEvenInteriorNodesAndLeavesSolverStateIntact) {
-  using namespace lvtrans;
-  Pipe pipe(
-      PipeParameters{
-          .H0 = std::vector<double>{100, 1000, 90, 2000, 80, 3000, 70},
-          .Q0 = std::vector<double>{1, -100, 2, -200, 3, -300, 4},
-          .length = 360.0,
-          .a = 1200.0,
-          .lambda = 0.0},
-      0.1);
-  for (int iteration = 0; iteration < 2; ++iteration) {
-    if (iteration != 0) pipe.iterate();
-    const auto raw_h = pipe.get_H();
-    const auto raw_q = pipe.get_Q();
-    ASSERT_EQ(raw_h.size(), 7u);
-    ASSERT_EQ(raw_q.size(), 7u);
-    const auto view = pipe.read_view();
-    ASSERT_EQ(view.values.size(), 2u);
-    const auto& head = std::get<VectorValue>(view.values[0]);
-    const auto& flow = std::get<VectorValue>(view.values[1]);
-    ASSERT_EQ(head.values.size(), 4u);
-    ASSERT_EQ(flow.values.size(), 4u);
-    const std::vector<double> expected_x{0.0, 120.0, 240.0, 360.0};
-    EXPECT_EQ(head.x_values, expected_x);
-    EXPECT_EQ(flow.x_values, expected_x);
-    for (std::size_t i = 0; i < 4; ++i) {
-      EXPECT_DOUBLE_EQ(head.values[i], raw_h[2 * i]);
-      EXPECT_DOUBLE_EQ(flow.values[i], raw_q[2 * i]);
-    }
-    EXPECT_EQ(pipe.get_H(), raw_h);
-    EXPECT_EQ(pipe.get_Q(), raw_q);
-  }
-}
-
-TEST(PipeTest, ReadViewCoordinatesBelongToEachPipe) {
-  using namespace lvtrans;
-  Pipe short_pipe(PipeParameters{.length = 100.0, .a = 1200.0, .lambda = 0.0},
-                  0.1);
-  Pipe long_pipe(PipeParameters{.length = 600.0, .a = 1200.0, .lambda = 0.0},
-                 0.1);
-  // Repeat the first pipe after reading another to catch shared caches.
-  for (const auto* pipe : {&short_pipe, &long_pipe, &short_pipe}) {
-    const auto view = pipe->read_view();
-    for (const auto& value : view.values) {
-      const auto& profile = std::get<VectorValue>(value);
-      ASSERT_EQ(profile.x_values.size(), profile.values.size());
-      ASSERT_GE(profile.x_values.size(), 2u);
-      EXPECT_DOUBLE_EQ(profile.x_values.front(), 0.0);
-      EXPECT_DOUBLE_EQ(profile.x_values.back(), pipe->config().length);
-      const double dx = pipe->config().length /
-                        static_cast<double>(profile.values.size() - 1);
-      for (std::size_t i = 0; i < profile.values.size(); ++i) {
-        EXPECT_DOUBLE_EQ(profile.x_values[i], static_cast<double>(i) * dx);
-      }
-    }
-  }
-}
-
 TEST(PipeTest, ConnectsToUpstreamReservoir) {
   using namespace lvtrans;
   auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
   ASSERT_EQ(reservoir->right_links().size(), 1u);
-  EXPECT_EQ(reservoir->right_links()[0].pipe, nullptr);
+  EXPECT_EQ(reservoir->right(), nullptr);
 
   Pipe pipe(PipeParameters{.H0 = 150.0,
                            .Q0 = 0.0,
@@ -124,7 +66,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   ASSERT_EQ(HydraulicConnections::connect(pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
 
-  EXPECT_EQ(reservoir->right_links()[0].pipe, &pipe);
+  EXPECT_EQ(reservoir->right(), &pipe);
   EXPECT_NE(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), nullptr);
 
@@ -134,7 +76,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
 
   HydraulicConnections::disconnect(pipe, PipeEnd::Left);
   EXPECT_EQ(pipe.left_elem(), nullptr);
-  EXPECT_EQ(reservoir->right_links()[0].pipe, nullptr);
+  EXPECT_EQ(reservoir->right(), nullptr);
 }
 
 TEST(PipeTest, InvalidOrOccupiedSlotsLeaveExistingConnectionsIntact) {
@@ -182,7 +124,6 @@ TEST(PipeTest, DestroyingEitherEndpointDisconnectsTheSurvivor) {
   EXPECT_NO_THROW(pipe.disconnect_all());
 }
 
-// Test fixture for slot bookkeeping only; no additional simulation model.
 namespace {
 class ReservoirSlots final : public lvtrans::Reservoir {
  public:

@@ -12,6 +12,7 @@
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
+#include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -380,4 +381,127 @@ TEST(MultiElementsTest, Complex) {
 
     ++row;
   }
+}
+
+
+
+
+TEST(MultiElementsTest, SurgeShaft) {
+  GTEST_SKIP() << "Skipping SurgeShaft test due to known LabVIEW discrepancies. See issue Github issue #34 for details.";
+  using namespace lvtrans;
+  constexpr double dt = 0.1;
+  Plant plant (dt);
+
+  const ReservoirParameters dammen_params{
+      .H0 = 350.0, .cvp = 10e3, .cvm = 10e3};
+  const ReservoirParameters elva_params{.H0 = 5.0, .cvp = 100e3, .cvm = 100e3};
+  const SurgeShaftStandardParameters shaft_params{.use_area = true,
+                                                  .area = 314.159265,
+                                                  .diameter = 20.0,
+                                                  .f = 50e-3,
+                                                  .cvp = 10e3,
+                                                  .cvm = 10e3,
+                                                  .H_start = 350.0};
+
+  const PipeParameters tun1_params{.H0 = 345.0,
+                                   .Q0 = 34.0,
+                                   .length = 4000.0,
+                                   .diameter = 8.0,
+                                   .area = 0.0,
+                                   .periphery = 0.0,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 60e-3,
+                                   .a = 1.2e3,
+                                   .z0 = 330.0,
+                                   .z1 = 330.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+
+  auto tun2_params = tun1_params;
+  tun2_params.length = 500.0;
+  tun2_params.diameter = 3.0;
+  tun2_params.f = 10e-3;
+  tun2_params.z1 = 0.0;
+  tun2_params.lambda = 50e6;
+
+  auto dammen = plant.add_element<ConstantLevelLeft>(dammen_params).value();
+  auto tun1 = plant.add_element<Pipe>(tun1_params, dt).value();
+  auto shaft = plant.add_element<SurgeShaftStandard>(shaft_params, dt).value();
+  auto tun2 = plant.add_element<Pipe>(tun2_params, dt).value();
+  auto elva = plant.add_element<ConstantLevelRight>(elva_params).value();
+
+
+  // dammen -> tun1 -> svingesjakt -> tun2 -> elva
+  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Left, *dammen), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Right, *shaft), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Left, *shaft), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Right, *elva), ConnectResult::Ok);
+
+
+  const auto test_file_path =
+      get_mock_data_file_path("generated/labview_test_C.csv");
+  std::ofstream output_file(test_file_path);
+
+  ASSERT_TRUE(output_file.is_open());
+
+  output_file << "t,s_H1,s_H2,s_H3,s_Q1,s_Q2,s_Q3\n";
+
+  std::ifstream reference(
+      get_mock_data_file_path("expected/labview_test_C.txt"));
+  ASSERT_TRUE(reference.is_open());
+  std::string line;
+  ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));  // Header.
+  output_file << std::setprecision(8);
+
+    
+  constexpr double head_tolerance = 5e-6;  
+  constexpr double flow_tolerance = 5e-6; 
+  int row = 0;
+  while (std::getline(reference, line)) {
+    std::replace(line.begin(), line.end(), ',', '.');
+    std::istringstream fields(line);
+    double reported_time, s_h1, s_h2, s_h3, s_q1, s_q2, s_q3;
+    double h_floor, h_datum; 
+
+
+    ASSERT_TRUE(
+            static_cast<bool>(fields >> reported_time >> s_h1 >> s_h2 >> s_h3 >> s_q1 >> s_q2 >> s_q3 >> h_floor >> h_datum));
+    fields >> std::ws;
+    ASSERT_TRUE(fields.eof()) << "Unexpected extra reference columns";
+
+    const auto sample_step =
+        static_cast<std::uint64_t>(std::llround(reported_time / dt));
+    while (plant.get_num_terations() < sample_step) {
+        plant.step();
+        auto shaft_state = shaft->get_state_as<SurgeShaftState>();
+        output_file << plant.get_current_time() << ',' << shaft_state.H1
+                << ',' << shaft_state.H2 << ',' << shaft_state.H3 << ','
+                << shaft_state.Q1 << ',' << shaft_state.Q2 << ','
+                << shaft_state.Q3 << '\n';
+    }
+
+    SCOPED_TRACE("LabVIEW reported t=" + std::to_string(reported_time) +
+                 ", solver t=" + std::to_string(plant.get_current_time()) +
+                 " (row " + std::to_string(row) + ")");
+    ASSERT_NEAR(plant.get_current_time(), reported_time, 1e-10);
+
+    auto shaft_state = shaft->get_state_as<SurgeShaftState>();
+
+    EXPECT_NEAR(shaft_state.H1, s_h1, head_tolerance);
+    EXPECT_NEAR(shaft_state.H2, s_h2, head_tolerance);
+    EXPECT_NEAR(shaft_state.H3, s_h3, head_tolerance);
+    EXPECT_NEAR(shaft_state.Q1, s_q1, flow_tolerance);
+    EXPECT_NEAR(shaft_state.Q2, s_q2, flow_tolerance);
+    EXPECT_NEAR(shaft_state.Q3, s_q3, flow_tolerance);
+
+
+    ++row;
+  }
+  EXPECT_GT(row, 0);
+  EXPECT_FALSE(reference.bad());
 }
