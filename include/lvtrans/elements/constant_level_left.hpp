@@ -8,14 +8,13 @@
 namespace lvtrans {
 class ConstantLevelLeft : public Reservoir {
  public:
-  ConstantLevelLeft(const double elevation) : Reservoir(elevation, 0, 1) {}
-  ConstantLevelLeft(const ReservoirParameters& parameters)
-      : Reservoir(parameters, 0, 1) {}
-
+  ConstantLevelLeft(const double elevation);
+  ConstantLevelLeft(const ReservoirParameters& parameters);
   ElementType get_type() const override {
     return ElementType::ConstantLevelLeft;
   }
 
+<<<<<<< Updated upstream
   double get_H(CharacteristicsType, ElementID id) override {
     return m_c_minus.at(id).c + m_c_minus.at(id).b * get_Qp(id);
   }
@@ -46,5 +45,14 @@ class ConstantLevelLeft : public Reservoir {
 
     return Qp;
   }
+=======
+  void iterate(double) override;
+
+  double get_H(CharacteristicsType, ElementID id) override;
+  double get_Q(CharacteristicsType, ElementID, const IterateInput) override;
+
+ private:
+  double calculate_q();
+>>>>>>> Stashed changes
 };
 }  // namespace lvtrans

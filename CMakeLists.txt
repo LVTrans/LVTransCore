@@ -28,6 +28,8 @@ target_sources(
         src/elements/valve.cpp
         src/elements/reservoir.cpp
         src/elements/non_pipe.cpp
+        src/elements/constant_level_left.cpp
+        src/elements/constant_level_right.cpp
         src/hydraulic_connections.cpp
         src/controller_connections.cpp
         src/elements/pid_turbine.cpp

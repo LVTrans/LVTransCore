@@ -24,6 +24,12 @@ ConnectResult HydraulicConnections::connect(BasePipe& pipe, const PipeEnd end,
               .terminal = {.side = side, .index = terminal_index}};
   slots[terminal_index] = {.pipe = &pipe, .end = end};
 
+<<<<<<< Updated upstream
+=======
+  // Boundary getters need valid C/B even before the first pipe iteration
+  pipe.update_characteristics();
+
+>>>>>>> Stashed changes
   return ConnectResult::Ok;
 }
 
