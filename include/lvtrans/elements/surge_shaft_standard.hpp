@@ -1,9 +1,17 @@
 #pragma once
+#include <vector>
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
+
+struct SurgeShaftDerivedData {
+  std::vector<double> Z0{};
+  double H_liq_level{};
+  double D_Dh{};
+  double area{};
+};
 
 class SurgeShaftStandard : public NonPipe {
  public:
@@ -29,9 +37,8 @@ class SurgeShaftStandard : public NonPipe {
   void initialize_from_pipes();
   SurgeShaftStandardParameters m_params;
   SurgeShaftState m_state;
+  SurgeShaftDerivedData m_derived;
   double m_dt{};  // Time step [s]
-  double m_area{};
-  double m_diameter{};
   double m_base_elevation{};
   bool m_initialized{false};
 };

@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdlib>
-#include <format>
 #include <lvtrans/elements/base_pipe.hpp>
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -18,14 +17,7 @@ BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
       m_derived{calculate_pipe_data(p, system_dt)},
       m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},
-      m_initial_state{m_state} {
-  const auto& grid = m_derived.grid;
-  m_state.Z.resize(grid.num_nodes);
-  double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
-  for (size_t i{0}; i < grid.num_nodes; i++) {
-    m_state.Z[i] = dZ * static_cast<double>(i) + p.z0;
-  }
-}
+      m_initial_state{m_state} {}
 
 void BasePipe::update_boundaries() {
   const auto& grid = m_derived.grid;
@@ -171,6 +163,12 @@ PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
   coefficients.B = calculate_B(grid.wave_speed, coefficients.area);
   coefficients.lambda =
       calculate_lambda(p.lambda, grid.dx, p.rho, coefficients.area);
+
+  data.Z.resize(grid.num_nodes);
+  double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
+  for (size_t i{0}; i < grid.num_nodes; i++) {
+    data.Z[i] = dZ * static_cast<double>(i) + p.z0;
+  }
   return data;
 }
 }  // namespace lvtrans

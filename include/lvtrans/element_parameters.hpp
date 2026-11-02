@@ -75,12 +75,12 @@ struct SurgeShaftStandardParameters {
   double f{50.0e-3};     // Shaft friction factor
   double cvp{1e5};  //< Loss coefficient with positive flow relative to element
   double cvm{1e5};  //< Loss coefficient with negative flow relative to element
-  double initial_level{100.0};  // H start [m from datum]
+  double H_start{100.0};  // H start [m from datum]
   std::string to_str() const {
     return std::format(
         "SurgeShaftStandardParameters: use_area={}, area={}, diameter={}, "
         "f={}, cvp={}, cvm={}, initial_level={}",
-        use_area, area, diameter, f, cvp, cvm, initial_level);
+        use_area, area, diameter, f, cvp, cvm, H_start);
   }
 };
 

@@ -10,7 +10,7 @@ class Reservoir : public NonPipe {
   Reservoir(double elevation, std::size_t left_count, std::size_t right_count);
   Reservoir(const ReservoirParameters& config, std::size_t left_count,
             std::size_t right_count);
-  ~Reservoir() override = 0;
+  ~Reservoir() = default;
   void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
 

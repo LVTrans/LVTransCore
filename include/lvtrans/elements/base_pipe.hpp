@@ -114,6 +114,7 @@ struct PipeCoefficients {
 struct PipeDerivedData {
   PipeDiscretization grid;
   PipeCoefficients coefficients;
+  std::vector<double> Z{};
 };
 
 PipeDerivedData calculate_pipe_data(const PipeParameters& parameters,
@@ -145,6 +146,7 @@ class BasePipe : public Element {
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
+  PipeDerivedData get_derived_data() const { return m_derived; }
   void update_boundaries();
   void update_characteristics();
 
@@ -164,7 +166,7 @@ class BasePipe : public Element {
  protected:
   PipeParameters m_params{};
 
-  const PipeDerivedData m_derived;
+  PipeDerivedData m_derived;
   PipeState m_state{};
   PipeState m_initial_state{};
 };

@@ -17,8 +17,6 @@ Reservoir::Reservoir(const ReservoirParameters& params, std::size_t left_count,
   m_params = params;
 }
 
-Reservoir::~Reservoir() {}
-
 ModificationResult Reservoir::modify(const ElementModification& mod) {
   if (std::get_if<SetReservoirH0>(&mod)) {
     m_params.H0 = std::get<SetReservoirH0>(mod).h0;

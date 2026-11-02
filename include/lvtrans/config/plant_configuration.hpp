@@ -78,7 +78,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectionParameters, cv1, cv2,
                                                 cv3);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SurgeShaftStandardParameters,
                                                 use_area, area, diameter, f,
-                                                cvm, cvp, initial_level);
+                                                cvm, cvp, H_start);
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PIDTurbineParameters, rated_power, rated_speed, power_setpoint, kp_grid,
