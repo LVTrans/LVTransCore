@@ -153,7 +153,7 @@ auto plant3() {
                                                   .f = 50e-3,
                                                   .cvp = 10e3,
                                                   .cvm = 10e3,
-                                                  .initial_level = 350.0};
+                                                  .H_start = 350.0};
 
   const PipeParameters tun1_params{.H0 = 345.0,
                                    .Q0 = 34.0,
