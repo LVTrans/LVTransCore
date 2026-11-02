@@ -41,7 +41,7 @@ struct GuiApp {
   Clock::time_point last_frame = Clock::now();
 
   explicit GuiApp(Plant& p) : plant(p), dt{plant.get_step_size()} {}
-  ~GuiApp() { shutdown(); }
+  ~GuiApp() {}
 
   [[nodiscard]] int init() {
     glfwSetErrorCallback([](int code, const char* description) {
