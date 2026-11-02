@@ -1,8 +1,10 @@
-.PHONY: run test bench examples gui clean format check
+.PHONY: run test bench examples gui benchA benchB clean format check
 
 run:
 	./build.sh
-test: run
+test:
+	cmake -S . -B build -DLVTRANS_BUILD_TESTS=ON -G "Ninja"
+	cmake --build build --target tests -j "$$(nproc)"
 	ctest --test-dir build --output-on-failure -j "$$(nproc)"
 bench:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_TESTS=OFF -DLVTRANS_BUILD_EXAMPLES=OFF -DLVTRANS_BUILD_GUI=OFF -G "Ninja"
@@ -11,14 +13,14 @@ bench:
 examples:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_EXAMPLES=ON -G "Ninja"
 	cmake --build build --config Debug -j "$$(nproc)"
-benchA:
+gui:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
-	cmake --build build --target benchA -j "$$(nproc)"
-	./build/examples/gui/benchA
-benchB:
+	cmake --build build --target gui -j "$$(nproc)"
+	./build/examples/gui/gui
+bench-gui:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
-	cmake --build build --target benchB -j "$$(nproc)"
-	./build/examples/gui/benchB
+	cmake --build build --target bench -j "$$(nproc)"
+	./build/examples/gui/bench
 clean:
 	rm -rf build
 format:

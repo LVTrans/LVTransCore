@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <span>
 #include <unordered_map>
 #include <vector>
@@ -10,7 +11,7 @@ namespace lvtrans {
 
 class BasePipe;
 
-enum class CharacteristicsType { CPlus, CMinus };
+enum class CharacteristicsType { Plus, Minus };
 
 struct Characteristics {
   double c{};
@@ -32,11 +33,19 @@ class NonPipe : public Element {
   }
 
   void set_characteristics(Characteristics c, int id) {
-    if (c.type == CharacteristicsType::CPlus) {
+    if (c.type == CharacteristicsType::Plus) {
       m_c_plus.insert_or_assign(id, c);
     } else {
       m_c_minus.insert_or_assign(id, c);
     }
+  }
+
+  const BasePipe* left(std::size_t index = 0) const {
+    return m_left.empty() ? nullptr : m_left[index].pipe;
+  }
+
+  const BasePipe* right(std::size_t index = 0) const {
+    return m_right.empty() ? nullptr : m_right[index].pipe;
   }
 
  protected:

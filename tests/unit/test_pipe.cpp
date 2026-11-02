@@ -4,11 +4,54 @@
 #include <memory>
 #include "lvtrans/elements/constant_level_left.hpp"
 
+TEST(PipeTest, CharacteristicsUseGridAdjustedWaveSpeed) {
+  using namespace lvtrans;
+  PipeParameters parameters{
+      .length = 100.0, .diameter = 1.0, .a = 1200.0, .lambda = 0.0};
+  const auto no_damping = calculate_pipe_data(parameters, 0.1);
+  EXPECT_EQ(no_damping.grid.num_segments, 2u);
+  EXPECT_DOUBLE_EQ(no_damping.grid.dx, 50.0);
+  EXPECT_DOUBLE_EQ(no_damping.grid.wave_speed, 1000.0);
+  // Original pipe_core: B = adjusted_a / (area * 9.82).
+  EXPECT_NEAR(no_damping.coefficients.B, 129.65779477954814, 1e-10);
+
+  parameters.lambda = 500000.0;
+  const auto damped = calculate_pipe_data(parameters, 0.1);
+  EXPECT_NEAR(damped.grid.wave_speed, 1004.987562112089, 1e-10);
+  EXPECT_NEAR(damped.coefficients.B, 130.30447108432762, 1e-10);
+}
+
+TEST(PipeTest, ReadViewExportsEvenNodesWithMatchingPhysicalCoordinates) {
+  using namespace lvtrans;
+  const std::vector<double> heads{100.0, 95.0, 90.0};
+  const std::vector<double> flows{1.0, 2.0, 3.0};
+  Pipe pipe(PipeParameters{.H0 = heads,
+                           .Q0 = flows,
+                           .length = 100.0,
+                           .a = 1200.0,
+                           .lambda = 500e3},
+            0.1);
+
+  const auto view = pipe.read_view();
+  ASSERT_EQ(view.values.size(), 2u);
+  const auto& head = std::get<VectorValue>(view.values[0]);
+  const auto& flow = std::get<VectorValue>(view.values[1]);
+  const std::vector<double> expected_x{0.0, 100.0};
+  EXPECT_EQ(head.x_values, expected_x);
+  EXPECT_EQ(flow.x_values, expected_x);
+  EXPECT_EQ(head.values, (std::vector<double>{100.0, 90.0}));
+  EXPECT_EQ(flow.values, (std::vector<double>{1.0, 3.0}));
+  EXPECT_EQ(pipe.get_H(), heads);
+  EXPECT_EQ(pipe.get_Q(), flows);
+  EXPECT_EQ(head.x_unit, "m");
+  EXPECT_EQ(flow.x_unit, "m");
+}
+
 TEST(PipeTest, ConnectsToUpstreamReservoir) {
   using namespace lvtrans;
   auto reservoir = std::make_shared<ConstantLevelLeft>(150.0);
   ASSERT_EQ(reservoir->right_links().size(), 1u);
-  EXPECT_EQ(reservoir->right_links()[0].pipe, nullptr);
+  EXPECT_EQ(reservoir->right(), nullptr);
 
   Pipe pipe(PipeParameters{.H0 = 150.0,
                            .Q0 = 0.0,
@@ -23,7 +66,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
   ASSERT_EQ(HydraulicConnections::connect(pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
 
-  EXPECT_EQ(reservoir->right_links()[0].pipe, &pipe);
+  EXPECT_EQ(reservoir->right(), &pipe);
   EXPECT_NE(pipe.left_elem(), nullptr);
   EXPECT_EQ(pipe.right_elem(), nullptr);
 
@@ -33,7 +76,7 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
 
   HydraulicConnections::disconnect(pipe, PipeEnd::Left);
   EXPECT_EQ(pipe.left_elem(), nullptr);
-  EXPECT_EQ(reservoir->right_links()[0].pipe, nullptr);
+  EXPECT_EQ(reservoir->right(), nullptr);
 }
 
 TEST(PipeTest, InvalidOrOccupiedSlotsLeaveExistingConnectionsIntact) {
@@ -81,7 +124,6 @@ TEST(PipeTest, DestroyingEitherEndpointDisconnectsTheSurvivor) {
   EXPECT_NO_THROW(pipe.disconnect_all());
 }
 
-// Test fixture for slot bookkeeping only; no additional simulation model.
 namespace {
 class ReservoirSlots final : public lvtrans::Reservoir {
  public:

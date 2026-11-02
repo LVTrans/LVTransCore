@@ -16,31 +16,38 @@ class ConstantLevelLeft : public Reservoir {
     return ElementType::ConstantLevelLeft;
   }
 
-  double get_H(CharacteristicsType, ElementID id) override {
-    return m_c_minus.at(id).c + m_c_minus.at(id).b * get_Qp(id);
-  }
-  double get_Q(CharacteristicsType, ElementID id,
-               const IterateInput = {}) override {
-    return get_Qp(id);
+  void iterate(double) override {
+    if (const auto* pipe = right()) calculate_q(pipe->get_ID());
   }
 
-  double get_Qp(ElementID id) {
+  double get_H(CharacteristicsType, ElementID id) override {
+    const auto& c = m_c_minus.at(id);
+    const auto q = calculate_q(id);
+
+    return c.c + c.b * q;
+  }
+  double get_Q(CharacteristicsType, ElementID, const IterateInput) override {
+    return m_state.Q;
+  }
+
+  double calculate_q(ElementID id) {
     double CvB{0.0};
     double Qp{0.0};
 
-    const auto& characteristic = m_c_minus.at(id);
-    const auto& Cm = characteristic.c;
-    const auto& Bm = characteristic.b;
     const auto& H0 = m_params.H0;
     const auto& cvp = m_params.cvp;
     const auto& cvm = m_params.cvm;
 
-    if ((H0 - Cm) >= 0.0) {
-      CvB = cvp * Bm;
-      Qp = -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (H0 - Cm));
+    const auto& characteristic = m_c_minus.at(id);
+    const auto& cm = characteristic.c;
+    const auto& bm = characteristic.b;
+
+    if ((H0 - cm) >= 0.0) {
+      CvB = cvp * bm;
+      Qp = -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (H0 - cm));
     } else {
-      CvB = cvm * Bm;
-      Qp = CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (H0 - Cm));
+      CvB = cvm * bm;
+      Qp = CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (H0 - cm));
     }
     m_state.Q = Qp;
 

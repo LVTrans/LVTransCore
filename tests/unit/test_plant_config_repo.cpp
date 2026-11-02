@@ -15,7 +15,7 @@
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/t_1in_2out_n.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 #include "nlohmann/json.hpp"
 
@@ -26,8 +26,10 @@ TEST(ElementConfigTest, DeserializesVariantsAndClearsAbsentState) {
        PipeState{{10.0, 20.0}, {1.0, 2.0}}},
       {2, "algebraic", ElementType::AlgebraicPipe,
        PipeParameters{.length = 300.0}, PipeState{{30.0}, {3.0}}},
-      {3, "valve", ElementType::Valve, ValveParameters{.tau_i = 0.5},
-       ValveState{0.75}},
+      {3, "valve", ElementType::ValveInternalServo,
+       ValveInternalServoParameters{.initial_opening = 0.5},
+       ValveInternalServoState{
+           .tau = 0.75, .setpoint = 0.25, .rate_limited = true}},
       {5, "left", ElementType::ConstantLevelLeft,
        ReservoirParameters{.H0 = 160.0}, std::nullopt},
       {6, "right", ElementType::ConstantLevelRight,
@@ -80,7 +82,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
 
   auto* reservoir = elements.get_element_by_id<Reservoir>(1);
   auto* pipe = elements.get_element_by_id<Pipe>(2);
-  auto* valve = elements.get_element_by_id<Valve>(3);
+  auto* valve = elements.get_element_by_id<ValveInternalServo>(3);
   ASSERT_NE(reservoir, nullptr);
   ASSERT_NE(pipe, nullptr);
   ASSERT_NE(valve, nullptr);
@@ -88,13 +90,13 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(pipe->get_ID(), 2);
   EXPECT_EQ(valve->get_ID(), 3);
 
-  // EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
-
+  EXPECT_EQ(reservoir->get_state_as<ReservoirState>().Q, 0.0);
   const auto& config = pipe->config();
   EXPECT_DOUBLE_EQ(config.length, 100.0);
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
   EXPECT_DOUBLE_EQ(config.f, 1.0);
-  EXPECT_DOUBLE_EQ(config.a, 1.0);
+  // Match the 10 segments in the saved initial profile.
+  EXPECT_DOUBLE_EQ(config.a, 40.0);
   EXPECT_DOUBLE_EQ(config.z0, 0.0);
   EXPECT_DOUBLE_EQ(config.z1, 100.0);
   EXPECT_DOUBLE_EQ(config.lambda, 0.0);
@@ -107,6 +109,9 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(pipe->get_H(), expected_heads);
   EXPECT_EQ(pipe->get_Q(), expected_flows);
   EXPECT_DOUBLE_EQ(valve->get_tau(), 1.0);
+  EXPECT_DOUBLE_EQ(valve->get_setpoint(), 0.0);
+  EXPECT_FALSE(valve->is_rate_limited());
+  EXPECT_EQ(valve->get_type(), ElementType::ValveInternalServo);
 
   ASSERT_EQ(pipe->left_elem(), reservoir);
   ASSERT_EQ(pipe->right_elem(), valve);
@@ -139,6 +144,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
 //
 // Circulation loop:
 //  P680 — V350 — P470 — V790 — P260 — V630 — back to P680
+// Synthetic fixture wave speeds match the node counts of its saved profiles.
 TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
   using namespace lvtrans;
   PlantData loaded, reloaded;
@@ -164,11 +170,38 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
       {470, 350, 790},
       {260, 790, 630},
   }};
+  const std::array<ElementID, 8> valve_ids{205, 315, 605, 840,
+                                           120, 350, 790, 630};
+  const std::array<double, 8> openings{0.25, 0.35, 0.45, 0.55,
+                                       0.65, 0.75, 0.25, 0.35};
   for (auto* plant_data : {&loaded, &reloaded}) {
     auto& elements = plant_data->element_container;
     ASSERT_EQ(elements.get_elements().size(), 18u);
     ASSERT_EQ(elements.get_pipes().size(), 8u);
     ASSERT_EQ(elements.get_non_pipes().size(), 10u);
+
+    for (std::size_t i = 0; i < valve_ids.size(); ++i) {
+      SCOPED_TRACE(valve_ids[i]);
+      const auto* valve =
+          elements.get_element_by_id<ValveInternalServo>(valve_ids[i]);
+      ASSERT_NE(valve, nullptr);
+      EXPECT_EQ(valve->get_type(), ElementType::ValveInternalServo);
+      EXPECT_DOUBLE_EQ(valve->get_tau(), openings[i]);
+      EXPECT_DOUBLE_EQ(valve->get_setpoint(), 0.0);
+      EXPECT_FALSE(valve->is_rate_limited());
+      const auto& params = valve->config();
+      const double closing_time = static_cast<double>(i) + 2.0;
+      EXPECT_DOUBLE_EQ(params.closing_time_high, closing_time);
+      EXPECT_DOUBLE_EQ(params.closing_time_low, closing_time);
+      EXPECT_DOUBLE_EQ(params.cvp, 0.0002);
+      EXPECT_DOUBLE_EQ(params.cvm, 0.0001);
+      EXPECT_DOUBLE_EQ(params.initial_opening, 1.0);
+      EXPECT_DOUBLE_EQ(params.servo_time, 1.0);
+      EXPECT_DOUBLE_EQ(params.switch_over, 0.5);
+      EXPECT_DOUBLE_EQ(params.diameter, 1.0);
+      EXPECT_FALSE(params.use_cv_file);
+      EXPECT_TRUE(params.cv_file.empty());
+    }
 
     for (const auto& [id, left, right] : neighbors) {
       auto* pipe = elements.get_element_by_id<Pipe>(id);
@@ -281,13 +314,17 @@ TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
 
     // Test Valve's PID
     auto* pid_turbine = elements.get_element_by_id<PIDTurbine>(13);
-    auto* valve = elements.get_element_by_id<Valve>(3);
+    auto* valve = elements.get_element_by_id<ValveInternalServo>(3);
+    ASSERT_NE(pid_turbine, nullptr);
+    ASSERT_NE(valve, nullptr);
+    EXPECT_DOUBLE_EQ(valve->get_tau(), 0.0);
+    EXPECT_DOUBLE_EQ(valve->get_setpoint(), 0.0);
+    EXPECT_FALSE(valve->is_rate_limited());
     EXPECT_EQ(valve->get_controller(), pid_turbine);
     EXPECT_EQ(pid_turbine->get_controllable(), valve);
 
     EXPECT_EQ(elements.remove_element_by_id(13), true);
     EXPECT_EQ(elements.get_element_by_id(13), nullptr);
     EXPECT_EQ(valve->get_controller(), nullptr);
-    EXPECT_EQ(pid_turbine->get_controllable(), nullptr);
   }
 }

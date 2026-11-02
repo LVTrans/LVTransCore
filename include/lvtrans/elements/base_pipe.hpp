@@ -114,6 +114,7 @@ struct PipeCoefficients {
 struct PipeDerivedData {
   PipeDiscretization grid;
   PipeCoefficients coefficients;
+  std::vector<double> Z{};
 };
 
 PipeDerivedData calculate_pipe_data(const PipeParameters& parameters,
@@ -127,22 +128,27 @@ class BasePipe : public Element {
   BasePipe(PipeParameters params, const double dt);
   virtual ~BasePipe() = 0;
   ElementType get_type() const override { return ElementType::Pipe; }
-  virtual ElementParameters get_parameters() const override { return m_params; }
+  ElementParameters get_parameters() const override { return m_params; }
   ElementView read_view() const override;
-  virtual void iterate(const double t = 0) override = 0;
+  void iterate(const double t = 0) override = 0;
   std::optional<ElementState> get_state() const override { return m_state; }
-  void reset_state() override { m_state = m_initial_state; }
+  void reset_state() override {
+    m_state = m_initial_state;
+    update_characteristics();
+  }
   ConnectResult connect_left(NonPipe& element);
   ConnectResult connect_right(NonPipe& element);
 
   const PipeParameters& config() const { return m_params; }
-  double get_R() const { return m_derived_data.coefficients.R; }
-  double get_B() const { return m_derived_data.coefficients.B; }
+  double get_R() const { return m_derived.coefficients.R; }
+  double get_B() const { return m_derived.coefficients.B; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
   double get_latest_Q() const { return m_state.Q.back(); }
+  PipeDerivedData get_derived_data() const { return m_derived; }
   void update_boundaries();
+  void update_characteristics();
 
   const BoundaryLink& left_link() const { return m_left; }
   const BoundaryLink& right_link() const { return m_right; }
@@ -160,7 +166,7 @@ class BasePipe : public Element {
  protected:
   PipeParameters m_params{};
 
-  const PipeDerivedData m_derived_data;
+  PipeDerivedData m_derived;
   PipeState m_state{};
   PipeState m_initial_state{};
 };

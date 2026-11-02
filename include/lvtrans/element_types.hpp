@@ -146,7 +146,6 @@ struct PipeParameters {
 struct PipeState {
   std::vector<double> H{};
   std::vector<double> Q{};
-  std::vector<double> Z{};
 };
 
 struct ValveParameters {
@@ -177,6 +176,15 @@ struct ValveState {
   double tau{};
 };
 
+struct ValveInternalServoState {
+  double tau{};       // Actual opening; also the servo/limiter feedback value.
+  double setpoint{};  // Requested opening.
+  bool rate_limited{};
+  double Q{};
+  double H1{};
+  double H2{};
+};
+
 struct ReservoirParameters {
   double H0{100.0};  //< Nominal geodesic level of the reservoir from datum.
   double cvp{1e5};   //< Loss coefficient with positive flow relative to element
@@ -200,6 +208,22 @@ struct LossCoefficients {
   }
 };
 
+struct SurgeShaftState {
+  double H1{};
+  double Q1{};
+  double H2{};
+  double Q2{};
+  double H3{};
+  double Q3{};
+
+  // double H{};
+  double L{};
+  double Hb{};
+  double Cv{};
+  double H_liquid{};
+  double H_liquid_0{};
+};
+
 struct DataPoint {
   double x{};
   double y{};
@@ -207,23 +231,27 @@ struct DataPoint {
 
 using ElementID = int;
 
-using ElementState = std::variant<ValveState, PipeState, ReservoirState>;
+using ElementState = std::variant<ValveState, PipeState, ReservoirState,
+                                  SurgeShaftState, ValveInternalServoState>;
 
 struct ScalarValue {
   std::string name{};
   std::string unit{};
   std::string symbol{};
   double value{};
+  int group_id{-1};  //< Group ID for the scalar value, useful for grouping
+                     // related values together.
 
-  void print() const {
-    std::cout << "ScalarValue: name=" << name << " unit=" << unit
-              << " symbol=" << symbol << " value=" << value << std::endl;
+  void display(std::ostream& os) const {
+    os << "ScalarValue: name=" << name << " unit=" << unit
+       << " symbol=" << symbol << " value=" << value << std::endl;
   }
+
+  void print() const { display(std::cout); }
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "ScalarValue: name=" << name << " unit=" << unit
-       << " symbol=" << symbol << " value=" << value;
+    display(ss);
     return ss.str();
   }
 };
@@ -234,19 +262,21 @@ struct VectorValue {
   std::string x_unit{};
   std::string y_unit{};
   std::vector<double> values{};
+  std::vector<double> x_values{};
+  int group_id{-1};  //< Group ID for the vector value, useful for grouping
+                     // related values together. Assumes x_values are the
+                     // same for all values in the // group.
 
-  void print() const {
-    std::cout << "VectorValue: name=" << name << " symbol=" << symbol
-              << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
-              << values.back() << " size=" << values.size() << std::endl;
+  void display(std::ostream& os) const {
+    os << "VectorValue: name=" << name << " symbol=" << symbol
+       << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
+       << values.back() << " size=" << values.size() << std::endl;
   }
+  void print() const { display(std::cout); }
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "VectorValue: name=" << name << " symbol=" << symbol
-       << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
-       << values.back() << " size=" << values.size() << std::endl;
-
+    display(ss);
     return ss.str();
   }
 };

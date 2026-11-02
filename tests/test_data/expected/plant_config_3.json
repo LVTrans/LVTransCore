@@ -129,7 +129,7 @@
       "id": 3,
       "name": "Valve 1",
       "parameters": {},
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 4,

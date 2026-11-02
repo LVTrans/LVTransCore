@@ -59,9 +59,13 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
     z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, H, Q)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveInternalServoState, tau, setpoint,
+                                   rate_limited)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q1, Q2, Q3, H1, H2, H3, L,
+                                   H_liquid, Cv, H_liquid_0, H_liquid, Hb)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
@@ -74,7 +78,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectionParameters, cv1, cv2,
                                                 cv3);
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SurgeShaftStandardParameters,
                                                 use_area, area, diameter, f,
-                                                cvm, cvp, initial_level);
+                                                cvm, cvp, H_start);
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PIDTurbineParameters, rated_power, rated_speed, power_setpoint, kp_grid,
@@ -83,7 +87,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     kappa_change, a, b, c, servo_max, manual_default, power_droop)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoParameters,
-                                                losses, closing_time_high,
+                                                cvp, cvm, closing_time_high,
                                                 closing_time_low, switch_over,
                                                 servo_time, initial_opening,
                                                 use_cv_file, cv_file, diameter)
@@ -95,8 +99,8 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ElementType, {{ElementType::Pipe, "NormalPipe"},
-                  {ElementType::Reservoir, "Reservoir"},
                   {ElementType::Valve, "Valve"},
+                  {ElementType::ValveInternalServo, "ValveInternalServo"},
                   {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
                   {ElementType::SurgeShaftStandard, "SurgeShaftStandard"},
@@ -129,7 +133,7 @@ inline void from_json(const nlohmann::json& j, Connection& value) {
   j.at("element_id").get_to(value.element_id);
   value.index = j.value("index", size_t{0});
 }
-//
+
 inline void to_json(nlohmann::json& j, const ElementConfig& value) {
   j = {{"id", value.id}, {"name", value.name}, {"type", value.type}};
   std::visit([&](const auto& parameters) { j["parameters"] = parameters; },
@@ -147,9 +151,9 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
       {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
       {ElementType::Valve, {ValveParameters{}, ValveState{}}},
       {ElementType::ValveInternalServo,
-       {ValveInternalServoParameters{}, ValveState{}}},
+       {ValveInternalServoParameters{}, ValveInternalServoState{}}},
       {ElementType::SurgeShaftStandard,
-       {SurgeShaftStandardParameters{}, std::nullopt}},
+       {SurgeShaftStandardParameters{}, SurgeShaftState{}}},
       {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
       {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::ConstantLevelLeft,
@@ -175,6 +179,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
         j.at("parameters").get_to(parameter_values);
       },
       value.parameters);
+
   if (state && j.contains("state") && !j.at("state").is_null()) {
     auto& parsed_state = value.state.emplace(*state);
     std::visit([&](auto& state_values) { j.at("state").get_to(state_values); },

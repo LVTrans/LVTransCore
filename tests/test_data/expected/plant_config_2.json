@@ -166,7 +166,7 @@
       "id": 720,
       "name": "Main transfer",
       "parameters": {
-        "a": 1200.0,
+        "a": 2000.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -194,7 +194,7 @@
       "id": 260,
       "name": "Loop west",
       "parameters": {
-        "a": 1200.0,
+        "a": 3300.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -222,7 +222,7 @@
       "id": 410,
       "name": "Main intake",
       "parameters": {
-        "a": 1200.0,
+        "a": 2400.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -250,7 +250,7 @@
       "id": 550,
       "name": "Auxiliary outlet",
       "parameters": {
-        "a": 1200.0,
+        "a": 4800.0,
         "area": 0.0,
         "diameter": 0.45,
         "dimension": "Circular",
@@ -278,7 +278,7 @@
       "id": 680,
       "name": "Loop north",
       "parameters": {
-        "a": 1200.0,
+        "a": 5400.0,
         "area": 0.0,
         "diameter": 0.5,
         "dimension": "Circular",
@@ -309,7 +309,7 @@
       "id": 230,
       "name": "Auxiliary intake",
       "parameters": {
-        "a": 1200.0,
+        "a": 2800.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -337,7 +337,7 @@
       "id": 470,
       "name": "Loop east",
       "parameters": {
-        "a": 1200.0,
+        "a": 4000.0,
         "area": 0.0,
         "diameter": 0.4,
         "dimension": "Circular",
@@ -369,7 +369,7 @@
       "id": 160,
       "name": "Main outlet",
       "parameters": {
-        "a": 1200.0,
+        "a": 1800.0,
         "area": 0.0,
         "diameter": 0.5,
         "dimension": "Circular",
@@ -401,18 +401,23 @@
       "id": 350,
       "name": "Loop north-east",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 7.0,
+        "closing_time_low": 7.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 7.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.75
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 900,
@@ -428,18 +433,23 @@
       "id": 120,
       "name": "Auxiliary terminal",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 6.0,
+        "closing_time_low": 6.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 6.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.65
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 101,
@@ -455,103 +465,133 @@
       "id": 790,
       "name": "Loop east-west",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 8.0,
+        "closing_time_low": 8.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 8.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.25
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 630,
       "name": "Loop west-north",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 9.0,
+        "closing_time_low": 9.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 9.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.35
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 205,
       "name": "Main isolation",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 2.0,
+        "closing_time_low": 2.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 2.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.25
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 605,
       "name": "Main terminal",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 4.0,
+        "closing_time_low": 4.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 4.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.45
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 315,
       "name": "Main regulating",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 3.0,
+        "closing_time_low": 3.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 3.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.35
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     },
     {
       "id": 840,
       "name": "Auxiliary isolation",
       "parameters": {
-        "cda0": 0.009,
+        "closing_time_high": 5.0,
+        "closing_time_low": 5.0,
+        "cv_file": "",
         "cvm": 0.0001,
         "cvp": 0.0002,
-        "em": 0.75,
-        "tau_f": 0.0,
-        "tau_i": 1.0,
-        "tc": 5.0
+        "diameter": 1.0,
+        "initial_opening": 1.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 0.55
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     }
   ],
   "format_version": 1,
