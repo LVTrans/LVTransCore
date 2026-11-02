@@ -110,18 +110,25 @@ double ValveInternalServo::calculate_q() {
 }
 
 ElementView ValveInternalServo::read_view() const {
-  return {.element_id = get_ID(),
-          .values = {
-              ScalarValue{.name = "Opening",
-                          .unit = "pu",
-                          .symbol = "tau",
-                          .value = m_state.tau},
-              ScalarValue{.name = "Opening setpoint",
-                          .unit = "pu",
-                          .value = m_state.setpoint},
-              ScalarValue{.name = "Flow", .unit = "m³/s", .value = m_state.Q},
-              ScalarValue{.name = "Head", .unit = "m", .value = m_state.H1},
-          }};
+  return {
+      .element_id = get_ID(),
+      .values = {
+          ScalarValue{.name = "Opening",
+                      .unit = "pu",
+                      .symbol = "tau",
+                      .value = m_state.tau,
+                      .group_id = 1},
+          ScalarValue{.name = "Opening setpoint",
+                      .unit = "pu",
+                      .value = m_state.setpoint,
+                      .group_id = 1},
+          ScalarValue{.name = "Flow",
+                      .unit = "m³/s",
+                      .value = m_state.Q,
+                      .group_id = 2},
+          ScalarValue{
+              .name = "Head", .unit = "m", .value = m_state.H1, .group_id = 2},
+      }};
 }
 
 }  // namespace lvtrans

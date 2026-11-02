@@ -1,22 +1,8 @@
 #include <GLFW/glfw3.h>
-#include <algorithm>
-#include <chrono>
-#include <cmath>
-#include <cstdint>
-#include <format>
 #include <iostream>
 #include <memory>
-#include <span>
-#include <type_traits>
-#include <vector>
 #include "gui_app.hpp"
-#include "helpers.hpp"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
-#include "implot.h"
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
@@ -24,7 +10,6 @@
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
-#include "plot_data.hpp"
 
 using namespace lvtrans;
 auto plant1() {
@@ -140,7 +125,6 @@ auto plant2() {
 };
 
 auto plant3() {
-  // The element exports omit the timestep; use the same dt as plants 1 and 2.
   constexpr double dt = 0.1;
   auto plant = std::make_unique<Plant>(dt);
 

@@ -239,16 +239,19 @@ struct ScalarValue {
   std::string unit{};
   std::string symbol{};
   double value{};
+  int group_id{-1};  //< Group ID for the scalar value, useful for grouping
+                     // related values together.
 
-  void print() const {
-    std::cout << "ScalarValue: name=" << name << " unit=" << unit
-              << " symbol=" << symbol << " value=" << value << std::endl;
+  void display(std::ostream& os) const {
+    os << "ScalarValue: name=" << name << " unit=" << unit
+       << " symbol=" << symbol << " value=" << value << std::endl;
   }
+
+  void print() const { display(std::cout); }
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "ScalarValue: name=" << name << " unit=" << unit
-       << " symbol=" << symbol << " value=" << value;
+    display(ss);
     return ss.str();
   }
 };
@@ -259,21 +262,21 @@ struct VectorValue {
   std::string x_unit{};
   std::string y_unit{};
   std::vector<double> values{};
-  // Empty means node indices; otherwise must have the same size as values.
   std::vector<double> x_values{};
+  int group_id{-1};  //< Group ID for the vector value, useful for grouping
+                     // related values together. Assumes x_values are the
+                     // same for all values in the // group.
 
-  void print() const {
-    std::cout << "VectorValue: name=" << name << " symbol=" << symbol
-              << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
-              << values.back() << " size=" << values.size() << std::endl;
+  void display(std::ostream& os) const {
+    os << "VectorValue: name=" << name << " symbol=" << symbol
+       << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
+       << values.back() << " size=" << values.size() << std::endl;
   }
+  void print() const { display(std::cout); }
 
   std::string to_string() const {
     std::stringstream ss;
-    ss << "VectorValue: name=" << name << " symbol=" << symbol
-       << " x_unit=" << x_unit << " y_unit=" << y_unit << " back"
-       << values.back() << " size=" << values.size() << std::endl;
-
+    display(ss);
     return ss.str();
   }
 };

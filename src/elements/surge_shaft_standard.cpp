@@ -1,7 +1,6 @@
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include <cmath>
 #include <numbers>
-#include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
@@ -44,15 +43,13 @@ void SurgeShaftStandard::reset_state() {
   m_state.H1 = m_state.H2 = m_state.H3 = m_params.H_start;
   m_state.Hb = m_params.H_start;
   m_state.Cv = m_params.cvp;
-  // Defer until both pipes exist and have completed their own reset.
   m_initialized = false;
 }
 
 void SurgeShaftStandard::initialize_from_pipes() {
   if (m_initialized || !left() || !right()) return;
 
-  // Startup convention: use the mean connected tunnel-floor elevation.
-  // Confirm this convention against the LabVIEW core initialization diagram.
+  // TODO: verify if Z0 (elevation) is calcualted corectly here
   m_base_elevation = (left()->config().z1 + right()->config().z0) / 2.0;
   m_state.H_liquid = m_params.H_start - m_base_elevation;
   m_state.H_liquid_0 = m_state.H_liquid;
@@ -188,11 +185,23 @@ std::optional<ElementState> SurgeShaftStandard::get_state() const {
 }
 
 ElementView SurgeShaftStandard::read_view() const {
-  return ElementView{.element_id = get_ID(),
-                     .values = {
-                         ScalarValue{.name = "Head", .value = m_state.H3},
-                         ScalarValue{.name = "Flow", .value = m_state.Q3},
-                     }};
+  return ElementView{
+      .element_id = get_ID(),
+      .values = {
+          ScalarValue{
+              .name = "Head", .unit = "m", .value = m_state.H3, .group_id = 0},
+          ScalarValue{.name = "Q_in",
+                      .unit = "m³/s",
+                      .value = m_state.Q1,
+                      .group_id = 2},
+          ScalarValue{.name = "Q_out",
+                      .unit = "m³/s",
+                      .value = m_state.Q2,
+                      .group_id = 3},
+          ScalarValue{.name = "Q_up",
+                      .unit = "m³/s",
+                      .value = m_state.Q3,
+                      .group_id = 1}}};
 }
 
 }  // namespace lvtrans

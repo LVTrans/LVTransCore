@@ -1,3 +1,4 @@
+
 #pragma once
 
 #include <array>
@@ -6,14 +7,22 @@
 #include <optional>
 #include <string>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 #include "lvtrans/element_types.hpp"
 
+using namespace lvtrans;
+
 struct PlotContainer {
+  // element_id -> group_id -> grouped view
+  std::unordered_map<ElementID, std::unordered_map<int, ElementView> >
+      element_plots;
+
   static constexpr int capacity = 200;
-  using Key =
-      std::tuple<lvtrans::ElementID, std::string, std::string, std::string>;
+
+  using Key = std::tuple<ElementID, std::string, std::string, std::string>;
 
   struct History {
     std::array<double, capacity> time{};
@@ -25,6 +34,7 @@ struct PlotContainer {
       const int index = (offset + count) % capacity;
       time[index] = t;
       values[index] = value;
+
       if (count < capacity) {
         ++count;
       } else {
@@ -34,9 +44,9 @@ struct PlotContainer {
   };
 
   std::map<Key, History> histories;
-  std::vector<lvtrans::ElementView> views;
+  std::vector<ElementView> views;
 
-  static Key key(lvtrans::ElementID id, const lvtrans::ScalarValue& value) {
+  static Key key(ElementID id, const ScalarValue& value) {
     return {id, value.name, value.symbol, value.unit};
   }
 
@@ -51,13 +61,27 @@ struct PlotContainer {
   }
 
   void sample(std::uint64_t step, double time,
-              std::vector<lvtrans::ElementView> current_views) {
+              std::vector<ElementView> current_views) {
     if (!sample_due(step)) return;
+
     last_sample_step = step;
     views = std::move(current_views);
+
+    // Only keep the latest grouped views.
+    element_plots.clear();
+
     for (const auto& view : views) {
-      for (const auto& value : view.values) {
-        if (const auto* scalar = std::get_if<lvtrans::ScalarValue>(&value)) {
+      for (const auto& data : view.values) {
+        std::visit(
+            [&](const auto& value) {
+              auto& group = element_plots[view.element_id][value.group_id];
+
+              group.element_id = view.element_id;
+              group.values.push_back(data);
+            },
+            data);
+
+        if (const auto* scalar = std::get_if<ScalarValue>(&data)) {
           histories[key(view.element_id, *scalar)].append(time, scalar->value);
         }
       }
@@ -65,12 +89,13 @@ struct PlotContainer {
   }
 
   void reset() {
+    element_plots.clear();
     histories.clear();
     views.clear();
     last_sample_step.reset();
   }
 
  private:
-  std::uint64_t sampling_steps = 10;  // 1 simulated second with dt = 0.1 s.
+  std::uint64_t sampling_steps = 10;
   std::optional<std::uint64_t> last_sample_step;
 };
