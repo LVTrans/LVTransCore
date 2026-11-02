@@ -1,0 +1,101 @@
+
+#pragma once
+
+#include <array>
+#include <cstdint>
+#include <map>
+#include <optional>
+#include <string>
+#include <tuple>
+#include <unordered_map>
+#include <utility>
+#include <variant>
+#include <vector>
+#include "lvtrans/element_types.hpp"
+
+using namespace lvtrans;
+
+struct PlotContainer {
+  // element_id -> group_id -> grouped view
+  std::unordered_map<ElementID, std::unordered_map<int, ElementView> >
+      element_plots;
+
+  static constexpr int capacity = 200;
+
+  using Key = std::tuple<ElementID, std::string, std::string, std::string>;
+
+  struct History {
+    std::array<double, capacity> time{};
+    std::array<double, capacity> values{};
+    int count = 0;
+    int offset = 0;
+
+    void append(double t, double value) {
+      const int index = (offset + count) % capacity;
+      time[index] = t;
+      values[index] = value;
+
+      if (count < capacity) {
+        ++count;
+      } else {
+        offset = (offset + 1) % capacity;
+      }
+    }
+  };
+
+  std::map<Key, History> histories;
+  std::vector<ElementView> views;
+
+  static Key key(ElementID id, const ScalarValue& value) {
+    return {id, value.name, value.symbol, value.unit};
+  }
+
+  bool sample_due(std::uint64_t step) const {
+    return !last_sample_step || (step >= *last_sample_step &&
+                                 step - *last_sample_step >= sampling_steps);
+  }
+
+  void set_sampling_steps(std::uint64_t steps) {
+    sampling_steps = steps > 0 ? steps : 1;
+    reset();
+  }
+
+  void sample(std::uint64_t step, double time,
+              std::vector<ElementView> current_views) {
+    if (!sample_due(step)) return;
+
+    last_sample_step = step;
+    views = std::move(current_views);
+
+    // Only keep the latest grouped views.
+    element_plots.clear();
+
+    for (const auto& view : views) {
+      for (const auto& data : view.values) {
+        std::visit(
+            [&](const auto& value) {
+              auto& group = element_plots[view.element_id][value.group_id];
+
+              group.element_id = view.element_id;
+              group.values.push_back(data);
+            },
+            data);
+
+        if (const auto* scalar = std::get_if<ScalarValue>(&data)) {
+          histories[key(view.element_id, *scalar)].append(time, scalar->value);
+        }
+      }
+    }
+  }
+
+  void reset() {
+    element_plots.clear();
+    histories.clear();
+    views.clear();
+    last_sample_step.reset();
+  }
+
+ private:
+  std::uint64_t sampling_steps = 10;
+  std::optional<std::uint64_t> last_sample_step;
+};

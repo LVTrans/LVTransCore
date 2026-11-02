@@ -1,4 +1,6 @@
 #include "lvtrans/elements/constant_level_left.hpp"
+#include <cmath>
+#include "lvtrans/elements/base_pipe.hpp"
 
 namespace lvtrans {
 

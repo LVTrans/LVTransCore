@@ -13,14 +13,13 @@ class T1In2OutN : public NonPipe {
   explicit T1In2OutN(const TConnectionParameters& parameters);
   const TConnectionParameters& config() const { return m_params; }
 
-  virtual void iterate(const double t = 0) override;
-  virtual ElementType get_type() const override {
-    return ElementType::T1In2OutN;
-  }
-  virtual ElementParameters get_parameters() const override { return m_params; }
-  virtual std::optional<ElementState> get_state() const override;
-  virtual ElementView read_view() const override;
-  virtual ModificationResult modify(const ElementModification&) override {
+  void iterate(const double t = 0) override;
+  ElementType get_type() const override { return ElementType::T1In2OutN; }
+  ElementParameters get_parameters() const override { return m_params; }
+  std::optional<ElementState> get_state() const override;
+  ElementView read_view() const override;
+  void reset_state() override {}
+  ModificationResult modify(const ElementModification&) override {
     return ModificationResult::Ok;
   }
 

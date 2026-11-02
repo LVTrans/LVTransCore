@@ -1,6 +1,5 @@
 #include <cassert>
 #include <cstdlib>
-#include <format>
 #include <lvtrans/elements/base_pipe.hpp>
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -16,30 +15,52 @@ BasePipe::~BasePipe() { disconnect_all(); }
 
 BasePipe::BasePipe(PipeParameters p, double system_dt)
     : m_params{p},
-      m_derived_data{calculate_pipe_data(p, system_dt)},
-      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived_data.grid.num_nodes)},
-      m_initial_state{m_state} {
-  const auto& grid = m_derived_data.grid;
-  m_state.Z.resize(grid.num_nodes);
-  double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
-  for (size_t i{0}; i < grid.num_nodes; i++) {
-    m_state.Z[i] = dZ * static_cast<double>(i) + p.z0;
-  }
-}
+      m_derived{calculate_pipe_data(p, system_dt)},
+      m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},
+      m_initial_state{m_state} {}
 
 void BasePipe::update_boundaries() {
-  const auto& grid = m_derived_data.grid;
+  const auto& grid = m_derived.grid;
   constexpr size_t L0 = 0;
   const auto L1 = grid.num_segments;
 
   if (auto* left = left_elem()) {
-    m_state.H[L0] = left->get_H(CharacteristicsType::CMinus, get_ID());
-    m_state.Q[L0] = left->get_Q(CharacteristicsType::CMinus, get_ID());
+    m_state.H[L0] = left->get_H(CharacteristicsType::Minus, get_ID());
+    m_state.Q[L0] = left->get_Q(CharacteristicsType::Minus, get_ID());
   }
 
   if (auto* right = right_elem()) {
-    m_state.H[L1] = right->get_H(CharacteristicsType::CPlus, get_ID());
-    m_state.Q[L1] = right->get_Q(CharacteristicsType::CPlus, get_ID());
+    m_state.H[L1] = right->get_H(CharacteristicsType::Plus, get_ID());
+    m_state.Q[L1] = right->get_Q(CharacteristicsType::Plus, get_ID());
+  }
+}
+
+void BasePipe::update_characteristics() {
+  const auto& grid = m_derived.grid;
+  const auto& coefficients = m_derived.coefficients;
+  constexpr size_t L0 = 0;
+  const auto L1 = grid.num_segments;
+  auto& H = m_state.H;
+  auto& Q = m_state.Q;
+
+  // C- characteristic
+  if (auto* left = left_elem()) {
+    Characteristics c;
+    c.c = H[L0 + 1] - coefficients.B * Q[L0 + 1];
+    c.b = coefficients.R * std::abs(Q[L0 + 1]) + coefficients.B;
+    c.type = CharacteristicsType::Minus;
+
+    left->set_characteristics(c, get_ID());
+  }
+
+  // C+ characteristic
+  if (auto* right = right_elem()) {
+    Characteristics c;
+    c.c = H[L1 - 1] + coefficients.B * Q[L1 - 1];
+    c.b = coefficients.B + coefficients.R * std::abs(Q[L1 - 1]);
+    c.type = CharacteristicsType::Plus;
+
+    right->set_characteristics(c, get_ID());
   }
 }
 
@@ -64,16 +85,25 @@ void BasePipe::disconnect_right() noexcept {
 }
 
 ElementView BasePipe::read_view() const {
+  const auto& grid = m_derived.grid;
   VectorValue H = {
-      .name = "Head flow",
-      .y_unit = "m",
-      .values = m_state.H,
-  };
+      .name = "Head flow", .x_unit = "m", .y_unit = "m", .group_id = 1};
   VectorValue Q = {
-      .name = "Flow rate",
-      .y_unit = "m³/s",
-      .values = m_state.Q,
-  };
+      .name = "Flow rate", .x_unit = "m", .y_unit = "m³/s", .group_id = 1};
+
+  H.values.resize(grid.staggered_nodes);
+  H.x_values.reserve(grid.num_nodes);
+  Q.values.resize(grid.staggered_nodes);
+  Q.x_values.reserve(grid.num_nodes);
+
+  for (std::size_t i = 0; i < grid.num_nodes; i += 2) {
+    const double x = static_cast<double>(i) * grid.dx;
+    H.values[i / 2] = m_state.H[i];
+    H.x_values.push_back(x);
+    Q.values[i / 2] = m_state.Q[i];
+    Q.x_values.push_back(x);
+  }
+
   return {
       .element_id = m_ID,
       .values =
@@ -124,9 +154,15 @@ PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
   coefficients.area = calculate_pipe_area(p.area, p.diameter, p.dimension);
   coefficients.R = calculate_R(p.f, grid.dx, coefficients.hydraulic_diameter,
                                coefficients.area);
-  coefficients.B = calculate_B(p.a, coefficients.area);
+  coefficients.B = calculate_B(grid.wave_speed, coefficients.area);
   coefficients.lambda =
       calculate_lambda(p.lambda, grid.dx, p.rho, coefficients.area);
+
+  data.Z.resize(grid.num_nodes);
+  double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);
+  for (size_t i{0}; i < grid.num_nodes; i++) {
+    data.Z[i] = dZ * static_cast<double>(i) + p.z0;
+  }
   return data;
 }
 }  // namespace lvtrans

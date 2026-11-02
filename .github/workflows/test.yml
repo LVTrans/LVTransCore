@@ -31,7 +31,8 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             -DLVTRANS_BUILD_BENCHMARKS=OFF \
-            -DLVTRANS_BUILD_EXAMPLES=OFF
+            -DLVTRANS_BUILD_EXAMPLES=OFF \
+            -DLVTRANS_BUILD_GUI=OFF
 
       - name: Build
         run: cmake --build build --target tests -- -j $(nproc)

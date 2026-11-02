@@ -10,14 +10,14 @@ class Reservoir : public NonPipe {
   Reservoir(double elevation, std::size_t left_count, std::size_t right_count);
   Reservoir(const ReservoirParameters& config, std::size_t left_count,
             std::size_t right_count);
-  ~Reservoir() override = 0;
+  ~Reservoir() = default;
   void iterate(const double) override {};
   ModificationResult modify(const ElementModification& mod) override;
 
   ElementType get_type() const override { return ElementType::Reservoir; }
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override { return {m_state}; }
-  void reset_state() override {}
+  void reset_state() override { m_state = ReservoirState{}; }
   ElementView read_view() const override;
 
  protected:

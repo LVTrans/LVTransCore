@@ -54,10 +54,8 @@ TEST(PlantTest, ModifiesElement) {
   Plant plant(0);
   auto reservoir = plant.add_element<ConstantLevelLeft>(100.0).value();
   ASSERT_NE(reservoir, nullptr);
-  // EXPECT_DOUBLE_EQ(reservoir->get_H(), 100.0);
   EXPECT_EQ(plant.modify_element(1, SetReservoirH0{150.0}),
             ModificationResult::Ok);
-  // EXPECT_DOUBLE_EQ(reservoir->get_H(), 150.0);
   EXPECT_EQ(plant.modify_element(1, SetPeltonExtractor{200.0}),
             ModificationResult::UnsupportedModification);
 
@@ -72,4 +70,33 @@ TEST(PlantTest, ReadElementState) {
   auto view = plant.read_state(1);
   ASSERT_NE(view, std::nullopt);
   EXPECT_EQ(view->element_id, 1);
+}
+
+TEST(PlantTest, BoundaryCharacteristicsExistBeforeFirstStepAndAfterReset) {
+  using namespace lvtrans;
+  Plant plant(0.1);
+  auto pipe =
+      plant
+          .add_element<Pipe>(
+              PipeParameters{.H0 = 0.0, .Q0 = 0.0, .length = 100.0}, 0.1)
+          .value();
+  auto left = plant.add_element<ConstantLevelLeft>(100.0).value();
+  auto right = plant.add_element<ConstantLevelRight>(0.0).value();
+  ASSERT_EQ(pipe->connect_left(*left), ConnectResult::Ok);
+  ASSERT_EQ(pipe->connect_right(*right), ConnectResult::Ok);
+
+  ASSERT_NO_THROW(plant.step());
+  const auto initial_h = pipe->get_H();
+  const auto initial_q = pipe->get_Q();
+  const double next_inflow = left->get_state_as<ReservoirState>().Q;
+  const double next_outflow = right->get_state_as<ReservoirState>().Q;
+  plant.step();
+  EXPECT_DOUBLE_EQ(pipe->get_Q().front(), next_inflow);
+  EXPECT_DOUBLE_EQ(pipe->get_Q().back(), next_outflow);
+
+  plant.step(10);
+  plant.reset_state();
+  ASSERT_NO_THROW(plant.step());
+  EXPECT_EQ(pipe->get_H(), initial_h);
+  EXPECT_EQ(pipe->get_Q(), initial_q);
 }

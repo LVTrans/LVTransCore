@@ -26,7 +26,7 @@
       "id": 2,
       "name": "Pipe 1",
       "parameters": {
-        "a": 1.0,
+        "a": 40.0,
         "area": 0.0,
         "diameter": 1.0,
         "dimension": "Circular",
@@ -67,18 +67,23 @@
       "id": 3,
       "name": "Valve 1",
       "parameters": {
-        "cda0": 1.0,
+        "closing_time_high": 0.0,
+        "closing_time_low": 0.0,
+        "cv_file": "",
         "cvm": 0.0,
         "cvp": 0.0,
-        "em": 0.0,
-        "tau_f": 0.0,
-        "tau_i": 0.0,
-        "tc": 0.0
+        "diameter": 1.0,
+        "initial_opening": 0.0,
+        "servo_time": 1.0,
+        "switch_over": 0.5,
+        "use_cv_file": false
       },
       "state": {
+        "rate_limited": false,
+        "setpoint": 0.0,
         "tau": 1.0
       },
-      "type": "Valve"
+      "type": "ValveInternalServo"
     }
   ],
   "format_version": 1,

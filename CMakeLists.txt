@@ -14,8 +14,8 @@ FetchContent_MakeAvailable(json)
 
 
 option(LVTRANS_BUILD_TESTS "Build LVTrans tests" ON)
-option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" OFF)
-option(LVTRANS_BUILD_GUI "Build the ImGui simulation dashboard" OFF)
+option(LVTRANS_BUILD_EXAMPLES "Build LVTrans examples" ON)
+option(LVTRANS_BUILD_GUI "Build the ImGui simulation dashboard" ON)
 option(LVTRANS_BUILD_BENCHMARKS "Build Benchmarks" ON)
 
 add_library(lvtrans_core)
@@ -26,6 +26,7 @@ target_sources(
         src/elements/pipe.cpp
         src/elements/base_pipe.cpp
         src/elements/valve.cpp
+        src/elements/valve_internal_servo.cpp
         src/elements/reservoir.cpp
         src/elements/non_pipe.cpp
         src/elements/constant_level_left.cpp
