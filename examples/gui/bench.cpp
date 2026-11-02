@@ -1,16 +1,8 @@
 #include <GLFW/glfw3.h>
-#include <algorithm>
 #include <chrono>
-#include <cmath>
-#include <cstdint>
 #include <iostream>
 #include "bench_app.hpp"
-#include "helpers.hpp"
-#include "imgui.h"
-#include "imgui_impl_glfw.h"
-#include "imgui_impl_opengl3.h"
 #include "lvtrans/element_types.hpp"
-#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
@@ -125,7 +117,7 @@ auto plant2() {
 };
 
 int main() {
-  auto plant = plant1();
+  auto plant = plant2();
   BenchApp app(*plant);
   if (app.init() != 0) {
     std::cerr << "Failed to initialize GUI application.\n";
