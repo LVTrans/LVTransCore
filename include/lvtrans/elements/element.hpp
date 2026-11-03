@@ -4,6 +4,7 @@
 #include "lvtrans/element_modifications.hpp"
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/element_view.hpp"
 
 namespace lvtrans {
 

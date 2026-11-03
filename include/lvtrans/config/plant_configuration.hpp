@@ -2,7 +2,6 @@
 
 #include <cstdint>
 #include <optional>
-#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -59,6 +58,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
     z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
+// ####### Element States ########
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveInternalServoState, tau, setpoint,
                                    rate_limited)
@@ -67,6 +67,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q1, Q2, Q3, H1, H2, H3, L,
                                    H_liquid, H_liquid_0, H_liquid, Hb)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 
+// ######## Element Parameters ########
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
                                                 cvm)
 
@@ -83,6 +84,9 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     closing_time_high, closing_time_low, opening_time_high, opening_time_low,
     kappa_change, a, b, c, servo_max, manual_default, power_droop)
 
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PIDValveParameters, Q_wanted,
+                                                SP_Q, Kp, Ti, Td)
+
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoParameters,
                                                 cvp, cvm, closing_time_high,
                                                 closing_time_low, switch_over,
@@ -95,15 +99,24 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
                                "CrossSectional"}})
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
-    ElementType, {{ElementType::Pipe, "NormalPipe"},
-                  {ElementType::ValveInternalServo, "ValveInternalServo"},
-                  {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
-                  {ElementType::ConstantLevelRight, "ConstantLevelRight"},
-                  {ElementType::SurgeShaftStandard, "SurgeShaftStandard"},
-                  {ElementType::SimpleConnection, "SimpleConnection"},
-                  {ElementType::T1In2OutN, "T1In2OutN"},
-                  {ElementType::PIDTurbine, "PIDTurbine"},
-                  {ElementType::AlgebraicPipe, "AlgebraicPipe"}})
+    ElementType,
+    // Keep the version 1 file-format name independent of the display name.
+    {{ElementType::Pipe, "NormalPipe"},
+     {ElementType::ValveInternalServo,
+      element_type_str(ElementType::ValveInternalServo)},
+     {ElementType::ConstantLevelLeft,
+      element_type_str(ElementType::ConstantLevelLeft)},
+     {ElementType::ConstantLevelRight,
+      element_type_str(ElementType::ConstantLevelRight)},
+     {ElementType::SurgeShaftStandard,
+      element_type_str(ElementType::SurgeShaftStandard)},
+     {ElementType::SimpleConnection,
+      element_type_str(ElementType::SimpleConnection)},
+     {ElementType::T1In2OutN, element_type_str(ElementType::T1In2OutN)},
+     {ElementType::PIDTurbine, element_type_str(ElementType::PIDTurbine)},
+     {ElementType::PIDValve, element_type_str(ElementType::PIDValve)},
+     {ElementType::AlgebraicPipe,
+      element_type_str(ElementType::AlgebraicPipe)}})
 
 NLOHMANN_JSON_SERIALIZE_ENUM(Side, {
                                        {Side::Left, "Left"},
@@ -151,6 +164,7 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
        {SurgeShaftStandardParameters{}, SurgeShaftState{}}},
       {ElementType::PID, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
+      {ElementType::PIDValve, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::ConstantLevelLeft,
        {ReservoirParameters{}, ReservoirState{}}},
       {ElementType::ConstantLevelRight,

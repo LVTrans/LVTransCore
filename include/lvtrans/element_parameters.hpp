@@ -4,9 +4,18 @@
 #include <cstddef>
 #include <string>
 #include <variant>
+#include "lvtrans/element_states.hpp"
 #include "lvtrans/element_types.hpp"
 
 namespace lvtrans {
+
+struct PIDValveParameters {
+  double Q_wanted{10};  //< Average flow wanted through the valve [m³/s]
+  double SP_Q{10};      //< Setpoint flow [m³/s]
+  double Kp{1};         //< Proportional gain
+  double Ti{10};        //< Integral time
+  double Td{0};         //< Derivative time
+};
 
 struct PIDTurbineParameters {
   double rated_power{};        // Pr [MW]
@@ -98,10 +107,59 @@ struct ValveInternalServoParameters {
   }
 };
 
+struct PipeParameters {
+  InitialPipeState H0{100.0};
+  InitialPipeState Q0{100.0};
+  double length{100.0};  //< length of the pipe [m]
+  double diameter{2.0};  //< diameter of the pipe [m]
+  double area{};         //< cross sectional area of the pipe [m^2]
+  double periphery{};    //< periphery of the pipe [m]
+  double epsilon{0.1};   //< pipe roughness [m]
+  double ny{
+      1.1e-6};      //< Kinematic viscosity, ν (1e-6 for water a 20 deg C) when
+                    // using full_moody
+  double rho{1e3};  //< Density, ρ (998.2 kg/m³ for water at 20 deg C) when
+                    // using full_moody
+  double f{0.01};
+  double a{1200.0};
+  double z0{0};
+  double z1{0};
+  double lambda{5e5};
+  double f_max{10.0};
+  PipeDimension dimension{PipeDimension::Circular};
+  bool use_diameter{};  //< TRUE = use pipe diameter instead of cross sectional
+                        // area
+  bool use_full_moody{};
+  bool use_Dh{true};  //< Use hydraulic diameter
+                      //
+                      //
+  std::string to_str() const {
+    return std::format(
+        "PipeParameters: length={}, diameter={}, area={}, "
+        "periphery={}, epsilon={}, ny={}, rho={}, f={}, a={}, z0={}, z1={}, "
+        "lambda={}, f_max={}, dimension={}, use_diameter={}, "
+        "use_full_moody={}, "
+        "use_Dh={}",
+        length, diameter, area, periphery, epsilon, ny, rho, f, a, z0, z1,
+        lambda, f_max, static_cast<int>(dimension), use_diameter,
+        use_full_moody, use_Dh);
+  }
+};
+
+struct ReservoirParameters {
+  double H0{100.0};  //< Nominal geodesic level of the reservoir from datum.
+  double cvp{1e5};   //< Loss coefficient with positive flow relative to element
+  double cvm{1e5};  //< Loss coefficient with negative flow relative to elements
+  std::string to_str() const {
+    return std::format("ReservoirParameters: H0={}, cvp={}, cvm={}", H0, cvp,
+                       cvm);
+  }
+};
+
 using ElementParameters =
     std::variant<PipeParameters, ReservoirParameters, LossCoefficients,
-                 TConnectionParameters,
-                 SurgeShaftStandardParameters, PIDTurbineParameters,
+                 TConnectionParameters, SurgeShaftStandardParameters,
+                 PIDValveParameters, PIDTurbineParameters,
                  ValveInternalServoParameters>;
 
 }  // namespace lvtrans

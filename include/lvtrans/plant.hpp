@@ -3,6 +3,8 @@
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/element_modifications.hpp"
+#include "lvtrans/element_states.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/elements/pipe.hpp"

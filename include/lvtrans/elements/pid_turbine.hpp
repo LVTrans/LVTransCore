@@ -1,5 +1,6 @@
 #pragma once
 #include "lvtrans/element_parameters.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/controllable.hpp"
 #include "lvtrans/elements/controller.hpp"
 

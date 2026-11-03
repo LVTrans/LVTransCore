@@ -15,7 +15,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
+#include "lvtrans/element_states.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/plant.hpp"
 #include "plot_data.hpp"
@@ -236,7 +238,7 @@ struct GuiApp {
     for (const auto& e : plant.get_elements()) {
       ImGui::PushID(e->get_ID());
       const auto title = std::format("Element {} ({})", e->get_ID(),
-                                     element_type_to_str(e->get_type()));
+                                     element_type_str(e->get_type()));
 
       if (ImGui::CollapsingHeader(title.c_str(),
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -301,7 +303,7 @@ struct GuiApp {
                       plant.get_element_by_id(view.element_id).value();
                   const auto title = std::format(
                       "{} ({}): {} ", element->get_name(),
-                      element_type_to_str(element->get_type()), value.name);
+                      element_type_str(element->get_type()), value.name);
                   if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
                     ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
                     if constexpr (std::is_same_v<Value, ScalarValue>) {
