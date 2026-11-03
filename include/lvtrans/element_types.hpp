@@ -71,38 +71,6 @@ constexpr std::string_view element_type_to_str(ElementType type) {
 enum class PipeDimension { Circular, CrossSectional };
 using InitialPipeState = std::variant<double, std::vector<double>>;
 
-namespace detail {
-
-template <typename Range, typename Formatter>
-std::string parameter_sequence_to_str(const Range& values, Formatter format) {
-  std::string result{"["};
-  bool first = true;
-  for (const auto& value : values) {
-    if (!first) {
-      result += ", ";
-    }
-    result += format(value);
-    first = false;
-  }
-  result += "]";
-  return result;
-}
-
-inline std::string initial_pipe_state_to_str(const InitialPipeState& state) {
-  return std::visit(
-      [](const auto& value) -> std::string {
-        if constexpr (std::is_same_v<std::decay_t<decltype(value)>, double>) {
-          return std::format("{}", value);
-        } else {
-          return parameter_sequence_to_str(
-              value, [](double sample) { return std::format("{}", sample); });
-        }
-      },
-      state);
-}
-
-}  // namespace detail
-
 struct PipeParameters {
   InitialPipeState H0{100.0};
   InitialPipeState Q0{100.0};
@@ -131,21 +99,24 @@ struct PipeParameters {
                       //
   std::string to_str() const {
     return std::format(
-        "PipeParameters: H0={}, Q0={}, length={}, diameter={}, area={}, "
+        "PipeParameters: length={}, diameter={}, area={}, "
         "periphery={}, epsilon={}, ny={}, rho={}, f={}, a={}, z0={}, z1={}, "
         "lambda={}, f_max={}, dimension={}, use_diameter={}, "
         "use_full_moody={}, "
         "use_Dh={}",
-        detail::initial_pipe_state_to_str(H0),
-        detail::initial_pipe_state_to_str(Q0), length, diameter, area,
-        periphery, epsilon, ny, rho, f, a, z0, z1, lambda, f_max,
-        static_cast<int>(dimension), use_diameter, use_full_moody, use_Dh);
+        length, diameter, area, periphery, epsilon, ny, rho, f, a, z0, z1,
+        lambda, f_max, static_cast<int>(dimension), use_diameter,
+        use_full_moody, use_Dh);
   }
 };
 
 struct PipeState {
   std::vector<double> H{};
   std::vector<double> Q{};
+};
+
+struct SimpleConnectionState {
+  double Q{};
 };
 
 struct ValveParameters {

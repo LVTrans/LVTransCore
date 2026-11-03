@@ -20,7 +20,8 @@ class SimpleConnection : public NonPipe {
   ElementView read_view() const override;
 
  private:
-  double calculate_Qp() const;
+  double calculate_q();
+  SimpleConnectionState m_state;
   LossCoefficients m_params;
 };
 }  // namespace lvtrans

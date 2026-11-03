@@ -5,38 +5,42 @@
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
-SimpleConnection::SimpleConnection() : NonPipe(1, 1), m_params{} {}
+
+SimpleConnection::SimpleConnection() : NonPipe(1, 1), m_state{}, m_params{} {}
 
 SimpleConnection::SimpleConnection(const LossCoefficients& loss_coeffs)
-    : NonPipe(1, 1), m_params(loss_coeffs) {}
+    : NonPipe(1, 1), m_state{}, m_params{loss_coeffs} {}
 
 double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) {
-  const auto Qp = calculate_Qp();
+  const auto q = calculate_q();
 
   if (ct == CharacteristicsType::Plus) {
     const auto& characteristic = m_c_plus.at(id);
     auto cp = characteristic.c;
     auto bp = characteristic.b;
-    return cp - bp * Qp;
+    return cp - bp * q;
   } else {
     const auto& characteristic = m_c_minus.at(id);
     auto cm = characteristic.c;
     auto bm = characteristic.b;
-    return cm + bm * Qp;
+    return cm + bm * q;
   }
 }
 
 double SimpleConnection::get_Q(CharacteristicsType, ElementID, IterateInput) {
-  return calculate_Qp();
+  return m_state.Q;
 }
 
-double SimpleConnection::calculate_Qp() const {
+double SimpleConnection::calculate_q() {
+  double Q{0.0};
+
   const auto cvm = m_params.cvm;
   const auto cvp = m_params.cvp;
-  auto cp = 0.0;
-  auto bp = 0.0;
-  auto cm = 0.0;
-  auto bm = 0.0;
+
+  auto cp{0.0};
+  auto bp{0.0};
+  auto cm{0.0};
+  auto bm{0.0};
 
   if (const auto* pipe = left()) {
     const auto& characteristic = m_c_plus.at(pipe->get_ID());
@@ -52,13 +56,23 @@ double SimpleConnection::calculate_Qp() const {
 
   if ((cp - cm) >= 0.0) {
     const auto CvB = cvp * (bp + bm);
-    return -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (cp - cm));
+    Q = -CvB + std::sqrt(CvB * CvB + 2.0 * cvp * (cp - cm));
   } else {
     const auto CvB = cvm * (bp + bm);
-    return CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (cp - cm));
+    Q = CvB - std::sqrt(CvB * CvB - 2.0 * cvm * (cp - cm));
   }
+  m_state.Q = Q;
+
+  return Q;
 }
 
-ElementView SimpleConnection::read_view() const { return {}; }
-
+ElementView SimpleConnection::read_view() const {
+  return {.element_id = get_ID(),
+          .values = {ScalarValue{
+              "Flow Rate",
+              "m³/s",
+              "Q",
+              m_state.Q,
+          }}};
+}
 }  // namespace lvtrans
