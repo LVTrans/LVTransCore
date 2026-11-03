@@ -46,7 +46,7 @@ _Get an element by id and its state._
 ```cpp
 int main(){
     Plant plant("example_plant.yaml");
-    // std::variant ElementState<PipeState, ValveState, PumpState> state;
+    // std::variant ElementState<PipeState, ValveInternalServoState, PumpState> state;
 
     std::vector<Element> elements = plant.get_elements();
     // expecting it to be pipe
@@ -58,8 +58,8 @@ int main(){
     pipe1.accept(state_visitor); // Maybe print/draw to ui?
 
 
-    Valve valve1 = plant.get_element("valve_1");
-    ValveState valve1_state = valve1.get_state(); // ?
+    ValveInternalServo valve1 = plant.get_element("valve_1");
+    ValveInternalServoState valve1_state = valve1.get_state(); // ?
 
     // ...
 ```
@@ -129,7 +129,8 @@ _Add and connect the existing elements_
 Plant plant(0.1);
 auto* reservoir = plant.add_element<ConstantLevelLeft>(150.0).value();
 auto* pipe = plant.add_element<Pipe>(PipeParameters{}, 0.1).value();
-auto* valve = plant.add_element<Valve>(ValveParameters{}).value();
+auto* valve = plant.add_element<ValveInternalServo>(
+    ValveInternalServoParameters{}, 0.1).value();
 
 HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir);
 HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve);

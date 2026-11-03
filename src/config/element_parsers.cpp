@@ -6,7 +6,6 @@
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/t_1in_2out_n.hpp"
-#include "lvtrans/elements/valve.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 namespace lvtrans {
 
@@ -28,22 +27,6 @@ class ConfiguredElementParser : public ElementParser {
   }
 };
 }  // namespace
-
-ElementParseResult ValveParser::parse(ElementContainer& container,
-                                      ElementConfig& element, double) {
-  const auto& config = std::get<ValveParameters>(element.parameters);
-  const auto state = element.state ? std::get<ValveState>(*element.state)
-                                   : ValveState{config.tau_i};
-  auto valve = container.add_element_with_id<Valve>(element.id, config, state);
-
-  if (!valve.has_value()) {
-    return ElementParseResult::Error;
-  }
-
-  valve.value()->set_name(element.name);
-
-  return ElementParseResult::Success;
-}
 
 ElementParseResult ValveInternalServoParser::parse(ElementContainer& container,
                                                    ElementConfig& element,
@@ -119,12 +102,18 @@ ElementParseResult SurgeShaftStandardParser::parse(ElementContainer& container,
       std::get<SurgeShaftStandardParameters>(element.parameters);
 
   SurgeShaftStandard* surge_shaft = nullptr;
-  const auto state = element.state ? std::get<SurgeShaftState>(*element.state)
-                                   : SurgeShaftState{};
-  surge_shaft = container
-                    .add_element_with_id<SurgeShaftStandard>(
-                        element.id, parameters, dt, state)
-                    .value_or(nullptr);
+  if (element.state) {
+    surge_shaft = container
+                      .add_element_with_id<SurgeShaftStandard>(
+                          element.id, parameters, dt,
+                          std::get<SurgeShaftState>(*element.state))
+                      .value_or(nullptr);
+  } else {
+    surge_shaft = container
+                      .add_element_with_id<SurgeShaftStandard>(
+                          element.id, parameters, dt)
+                      .value_or(nullptr);
+  }
   if (!surge_shaft) return ElementParseResult::Error;
   surge_shaft->set_name(element.name);
 
@@ -140,8 +129,6 @@ std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
     case ElementType::ConstantLevelLeft:
     case ElementType::ConstantLevelRight:
       return std::make_unique<ReservoirParser>();
-    case ElementType::Valve:
-      return std::make_unique<ValveParser>();
     case ElementType::ValveInternalServo:
       return std::make_unique<ValveInternalServoParser>();
     case ElementType::SurgeShaftStandard:

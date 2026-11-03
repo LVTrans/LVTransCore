@@ -44,6 +44,7 @@ class SurgeShaftStandard : public NonPipe {
   double m_dt{};  // Time step [s]
   double m_base_elevation{};
   bool m_initialized{false};
+  bool m_restored_state{false};
 };
 
 }  // namespace lvtrans

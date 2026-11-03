@@ -17,7 +17,6 @@ enum class ElementType : std::uint8_t {
   Pipe,
   AlgebraicPipe,
   Reservoir,
-  Valve,
   ValveInternalServo,
   SurgeShaftStandard,
   PID,
@@ -39,8 +38,6 @@ constexpr std::string_view element_type_to_str(ElementType type) {
       return "AlgebraicPipe";
     case ElementType::Reservoir:
       return "Reservoir";
-    case ElementType::Valve:
-      return "Valve";
     case ElementType::ValveInternalServo:
       return "ValveInternalServo";
     case ElementType::SurgeShaftStandard:
@@ -119,34 +116,6 @@ struct SimpleConnectionState {
   double Q{};
 };
 
-struct ValveParameters {
-  double tau_i{};
-  double tau_f{};
-  double tc{};
-  double em{};
-  double cda0{};
-  double cvp{1e5};  // Loss coefficient with positive flow relative to element
-  double cvm{1e5};  // Loss coefficient with negative flow relative to element
-  double closing_time_h{10};
-  double closing_time_l{10};
-  double switch_over{0.5};
-  double tks{1.0};
-  double tau_0{1.0};
-  double diameter{1.0};  ///< internal diameter
-  std::string to_str() const {
-    return std::format(
-        "ValveParameters: tau_i={}, tau_f={}, tc={}, em={}, cda0={}, cvp={}, "
-        "cvm={}, closing_time_h={}, closing_time_l={}, switch_over={}, tks={}, "
-        "tau_0={}, diameter={}",
-        tau_i, tau_f, tc, em, cda0, cvp, cvm, closing_time_h, closing_time_l,
-        switch_over, tks, tau_0, diameter);
-  }
-};
-
-struct ValveState {
-  double tau{};
-};
-
 struct ValveInternalServoState {
   double tau{};       // Actual opening; also the servo/limiter feedback value.
   double setpoint{};  // Requested opening.
@@ -200,8 +169,8 @@ struct DataPoint {
 
 using ElementID = int;
 
-using ElementState = std::variant<ValveState, PipeState, ReservoirState,
-                                  SurgeShaftState, ValveInternalServoState>;
+using ElementState = std::variant<PipeState, ReservoirState, SurgeShaftState,
+                                  ValveInternalServoState>;
 
 struct ScalarValue {
   std::string name{};

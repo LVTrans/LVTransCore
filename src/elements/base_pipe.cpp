@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <cassert>
 #include <cstdlib>
 #include <lvtrans/elements/base_pipe.hpp>
@@ -143,12 +144,17 @@ PipeState initialize_H_and_Q(const InitialPipeState& H0,
 PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
   const double nodes_temp =
       calculate_nodes_temp(p.lambda, p.length, system_dt, p.a, p.rho);
+  // LabVIEW pipe initialization limits damping after choosing the grid. Use
+  // that same limited value for both the adjusted wave speed and damping term.
+  const double max_lambda = 0.1 * p.length * p.length * p.rho /
+                            (nodes_temp * nodes_temp * pipe_dt(system_dt));
+  const double effective_lambda = std::min(p.lambda, max_lambda);
   PipeDerivedData data{};
   auto& grid = data.grid;
   grid.dt = pipe_dt(system_dt);
   grid.dx = calculate_dx(p.length, nodes_temp);
-  grid.wave_speed =
-      calculate_wave_speed(p.length, nodes_temp, system_dt, p.lambda, p.rho);
+  grid.wave_speed = calculate_wave_speed(p.length, nodes_temp, system_dt,
+                                         effective_lambda, p.rho);
   grid.num_segments =
       static_cast<std::size_t>(calculate_num_segments(nodes_temp));
   grid.num_nodes = grid.num_segments + 1;
@@ -162,7 +168,7 @@ PipeDerivedData calculate_pipe_data(const PipeParameters& p, double system_dt) {
                                coefficients.area);
   coefficients.B = calculate_B(grid.wave_speed, coefficients.area);
   coefficients.lambda =
-      calculate_lambda(p.lambda, grid.dx, p.rho, coefficients.area);
+      calculate_lambda(effective_lambda, grid.dx, p.rho, coefficients.area);
 
   data.Z.resize(grid.num_nodes);
   double dZ = p.z1 - p.z0 / static_cast<double>(grid.num_segments);

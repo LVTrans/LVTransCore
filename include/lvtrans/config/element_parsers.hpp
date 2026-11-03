@@ -14,12 +14,6 @@ class ElementParser {
                                    ElementConfig& config, double step_size) = 0;
 };
 
-class ValveParser : public ElementParser {
- public:
-  ElementParseResult parse(ElementContainer& container, ElementConfig& element,
-                           double step_size) override;
-};
-
 class ValveInternalServoParser : public ElementParser {
  public:
   ElementParseResult parse(ElementContainer& container, ElementConfig& element,

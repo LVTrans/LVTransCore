@@ -99,8 +99,8 @@ struct ValveInternalServoParameters {
 };
 
 using ElementParameters =
-    std::variant<ValveParameters, PipeParameters, ReservoirParameters,
-                 LossCoefficients, TConnectionParameters,
+    std::variant<PipeParameters, ReservoirParameters, LossCoefficients,
+                 TConnectionParameters,
                  SurgeShaftStandardParameters, PIDTurbineParameters,
                  ValveInternalServoParameters>;
 

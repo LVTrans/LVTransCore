@@ -4,16 +4,14 @@
 #include <iostream>
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
-#include <lvtrans/elements/valve.hpp>
+#include <lvtrans/elements/valve_internal_servo.hpp>
 #include <memory>
 #include <stdexcept>
 #include "lvtrans/const.hpp"
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/element.hpp"
-#include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -86,14 +84,12 @@ int main() {
 
   const double CVP = 0.5 * Q0 * Q0 / H0;
 
-  ValveParameters valve_config{};
-  valve_config.tau_i = tau_i;
-  valve_config.tau_f = tau_f;
-  valve_config.tc = tc;
-  valve_config.em = em;
+  ValveInternalServoParameters valve_config{};
+  valve_config.initial_opening = tau_i;
   valve_config.cvp = CVP;
 
-  auto valve = plant.add_element<Valve>(valve_config).value();
+  auto valve =
+      plant.add_element<ValveInternalServo>(valve_config, system_dt).value();
   auto surge_shaft =
       plant.add_element<SurgeShaftStandard>(SurgeShaftStandardParameters{}, dt)
           .value();
@@ -114,6 +110,10 @@ int main() {
   const int Kmax = static_cast<int>(0.5 * Tmax / dt) + 1;
 
   for (int k = 1; k < Kmax; ++k) {
+    const double t = plant.get_current_time() + system_dt;
+    const double opening =
+        t < tc ? tau_i - (tau_i - tau_f) * std::pow(t / tc, em) : tau_f;
+    valve->modify(SetValveOpening{opening});
     plant.step();
 
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","

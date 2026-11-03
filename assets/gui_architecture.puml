@@ -6,7 +6,7 @@ class ElementStateVisitor {
 
 class ElementDisplayVisitor {
   + visit(pipe: Pipe): TElementState
-  + visit(valve: Valve): TElementState
+  + visit(valve: ValveInternalServo): TElementState
   + visit(reservoir: Reservoir): TElementState
 }
 

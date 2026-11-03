@@ -6,7 +6,7 @@
 #include <vector>
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 
 namespace {
 using namespace lvtrans;
@@ -46,13 +46,11 @@ TEST(ElementContainerTest, MixedTypesHaveUniqueIdsAndCorrectTypedViews) {
   ElementContainer container;
   auto reservoir = add_to<ConstantLevelLeft>(container);
   auto pipe = add_to<Pipe>(container);
-  ValveParameters valve_config{};
-  valve_config.tau_i = 0.8;
-  valve_config.tau_f = 0.0;
-  valve_config.tc = 4.0;
-  valve_config.em = 1.0;
+  ValveInternalServoParameters valve_config{};
+  valve_config.initial_opening = 0.8;
   valve_config.cvp = 0.5;
-  auto valve = container.add_element<Valve>(valve_config).value();
+  auto valve =
+      container.add_element<ValveInternalServo>(valve_config, 0.1).value();
 
   EXPECT_NE(reservoir->get_ID(), pipe->get_ID());
   EXPECT_NE(reservoir->get_ID(), valve->get_ID());
@@ -96,7 +94,10 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
 TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
   ElementContainer container;
   auto reservoir = add_to<ConstantLevelLeft>(container);
-  auto valve = container.add_element<Valve>(ValveParameters{}).value();
+  auto valve = container
+                    .add_element<ValveInternalServo>(
+                        ValveInternalServoParameters{}, 0.1)
+                    .value();
   auto pipe = add_to<Pipe>(container);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
@@ -125,7 +126,10 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
 TEST(ElementContainerTest, DisconnectIsRepeatableAndPreservesOtherConnections) {
   ElementContainer container;
   auto reservoir = add_to<ConstantLevelLeft>(container);
-  auto valve = container.add_element<Valve>(ValveParameters{}).value();
+  auto valve = container
+                    .add_element<ValveInternalServo>(
+                        ValveInternalServoParameters{}, 0.1)
+                    .value();
   auto pipe = add_to<Pipe>(container);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
@@ -174,7 +178,10 @@ TEST(ElementContainerTest, RemovingNonPipeDisconnectsBothEndsOfSamePipe) {
   using namespace lvtrans;
   ElementContainer container;
   auto* pipe = container.add_element<Pipe>(PipeParameters{}, 0.1).value();
-  auto* valve = container.add_element<Valve>(ValveParameters{}).value();
+  auto* valve = container
+                    .add_element<ValveInternalServo>(
+                        ValveInternalServoParameters{}, 0.1)
+                    .value();
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *valve),
             ConnectResult::Ok);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),

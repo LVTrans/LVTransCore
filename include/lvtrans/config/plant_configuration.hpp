@@ -60,7 +60,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
     z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveState, tau)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ValveInternalServoState, tau, setpoint,
                                    rate_limited)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
@@ -71,8 +70,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
                                                 cvm)
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveParameters, tau_i, tau_f,
-                                                tc, em, cda0, cvp, cvm)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(LossCoefficients, cvp, cvm)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectionParameters, cv1, cv2,
                                                 cv3);
@@ -99,7 +96,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
 
 NLOHMANN_JSON_SERIALIZE_ENUM(
     ElementType, {{ElementType::Pipe, "NormalPipe"},
-                  {ElementType::Valve, "Valve"},
                   {ElementType::ValveInternalServo, "ValveInternalServo"},
                   {ElementType::ConstantLevelLeft, "ConstantLevelLeft"},
                   {ElementType::ConstantLevelRight, "ConstantLevelRight"},
@@ -149,12 +145,11 @@ inline void from_json(const nlohmann::json& j, ElementConfig& value) {
   static const std::unordered_map<ElementType, ElementDefaults> defaults{
       {ElementType::Pipe, {PipeParameters{}, PipeState{}}},
       {ElementType::AlgebraicPipe, {PipeParameters{}, PipeState{}}},
-      {ElementType::Valve, {ValveParameters{}, ValveState{}}},
       {ElementType::ValveInternalServo,
        {ValveInternalServoParameters{}, ValveInternalServoState{}}},
       {ElementType::SurgeShaftStandard,
        {SurgeShaftStandardParameters{}, SurgeShaftState{}}},
-      {ElementType::PID, {PIDTurbineParameters{}, ValveState{}}},
+      {ElementType::PID, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::PIDTurbine, {PIDTurbineParameters{}, std::nullopt}},
       {ElementType::ConstantLevelLeft,
        {ReservoirParameters{}, ReservoirState{}}},

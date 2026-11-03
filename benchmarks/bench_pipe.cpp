@@ -2,13 +2,13 @@
 #include <stdexcept>
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/pipe.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 
 static void BM_PipeIterate(benchmark::State& state, double dt) {
   using namespace lvtrans;
 
   ConstantLevelLeft reservoir(150.0);
-  Valve valve(ValveParameters{});
+  ValveInternalServo valve(ValveInternalServoParameters{}, dt);
 
   Pipe pipe(
       PipeParameters{

@@ -2,7 +2,7 @@
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 
 static void BM_LabVIEWCompareA(benchmark::State& state) {
@@ -80,23 +80,21 @@ static void BM_LabVIEWCompareB(benchmark::State& state) {
 
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
-  ValveParameters valve_params{.tau_i = 1.0,
-                               .tau_f = 1.0,
-                               .cvp = 10e3,
-                               .cvm = 10e3,
-                               .closing_time_h = 10,
-                               .closing_time_l = 10,
-                               .switch_over = 500e-3,
-                               .tks = 1.0,
-                               .tau_0 = 1.0,
-                               .diameter = 1.0};
+  ValveInternalServoParameters valve_params{.cvp = 10e3,
+                                            .cvm = 10e3,
+                                            .closing_time_high = 10,
+                                            .closing_time_low = 10,
+                                            .switch_over = 500e-3,
+                                            .servo_time = 1.0,
+                                            .initial_opening = 1.0,
+                                            .diameter = 1.0};
 
   auto reservoir_left =
       plant.add_element<ConstantLevelLeft>(reservoir_params).value();
   auto pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
   auto simple_conn1 =
       plant.add_element<SimpleConnection>(simple_connection_params).value();
-  auto valve2 = plant.add_element<Valve>(valve_params).value();
+  auto valve2 = plant.add_element<ValveInternalServo>(valve_params, dt).value();
   auto pipe2 = plant.add_element<Pipe>(pipe_params, dt).value();
   auto pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
   auto pipe4 = plant.add_element<Pipe>(pipe_params, dt).value();

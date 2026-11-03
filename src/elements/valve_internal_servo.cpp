@@ -14,7 +14,7 @@ ValveInternalServo::ValveInternalServo(
 ValveInternalServo::ValveInternalServo(
     const ValveInternalServoParameters& parameters, double dt,
     ValveInternalServoState state)
-    : NonPipe(1, 1), m_params(parameters), m_dt(dt), m_state(state) {}
+    : NonPipe(1, 1), m_dt(dt), m_params(parameters), m_state(state) {}
 
 ValveInternalServo::~ValveInternalServo() { disconnect_all(); }
 

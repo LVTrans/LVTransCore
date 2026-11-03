@@ -22,7 +22,6 @@ SurgeShaftStandard::SurgeShaftStandard(const SurgeShaftStandardParameters& p,
     m_derived.area = (std::numbers::pi * (p.diameter * p.diameter)) * 0.25;
   }
   reset_state();
-  // initialize_from_pipes();
 }
 
 SurgeShaftStandard::SurgeShaftStandard(
@@ -30,6 +29,7 @@ SurgeShaftStandard::SurgeShaftStandard(
     const SurgeShaftState& state)
     : SurgeShaftStandard(parameters, dt) {
   m_state = state;
+  m_restored_state = true;
 }
 
 void SurgeShaftStandard::reset_state() {
@@ -37,34 +37,29 @@ void SurgeShaftStandard::reset_state() {
   m_state.H1 = m_state.H2 = m_state.H3 = m_params.H_start;
   m_state.Hb = m_params.H_start;
   m_initialized = false;
+  m_restored_state = false;
 }
 
 void SurgeShaftStandard::initialize_from_pipes() {
-  if (m_initialized) return;
+  if (m_initialized || !left() || !right()) {
+    return;
+  }
   const auto& p = m_params;
   auto& s = m_state;
 
   // TODO: verify if Z0 (elevation) is calcualted corectly here
   m_base_elevation = (left()->config().z1 + right()->config().z0) / 2.0;
+  m_initialized = true;
+  if (m_restored_state) return;
   s.Hb = p.H_start;
 
-  s.H_liquid = s.H_liquid_0 = p.H_start - m_base_elevation;
+  s.H_liquid = p.H_start - m_base_elevation;
   s.H_liquid_0 = s.H_liquid;
-
-  // s.Q1 = left()->get_Q().back();
-  // s.Q2 = right()->get_Q().front();
   s.Q3 = 0;
-
-  // s.H1 = s.Hb + s.Q3 * std::abs(s.Q3) * 0.5 / s.Cv;
-  // s.H2 = s.H1;
-  // s.H3 = s.H1;
-
-  m_initialized = true;
 }
 
 double SurgeShaftStandard::get_H(CharacteristicsType ct, ElementID) {
   initialize_from_pipes();
-  calculate_q();
   if (ct == CharacteristicsType::Plus) {
     return m_state.H1;
   } else {
@@ -73,7 +68,7 @@ double SurgeShaftStandard::get_H(CharacteristicsType ct, ElementID) {
 }
 double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID,
                                  const IterateInput) {
-  // initialize_from_pipes();
+  initialize_from_pipes();
   if (ct == CharacteristicsType::Plus) {
     return m_state.Q1;
   } else {
@@ -82,7 +77,7 @@ double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID,
 }
 
 void SurgeShaftStandard::iterate(const double) {
-  // initialize_from_pipes();
+  initialize_from_pipes();
   calculate_q();
 }
 

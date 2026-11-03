@@ -5,8 +5,6 @@
 
 namespace lvtrans {
 
-// First-order servo with the LabVIEW opening-dependent rate limiter.
-// Constant directional Cv coefficients are supported; Cv files are rejected.
 class ValveInternalServo : public Controllable, public NonPipe {
  public:
   ValveInternalServo(const ValveInternalServoParameters& parameters, double dt);
@@ -32,8 +30,8 @@ class ValveInternalServo : public Controllable, public NonPipe {
 
  private:
   double calculate_q();
-  ValveInternalServoParameters m_params;
   double m_dt;
+  ValveInternalServoParameters m_params;
   ValveInternalServoState m_state;
 };
 

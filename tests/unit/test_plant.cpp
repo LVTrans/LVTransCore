@@ -6,7 +6,7 @@
 #include "lvtrans/elements/constant_level_right.hpp"
 #include "lvtrans/elements/pipe.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
-#include "lvtrans/elements/valve.hpp"
+#include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 
 TEST(PlantTest, AddElements) {
