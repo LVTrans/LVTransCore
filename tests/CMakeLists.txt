@@ -3,6 +3,7 @@ find_package(GTest CONFIG REQUIRED)
 set(TEST_SOURCES
   unit/test_pipe.cpp
   unit/test_valve_internal_servo.cpp
+  unit/test_surge_shaft_standard.cpp
   unit/test_element_container.cpp
   unit/test_plant.cpp
   unit/test_plant_config_repo.cpp
