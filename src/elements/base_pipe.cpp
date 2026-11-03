@@ -87,9 +87,15 @@ void BasePipe::disconnect_right() noexcept {
 ElementView BasePipe::read_view() const {
   const auto& grid = m_derived.grid;
   VectorValue H = {
-      .name = "Head flow", .x_unit = "m", .y_unit = "m", .group_id = 1};
+      .name = "Head flow",
+      .x_unit = "m",
+      .y_unit = "m",
+  };
   VectorValue Q = {
-      .name = "Flow rate", .x_unit = "m", .y_unit = "m³/s", .group_id = 1};
+      .name = "Flow rate",
+      .x_unit = "m",
+      .y_unit = "m³/s",
+  };
 
   H.values.resize(grid.staggered_nodes);
   H.x_values.reserve(grid.num_nodes);

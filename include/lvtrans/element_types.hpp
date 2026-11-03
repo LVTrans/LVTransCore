@@ -187,10 +187,8 @@ struct SurgeShaftState {
   double H3{};
   double Q3{};
 
-  // double H{};
   double L{};
   double Hb{};
-  double Cv{};
   double H_liquid{};
   double H_liquid_0{};
 };
@@ -210,8 +208,6 @@ struct ScalarValue {
   std::string unit{};
   std::string symbol{};
   double value{};
-  int group_id{-1};  //< Group ID for the scalar value, useful for grouping
-                     // related values together.
 
   void display(std::ostream& os) const {
     os << "ScalarValue: name=" << name << " unit=" << unit
@@ -234,9 +230,6 @@ struct VectorValue {
   std::string y_unit{};
   std::vector<double> values{};
   std::vector<double> x_values{};
-  int group_id{-1};  //< Group ID for the vector value, useful for grouping
-                     // related values together. Assumes x_values are the
-                     // same for all values in the // group.
 
   void display(std::ostream& os) const {
     os << "VectorValue: name=" << name << " symbol=" << symbol

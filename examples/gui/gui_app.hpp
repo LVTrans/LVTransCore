@@ -9,7 +9,6 @@
 #include <iostream>
 #include <span>
 #include <type_traits>
-#include <unordered_map>
 #include <vector>
 #include "helpers.hpp"
 #include "imgui.h"
@@ -41,7 +40,7 @@ struct GuiApp {
   Clock::time_point last_frame = Clock::now();
 
   explicit GuiApp(Plant& p) : plant(p), dt{plant.get_step_size()} {}
-  ~GuiApp() {}
+  ~GuiApp() { shutdown(); }
 
   [[nodiscard]] int init() {
     glfwSetErrorCallback([](int code, const char* description) {
@@ -288,189 +287,93 @@ struct GuiApp {
   void plot_element_data() {
     ImGui::SetNextWindowPos(ImVec2(380, 20), ImGuiCond_FirstUseEver);
     ImGui::SetNextWindowSize(ImVec2(880, 760), ImGuiCond_FirstUseEver);
-
-    // Return the Y-unit of either ScalarValue or VectorValue.
-    const auto unit_of = [](const DisplayValue& data) -> const std::string& {
-      return std::visit(
-          [](const auto& value) -> const std::string& {
-            using T = std::decay_t<decltype(value)>;
-
-            if constexpr (std::is_same_v<T, ScalarValue>)
-              return value.unit;
-            else
-              return value.y_unit;
-          },
-          data);
-    };
-
     if (ImGui::Begin("Data Analytics")) {
       ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
-
       if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
-        constexpr std::array<ImAxis, 3> y_axes = {ImAxis_Y1, ImAxis_Y2,
-                                                  ImAxis_Y3};
-
-        for (const auto& [e_id, groups] : plots.element_plots) {
-          const auto element = plant.get_element_by_id(e_id);
-          if (!element) continue;
-
-          ImGui::PushID(e_id);
-
-          const auto title =
-              std::format("{} ({}):", (*element)->get_name(),
-                          element_type_to_str((*element)->get_type()));
-
-          for (const auto& [g_id, view] : groups) {
-            if (view.values.empty()) continue;
-
-            ImGui::PushID(g_id);
-
-            // Collect unique units in this group.
-            std::vector<std::string> units;
-
-            for (const auto& data : view.values) {
-              const auto& unit = unit_of(data);
-
-              if (std::find(units.begin(), units.end(), unit) == units.end()) {
-                units.push_back(unit);
-              }
-            }
-
-            // Determine shared X-axis label.
-            // Values in a group should share X semantics.
-            const auto x_label = std::visit(
-                [](const auto& value) -> std::string {
-                  using T = std::decay_t<decltype(value)>;
-
-                  if constexpr (std::is_same_v<T, ScalarValue>) {
-                    return "Time (s)";
-                  } else {
-                    if (value.x_values.empty()) return "Node index";
-
-                    return value.x_unit.empty()
-                               ? "Distance"
-                               : std::format("Distance ({})", value.x_unit);
+        for (const auto& view : plots.views) {
+          ImGui::PushID(view.element_id);
+          for (std::size_t i = 0; i < view.values.size(); ++i) {
+            ImGui::PushID(static_cast<int>(i));
+            std::visit(
+                [&](const auto& value) {
+                  using Value = std::decay_t<decltype(value)>;
+                  auto element =
+                      plant.get_element_by_id(view.element_id).value();
+                  const auto title = std::format(
+                      "{} ({}): {} ", element->get_name(),
+                      element_type_to_str(element->get_type()), value.name);
+                  if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
+                    ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
+                    if constexpr (std::is_same_v<Value, ScalarValue>) {
+                      const auto label =
+                          value.unit.empty()
+                              ? value.name
+                              : std::format("{} ({})", value.name, value.unit);
+                      ImPlot::SetupAxes("Time (s)", label.c_str(),
+                                        ImPlotAxisFlags_AutoFit);
+                      ImPlot::SetupAxisFormat(ImAxis_X1, TimeFormatter,
+                                              nullptr);
+                      const auto& history = plots.histories.at(
+                          PlotContainer::key(view.element_id, value));
+                      setup_y_limits(std::span<const double>(
+                          history.values.data(),
+                          static_cast<std::size_t>(history.count)));
+                      ImPlotSpec spec;
+                      spec.Offset = history.offset;
+                      // A stable hidden ID preserves the color and visibility
+                      // when the displayed value changes.
+                      const auto legend = std::format(
+                          "{}: {:.2f}{}{}###series", value.name, value.value,
+                          value.unit.empty() ? "" : " ", value.unit);
+                      ImPlot::PlotLine(legend.c_str(), history.time.data(),
+                                       history.values.data(), history.count,
+                                       spec);
+                    } else {
+                      const auto label =
+                          value.y_unit.empty()
+                              ? value.name
+                              : std::format("{} ({})", value.name,
+                                            value.y_unit);
+                      const auto x_label =
+                          value.x_values.empty()
+                              ? std::string("Node index")
+                              : (value.x_unit.empty()
+                                     ? std::string("Distance")
+                                     : std::format("Distance ({})",
+                                                   value.x_unit));
+                      ImPlot::SetupAxes(x_label.c_str(), label.c_str(),
+                                        ImPlotAxisFlags_AutoFit);
+                      setup_y_limits(value.values);
+                      if (!value.values.empty()) {
+                        const auto legend = std::format(
+                            "{}: start {:.2f}, end {:.2f}{}{}###series",
+                            value.name, value.values.front(),
+                            value.values.back(),
+                            value.y_unit.empty() ? "" : " ", value.y_unit);
+                        if (value.x_values.empty()) {
+                          ImPlot::PlotLine(
+                              legend.c_str(), value.values.data(),
+                              static_cast<int>(value.values.size()));
+                        } else {
+                          ImPlot::PlotLine(
+                              legend.c_str(), value.x_values.data(),
+                              value.values.data(),
+                              static_cast<int>(value.values.size()));
+                        }
+                      }
+                    }
+                    ImPlot::EndPlot();
                   }
                 },
-                view.values.front());
-
-            // ImPlot supports at most 3 Y-axes per plot.
-            // Additional units get another plot.
-            for (std::size_t start = 0; start < units.size();
-                 start += y_axes.size()) {
-              const auto end = std::min(start + y_axes.size(), units.size());
-
-              const auto plot_title =
-                  std::format("{}##unit_group_{}", title, start);
-
-              if (ImPlot::BeginPlot(plot_title.c_str(), ImVec2(-1, 240))) {
-                ImPlot::SetupAxis(ImAxis_X1, x_label.c_str(),
-                                  ImPlotAxisFlags_AutoFit);
-
-                if (std::holds_alternative<ScalarValue>(view.values.front())) {
-                  ImPlot::SetupAxisFormat(ImAxis_X1, TimeFormatter, nullptr);
-                }
-
-                // One independently fitted Y-axis per unit.
-                for (std::size_t j = start; j < end; ++j) {
-                  const auto axis = y_axes[j - start];
-
-                  const auto label = units[j].empty()
-                                         ? std::string("Value")
-                                         : std::format("Value ({})", units[j]);
-
-                  const ImPlotAxisFlags flags =
-                      j == start
-                          ? ImPlotAxisFlags_AutoFit
-                          : ImPlotAxisFlags_AutoFit | ImPlotAxisFlags_Opposite;
-
-                  ImPlot::SetupAxis(axis, label.c_str(), flags);
-
-                  ImPlot::SetupAxisFormat(axis, "%.2f");
-                }
-
-                // Finish all setup before plotting.
-                ImPlot::SetupFinish();
-
-                for (std::size_t i = 0; i < view.values.size(); ++i) {
-                  const auto& data = view.values[i];
-
-                  const auto first = units.begin() + start;
-                  const auto last = units.begin() + end;
-
-                  const auto it = std::find(first, last, unit_of(data));
-
-                  if (it == last) continue;
-
-                  const auto axis = y_axes[std::distance(first, it)];
-
-                  ImPlot::SetAxis(axis);
-
-                  std::visit(
-                      [&](const auto& value) {
-                        using T = std::decay_t<decltype(value)>;
-
-                        if constexpr (std::is_same_v<T, ScalarValue>) {
-                          const auto& history = plots.histories.at(
-                              PlotContainer::key(view.element_id, value));
-
-                          if (history.count == 0) return;
-
-                          ImPlotSpec spec;
-                          spec.Offset = history.offset;
-
-                          const auto legend = std::format(
-                              "{}: {:.2f}{}{}###series_{}", value.name,
-                              value.value, value.unit.empty() ? "" : " ",
-                              value.unit, i);
-
-                          ImPlot::PlotLine(legend.c_str(), history.time.data(),
-                                           history.values.data(), history.count,
-                                           spec);
-
-                        } else {
-                          if (value.values.empty()) return;
-
-                          const auto legend = std::format(
-                              "{}: start {:.2f}, end {:.2f}"
-                              "{}{}###series_{}",
-                              value.name, value.values.front(),
-                              value.values.back(),
-                              value.y_unit.empty() ? "" : " ", value.y_unit, i);
-
-                          if (value.x_values.empty()) {
-                            ImPlot::PlotLine(
-                                legend.c_str(), value.values.data(),
-                                static_cast<int>(value.values.size()));
-                          } else {
-                            const auto count = std::min(value.x_values.size(),
-                                                        value.values.size());
-
-                            ImPlot::PlotLine(
-                                legend.c_str(), value.x_values.data(),
-                                value.values.data(), static_cast<int>(count));
-                          }
-                        }
-                      },
-                      data);
-                }
-
-                ImPlot::EndPlot();
-              }
-            }
-
+                view.values[i]);
             ImGui::PopID();
           }
-
           ImGui::PopID();
         }
-
         ImPlot::EndAlignedPlots();
       }
-
       ImPlot::PopStyleVar();
     }
-
     ImGui::End();
   }
 };

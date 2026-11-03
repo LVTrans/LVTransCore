@@ -37,6 +37,7 @@ class SurgeShaftStandard : public NonPipe {
 
  private:
   void initialize_from_pipes();
+  void calculate_q();
   SurgeShaftStandardParameters m_params;
   SurgeShaftState m_state;
   SurgeShaftDerivedData m_derived;
