@@ -57,7 +57,7 @@ struct SurgeShaftState {
 };
 
 struct PIDValveState {
-  bool active{false};
+  bool active{true};
   bool pu_SP{false};
   bool automatic{true};
   bool antiwindup{true};

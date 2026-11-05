@@ -22,10 +22,13 @@ class PIDValve : public Controller {
   void reset_state() override;
   void set_SP_Q(double Q) { m_state.SP_q = Q / m_params.Q_wanted; }
   double get_PV_Q() const { return m_state.PV_Q; }
-  void set_PV_Q(double Q) { m_state.PV_Q = Q; m_state.PV_q = Q / m_params.Q_wanted; }
+  void set_PV_Q(double Q) {
+    m_state.PV_Q = Q;
+    m_state.PV_q = Q / m_params.Q_wanted;
+  }
   const PIDValveState& state() const { return m_state; }
-  void set_controls(bool active, bool automatic, bool antiwindup,
-                    double manual, double Tt, double Tf);
+  void set_controls(bool active, bool automatic, bool antiwindup, double manual,
+                    double Tt, double Tf);
   void set_gains(double Kp, double Ti, double Td);
   double get_output() const override { return m_state.kappa_servo; }
   bool is_active() const override { return m_state.active; }

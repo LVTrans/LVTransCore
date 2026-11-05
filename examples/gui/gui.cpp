@@ -2,6 +2,7 @@
 #include <iostream>
 #include <memory>
 #include "gui_app.hpp"
+#include "helpers.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
@@ -186,6 +187,7 @@ auto plant3() {
 }
 
 int main() {
+  print_build_type();
   auto plant = plant3();
   GuiApp app(*plant);
   if (app.init() != 0) {

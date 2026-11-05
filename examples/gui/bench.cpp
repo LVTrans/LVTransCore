@@ -78,20 +78,21 @@ auto plant2() {
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
   ValveInternalServoParameters valve_params{.cvp = 10e3,
-                                             .cvm = 10e3,
-                                             .closing_time_high = 10,
-                                             .closing_time_low = 10,
-                                             .switch_over = 500e-3,
-                                             .servo_time = 1.0,
-                                             .initial_opening = 1.0,
-                                             .diameter = 1.0};
+                                            .cvm = 10e3,
+                                            .closing_time_high = 10,
+                                            .closing_time_low = 10,
+                                            .switch_over = 500e-3,
+                                            .servo_time = 1.0,
+                                            .initial_opening = 1.0,
+                                            .diameter = 1.0};
 
   auto reservoir_left =
       plant->add_element<ConstantLevelLeft>(reservoir_params).value();
   auto pipe1 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto simple_conn1 =
       plant->add_element<SimpleConnection>(simple_connection_params).value();
-  auto valve2 = plant->add_element<ValveInternalServo>(valve_params, dt).value();
+  auto valve2 =
+      plant->add_element<ValveInternalServo>(valve_params, dt).value();
   auto pipe2 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto pipe3 = plant->add_element<Pipe>(pipe_params, dt).value();
   auto pipe4 = plant->add_element<Pipe>(pipe_params, dt).value();
