@@ -1,6 +1,7 @@
 #include <GLFW/glfw3.h>
 #include <chrono>
 #include <iostream>
+#include <memory>
 #include "bench_app.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
@@ -16,9 +17,8 @@ auto plant1() {
   constexpr double dt = 0.1;
   auto plant = std::make_unique<Plant>(dt);
   plant->set_name("Plant 1");
-  ReservoirParameters reservoir_params{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
-  ReservoirParameters reservoir_params2{
-      .H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
+  ReservoirParameters reservoir_params{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
+  ReservoirParameters reservoir_params2{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
   PipeParameters pipe_params{.H0 = 0.0,
                              .Q0 = 0.0,
                              .length = 1000,
@@ -117,8 +117,23 @@ auto plant2() {
   return plant;
 };
 
-int main() {
-  auto plant = plant2();
+int main(int argc, char** argv) {
+  int bench_plant = 1;
+  if (argc > 1) {
+    bench_plant = std::stoi(argv[1]);
+  }
+
+  std::unique_ptr<Plant> plant = nullptr;
+
+  switch (bench_plant) {
+    case 1:
+      plant = plant1();
+      break;
+    case 2:
+      plant = plant2();
+      break;
+  }
+
   std::cout << "Plant name: " << plant->get_name() << '\n';
   BenchApp app(*plant);
   if (app.init() != 0) {
