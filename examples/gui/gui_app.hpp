@@ -297,14 +297,28 @@ struct GuiApp {
       ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
       if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
         for (const auto& view : plots.views) {
+          const auto found = plant.get_element_by_id(view.element_id);
+          if (!found) continue;
+          const auto* element = *found;
           ImGui::PushID(view.element_id);
+          const auto group_title = std::format(
+              "{} — {} (ID {})###element_plots", element->get_name(),
+              element_type_str(element->get_type()), view.element_id);
+          if (!ImGui::CollapsingHeader(group_title.c_str(),
+                                       ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PopID();
+            continue;
+          }
+          ImGui::Indent();
+          ImGui::BeginGroup();
+          if (view.values.empty()) {
+            ImGui::TextDisabled("No plot data available for this element.");
+          }
           for (std::size_t i = 0; i < view.values.size(); ++i) {
             ImGui::PushID(static_cast<int>(i));
             std::visit(
                 [&](const auto& value) {
                   using Value = std::decay_t<decltype(value)>;
-                  auto element =
-                      plant.get_element_by_id(view.element_id).value();
                   const auto title = std::format(
                       "{} ({}): {} ", element->get_name(),
                       element_type_str(element->get_type()), value.name);
@@ -326,8 +340,6 @@ struct GuiApp {
                           static_cast<std::size_t>(history.count)));
                       ImPlotSpec spec;
                       spec.Offset = history.offset;
-                      // A stable hidden ID preserves the color and visibility
-                      // when the displayed value changes.
                       const auto legend = std::format(
                           "{}: {:.2f}{}{}###series", value.name, value.value,
                           value.unit.empty() ? "" : " ", value.unit);
@@ -374,6 +386,9 @@ struct GuiApp {
                 view.values[i]);
             ImGui::PopID();
           }
+          ImGui::EndGroup();
+          ImGui::Unindent();
+          ImGui::Spacing();
           ImGui::PopID();
         }
         ImPlot::EndAlignedPlots();
