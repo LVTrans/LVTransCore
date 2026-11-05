@@ -8,8 +8,8 @@ namespace lvtrans {
 
 class ValveInternalServo : public Controllable, public NonPipe {
  public:
-  ValveInternalServo(const ValveInternalServoParameters& parameters, double dt);
-  ValveInternalServo(const ValveInternalServoParameters& parameters, double dt,
+  ValveInternalServo(ValveInternalServoParameters parameters, double dt);
+  ValveInternalServo(ValveInternalServoParameters parameters, double dt,
                      ValveInternalServoState state);
   ~ValveInternalServo() override;
   void disconnect_all() noexcept override;

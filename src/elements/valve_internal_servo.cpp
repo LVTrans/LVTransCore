@@ -5,16 +5,19 @@
 
 namespace lvtrans {
 
-ValveInternalServo::ValveInternalServo(
-    const ValveInternalServoParameters& parameters, double dt)
-    : ValveInternalServo(
-          parameters, dt,
-          {parameters.initial_opening, parameters.initial_opening, false}) {}
+ValveInternalServo::ValveInternalServo(ValveInternalServoParameters parameters,
+                                       double dt)
+    : ValveInternalServo(std::move(parameters), dt,
+                         {.tau = parameters.initial_opening,
+                          .setpoint = parameters.initial_opening,
+                          .rate_limited = false}) {}
 
-ValveInternalServo::ValveInternalServo(
-    const ValveInternalServoParameters& parameters, double dt,
-    ValveInternalServoState state)
-    : NonPipe(1, 1), m_dt(dt), m_params(parameters), m_state(state) {}
+ValveInternalServo::ValveInternalServo(ValveInternalServoParameters parameters,
+                                       double dt, ValveInternalServoState state)
+    : NonPipe(1, 1),
+      m_dt(dt),
+      m_params(std::move(parameters)),
+      m_state(state) {}
 
 ValveInternalServo::~ValveInternalServo() { disconnect_all(); }
 
@@ -25,7 +28,11 @@ void ValveInternalServo::disconnect_all() noexcept {
 
 ModificationResult ValveInternalServo::modify(const ElementModification& mod) {
   const auto* opening = std::get_if<SetValveOpening>(&mod);
-  if (!opening) return ModificationResult::UnsupportedModification;
+
+  if (!opening) {
+    return ModificationResult::UnsupportedModification;
+  }
+
   if (!std::isfinite(opening->tau) || opening->tau < 0 || opening->tau > 1) {
     return ModificationResult::InvalidValue;
   }
@@ -85,7 +92,9 @@ double ValveInternalServo::get_Q(CharacteristicsType, ElementID, IterateInput) {
 }
 
 void ValveInternalServo::reset_state() {
-  m_state = {m_params.initial_opening, m_params.initial_opening, false};
+  m_state = {.tau = m_params.initial_opening,
+             .setpoint = m_params.initial_opening,
+             .rate_limited = false};
 }
 
 double ValveInternalServo::calculate_q() {
