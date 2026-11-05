@@ -1,4 +1,15 @@
-find_package(benchmark REQUIRED)
+find_package(benchmark CONFIG QUIET)
+
+if(NOT benchmark_FOUND)
+    include(FetchContent)
+    set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "Build Google Benchmark tests" FORCE)
+    set(BENCHMARK_ENABLE_INSTALL OFF CACHE BOOL "Install Google Benchmark" FORCE)
+    FetchContent_Declare(
+        google_benchmark
+        URL https://github.com/google/benchmark/archive/refs/tags/v1.9.4.tar.gz
+    )
+    FetchContent_MakeAvailable(google_benchmark)
+endif()
 
 set(BENCHMARK_SOURCES
     bench_pipe.cpp
