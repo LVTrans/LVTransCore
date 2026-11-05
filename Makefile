@@ -14,11 +14,11 @@ examples:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_EXAMPLES=ON -G "Ninja"
 	cmake --build build --config Debug -j "$$(nproc)"
 gui:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target gui -j "$$(nproc)"
 	./build/examples/gui/gui
 bench-gui:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target bench -j "$$(nproc)"
 	./build/examples/gui/bench
 clean:
