@@ -34,34 +34,38 @@ ModificationResult ValveInternalServo::modify(const ElementModification& mod) {
 }
 
 void ValveInternalServo::iterate(double) {
-  const double previous = m_state.tau;
+  const auto& p = m_params;
+  auto& s = m_state;
+  const double previous = s.tau;
+  double setpoint = s.setpoint;
+  if (m_controller && m_controller->is_active()) {
+    setpoint = m_controller->get_output();
+  }
 
-  const double closing_time = previous >= m_params.switch_over
-                                  ? m_params.closing_time_high
-                                  : m_params.closing_time_low;
+  const double closing_time =
+      previous >= p.switch_over ? p.closing_time_high : p.closing_time_low;
   const double candidate =
-      (m_params.servo_time * previous + m_state.setpoint * m_dt) /
-      (m_params.servo_time + m_dt);
+      (p.servo_time * previous + setpoint * m_dt) / (p.servo_time + m_dt);
   const double rate = (candidate - previous) / m_dt;
   const double max_rate = 1.0 / closing_time;
-  m_state.tau = candidate;
-  m_state.rate_limited = false;
+  s.tau = candidate;
+  s.rate_limited = false;
   if (rate > max_rate) {
-    m_state.tau = max_rate * m_dt + previous;
-    m_state.rate_limited = true;
+    s.tau = max_rate * m_dt + previous;
+    s.rate_limited = true;
   } else if (rate < -max_rate) {
-    m_state.tau = -max_rate * m_dt + previous;
-    m_state.rate_limited = true;
+    s.tau = -max_rate * m_dt + previous;
+    s.rate_limited = true;
   }
 
   const double q = calculate_q();
   if (const auto* pipe = left()) {
     const auto& c = m_c_plus.at(pipe->get_ID());
-    m_state.H1 = c.c - c.b * q;
+    s.H1 = c.c - c.b * q;
   }
   if (const auto* pipe = right()) {
     const auto& c = m_c_minus.at(pipe->get_ID());
-    m_state.H2 = c.c + c.b * q;
+    s.H2 = c.c + c.b * q;
   }
 }
 

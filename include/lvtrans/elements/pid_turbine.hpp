@@ -18,6 +18,8 @@ class PIDTurbine : public Controller {
   std::optional<ElementState> get_state() const override;
   ElementView read_view() const override;
   void reset_state() override;
+  double get_output() const override { return 0; }
+  bool is_active() const override { return true; }
 
  private:
   PIDTurbineParameters m_params{};

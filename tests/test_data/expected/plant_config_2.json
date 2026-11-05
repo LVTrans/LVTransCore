@@ -415,7 +415,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.75
+        "tau": 0.75,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -447,7 +448,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.65
+        "tau": 0.65,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -501,7 +503,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.35
+        "tau": 0.35,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -523,7 +526,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.25
+        "tau": 0.25,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -545,7 +549,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.45
+        "tau": 0.45,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -567,7 +572,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.35
+        "tau": 0.35,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     },
@@ -589,7 +595,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 0.55
+        "tau": 0.55,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     }

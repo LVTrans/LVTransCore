@@ -1,11 +1,8 @@
 #pragma once
 
-#include <array>
-#include <cstddef>
 #include <string>
 #include <variant>
 #include "lvtrans/element_states.hpp"
-#include "lvtrans/element_types.hpp"
 
 namespace lvtrans {
 
@@ -15,6 +12,12 @@ struct PIDValveParameters {
   double Kp{1};         //< Proportional gain
   double Ti{10};        //< Integral time
   double Td{0};         //< Derivative time
+
+  std::string to_str() const {
+    return std::format(
+        "PIDValveParameters: Q_wanted={}, SP_Q={}, Kp={}, Ti={}, Td={}",
+        Q_wanted, SP_Q, Kp, Ti, Td);
+  }
 };
 
 struct PIDTurbineParameters {
@@ -131,8 +134,7 @@ struct PipeParameters {
                         // area
   bool use_full_moody{};
   bool use_Dh{true};  //< Use hydraulic diameter
-                      //
-                      //
+
   std::string to_str() const {
     return std::format(
         "PipeParameters: length={}, diameter={}, area={}, "

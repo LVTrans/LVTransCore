@@ -28,6 +28,7 @@ struct GuiApp {
   Plant& plant;
   PlotContainer plots;
   GLFWwindow* window{nullptr};
+  bool initialized{false};
   double dt = 0.1;
   const std::uint64_t graph_sampling_steps[6] = {1, 5, 10, 20, 50, 100};
   const char* graph_intervals[6]{
@@ -82,6 +83,7 @@ struct GuiApp {
     style.WindowRounding = 0.0f;
     style.FrameRounding = 0.0f;
     style.ItemSpacing = ImVec2(8, 8);
+    initialized = true;
     return 0;
   }
   auto steps() -> std::uint64_t {
@@ -156,6 +158,8 @@ struct GuiApp {
   }
 
   void shutdown() {
+    if (!initialized) return;
+    initialized = false;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();

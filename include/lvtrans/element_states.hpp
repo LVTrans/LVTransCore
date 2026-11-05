@@ -22,6 +22,8 @@ struct ValveInternalServoState {
   double tau{};       // Actual opening; also the servo/limiter feedback value.
   double setpoint{};  // Requested opening.
   bool rate_limited{};
+  bool external_active{};  // True if the valve is being controlled by an
+                           // external controller.
   double Q{};
   double H1{};
   double H2{};
@@ -54,13 +56,30 @@ struct SurgeShaftState {
   double H_liquid_0{};
 };
 
-struct DataPoint {
-  double x{};
-  double y{};
+struct PIDValveState {
+  bool active{false};
+  bool pu_SP{false};
+  bool automatic{true};
+  bool antiwindup{true};
+  bool reset{false};
+  double PV_Q{};
+  double SP_q{};  // [pu]
+  double PV_q{};  // [
+  double kappa_man{};
+  double Tt{10.0};
+  double Tf{-1};
+  double e_t_h{};
+  double integral_initial_value{1.0};
+  double integral_min{-1e8};
+  double integral_max{1e8};
+
+  // read-only
+  double kappa_servo{};  // [pu]
+  double PV_Q_out{};     // [m³/s]
+  double PV_q_out{};     // [pu]
 };
 
 using ElementID = int;
-
 using ElementState = std::variant<PipeState, ReservoirState, SurgeShaftState,
                                   ValveInternalServoState>;
 }  // namespace lvtrans

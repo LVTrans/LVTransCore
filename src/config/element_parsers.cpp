@@ -109,10 +109,10 @@ ElementParseResult SurgeShaftStandardParser::parse(ElementContainer& container,
                           std::get<SurgeShaftState>(*element.state))
                       .value_or(nullptr);
   } else {
-    surge_shaft = container
-                      .add_element_with_id<SurgeShaftStandard>(
-                          element.id, parameters, dt)
-                      .value_or(nullptr);
+    surge_shaft =
+        container
+            .add_element_with_id<SurgeShaftStandard>(element.id, parameters, dt)
+            .value_or(nullptr);
   }
   if (!surge_shaft) return ElementParseResult::Error;
   surge_shaft->set_name(element.name);
