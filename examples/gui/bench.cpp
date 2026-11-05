@@ -15,6 +15,7 @@ using namespace lvtrans;
 auto plant1() {
   constexpr double dt = 0.1;
   auto plant = std::make_unique<Plant>(dt);
+  plant->set_name("Plant 1");
   ReservoirParameters reservoir_params{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
   ReservoirParameters reservoir_params2{
       .H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
@@ -49,6 +50,7 @@ auto plant1() {
 auto plant2() {
   constexpr double dt = 0.1;
   auto plant = std::make_unique<Plant>(dt);
+  plant->set_name("Plant 2");
   ReservoirParameters reservoir_params{
       .H0 = 100.000000E+0, .cvp = 100.000000E+3, .cvm = 100.000000E+3};
   ReservoirParameters reservoir_params2{
@@ -117,6 +119,7 @@ auto plant2() {
 
 int main() {
   auto plant = plant2();
+  std::cout << "Plant name: " << plant->get_name() << '\n';
   BenchApp app(*plant);
   if (app.init() != 0) {
     std::cerr << "Failed to initialize GUI application.\n";

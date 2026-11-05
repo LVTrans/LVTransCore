@@ -34,7 +34,7 @@ struct BenchApp {
   int speed = 1;
   double dt_accumulator = 0.0;
   std::ofstream file;
-  std::uint64_t last_written_interval = 0;
+  Clock::time_point last_written_time = Clock::now();
   Clock::time_point last_frame = Clock::now();
 
   explicit BenchApp(Plant& p)
@@ -80,7 +80,7 @@ struct BenchApp {
     style.FrameRounding = 0.0f;
     style.ItemSpacing = ImVec2(8, 8);
 
-    file << "Time,Iterations,IterationsPerSecond,XRealtime\n";
+    file << "RealTime [s],IterationsPerSecond,SimTime [s]\n";
     file.flush();
     return 0;
   }
@@ -99,15 +99,16 @@ struct BenchApp {
   }
 
   void write_results_to_file() {
-    const auto iterations = steps();
-    const auto interval = iterations / 1'000'000;
-    // A frame may advance past a boundary without landing exactly on it.
-    if (interval <= last_written_interval) return;
+    const auto now = Clock::now();
+    const auto elapsed =
+        std::chrono::duration<double>(now - last_written_time).count();
 
-    file << plant.get_current_time() << ',' << iterations << ','
-         << stats.iterations_per_second << ',' << stats.x_realtime << '\n';
-    file.flush();
-    last_written_interval = interval;
+    if (elapsed >= 1.0) {
+      file << stats.x_realtime << ',' << stats.iterations_per_second << ','
+           << plant.get_current_time() << '\n';
+      file.flush();
+      last_written_time = now;
+    }
   }
 
   void draw_frame() {
@@ -184,7 +185,7 @@ struct BenchApp {
     if (ImGui::Button("Reset")) {
       plant.reset_state();
       stats.reset(steps());
-      last_written_interval = 0;
+      last_written_time = Clock::now();
       running = false;
       invalid = false;
       dt_accumulator = 0.0;
