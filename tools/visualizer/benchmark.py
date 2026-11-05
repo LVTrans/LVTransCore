@@ -1,7 +1,8 @@
-"""Plot benchmark throughput against elapsed simulation time."""
+"""Plot one benchmark run or compare two runs against simulation time."""
 
 import argparse
 import csv
+import math
 from pathlib import Path
 from statistics import mean, median
 
@@ -15,61 +16,101 @@ def format_time(seconds, _position=None):
     return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
 
 
+def read_benchmark(path):
+    with path.open(newline="", encoding="utf-8-sig") as file:
+        reader = csv.DictReader(file, skipinitialspace=True)
+        if reader.fieldnames:
+            reader.fieldnames = [name.strip() for name in reader.fieldnames]
+        rows = list(reader)
+    if not rows:
+        raise ValueError("CSV contains no data rows")
+    columns = tuple(
+        [float(row[name]) for row in rows]
+        for name in ("SimTime [s]", "IterationsPerSecond")
+    )
+    if any(not math.isfinite(value) for column in columns for value in column):
+        raise ValueError("CSV contains nonfinite values")
+    return columns
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("csv_file", type=Path)
+    parser.add_argument("csv_file", type=Path, help="First benchmark CSV")
+    parser.add_argument(
+        "comparison_csv", type=Path, nargs="?", help="Optional second benchmark CSV"
+    )
     parser.add_argument(
         "--save", type=Path, help="Save the plot instead of opening a window"
     )
     args = parser.parse_args()
+    paths = [args.csv_file]
+    if args.comparison_csv is not None:
+        paths.append(args.comparison_csv)
+    runs = []
+    for path in paths:
+        try:
+            runs.append(read_benchmark(path))
+        except (
+            OSError,
+            UnicodeError,
+            csv.Error,
+            KeyError,
+            TypeError,
+            ValueError,
+        ) as error:
+            parser.error(f"Could not read benchmark CSV '{path}': {error}")
 
-    try:
-        with args.csv_file.open(newline="", encoding="utf-8-sig") as file:
-            reader = csv.DictReader(file, skipinitialspace=True)
-            rows = list(reader)
-        times = [float(row["SimTime [s]"]) for row in rows]
-        rates = [float(row["IterationsPerSecond"]) for row in rows]
-        real_time = [float(row["RealTime [s]"]) for row in rows]
-    except (OSError, UnicodeError, csv.Error, KeyError, TypeError, ValueError) as error:
-        parser.error(f"Could not read benchmark CSV: {error}")
-    if not times:
-        parser.error("CSV contains no data rows")
+    comparing = len(runs) == 2
+    labels = [path.stem for path in paths]
+    if comparing and labels[0] == labels[1]:
+        labels = [f"Run {i + 1}: {path}" for i, path in enumerate(paths)]
 
-    fig, (ax, realtime_ax) = plt.subplots(
-        2, 1, sharex=True, figsize=(11, 8), layout="constrained"
+    # Compare the first N samples from each run; statistics use the same subset.
+    row_count = min(len(run[0]) for run in runs)
+    runs = [tuple(column[:row_count] for column in run) for run in runs]
+    fig, axes = plt.subplots(
+        1,
+        len(runs),
+        squeeze=False,
+        figsize=(16 if comparing else 11, 5),
+        layout="constrained",
     )
-    ax.plot(times, rates, color="C0", linewidth=1.5, marker=".",
-            markersize=4, label="Throughput (iterations/s)")
-    realtime_ax.plot(times, real_time, color="C3", linewidth=1.5,
-                     marker=".", markersize=4, label="Real time")
-    average_rate = mean(rates)
-    median_rate = median(rates)
-    ax.axhline(
-        average_rate,
-        color="C1",
-        linestyle="--",
-        label=f"Average: {average_rate:,.1f} iterations/s",
-    )
-    ax.axhline(
-        median_rate,
-        color="C2",
-        linestyle=":",
-        label=f"Median: {median_rate:,.1f} iterations/s",
-    )
-    ax.legend()
-    fig.suptitle(args.csv_file.stem)
-    ax.set_title("Throughput")
-    realtime_ax.set_title("Real time")
-    realtime_ax.set_xlabel("Simulation time (hh:mm:ss)")
-    ax.set_ylabel("Iterations per second")
-    realtime_ax.set_ylabel("Real time (hh:mm:ss)")
-    realtime_ax.yaxis.set_major_formatter(FuncFormatter(format_time))
-    realtime_ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
-    realtime_ax.xaxis.set_major_formatter(FuncFormatter(format_time))
-    ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:,.0f}"))
-    ax.set_xlim(left=0, right=max(times) or 1)
-    ax.grid(True, alpha=0.3)
-    realtime_ax.grid(True, alpha=0.3)
+    for index, (label, (times, rates)) in enumerate(zip(labels, runs)):
+        ax = axes[0, index]
+        ax.plot(
+            times,
+            rates,
+            color="C0",
+            linewidth=1.5,
+            marker=".",
+            markersize=4,
+            label="Throughput (iterations/s)",
+        )
+        ax.axhline(
+            mean(rates),
+            color="C1",
+            linestyle="--",
+            label=f"Average: {mean(rates):,.1f} iterations/s",
+        )
+        ax.axhline(
+            median(rates),
+            color="C2",
+            linestyle=":",
+            label=f"Median: {median(rates):,.1f} iterations/s",
+        )
+        ax.legend(fontsize="small")
+        ax.set_title(f"{label} - Throughput" if comparing else "Throughput")
+        ax.set_xlabel("Simulation time (hh:mm:ss)")
+        ax.set_ylabel("Iterations per second")
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
+        ax.xaxis.set_major_formatter(FuncFormatter(format_time))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:,.0f}"))
+        ax.set_xlim(left=0, right=max(times) or 1)
+        ax.grid(True, alpha=0.3)
+    title = " vs ".join(labels)
+    if comparing:
+        title += f" (first {row_count}s)"
+    fig.suptitle(title)
 
     if args.save:
         fig.savefig(args.save, dpi=160)
