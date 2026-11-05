@@ -8,6 +8,7 @@ class Controllable {
  public:
   virtual ~Controllable() = default;
   Controller* get_controller() const { return m_controller; }
+  virtual double get_measurement() const = 0;
 
  protected:
   Controller* m_controller{nullptr};

@@ -2,7 +2,6 @@
 #include <algorithm>
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_states.hpp"
-#include "lvtrans/elements/valve_internal_servo.hpp"
 
 namespace lvtrans {
 
@@ -13,11 +12,14 @@ PIDValve::PIDValve(const PIDValveParameters& parameters, const double dt)
 
 PIDValve::PIDValve() : PIDValve(PIDValveParameters{}, 0.1) {}
 PIDValve::~PIDValve() { disconnect_all(); }
-void PIDValve::iterate(const double) {
-  if (const auto* valve =
-          dynamic_cast<const ValveInternalServo*>(m_controllable)) {
-    set_PV_Q(valve->get_state_as<ValveInternalServoState>().Q);
+
+void PIDValve::update_measurement() {
+  if (m_controllable) {
+    set_PV_Q(m_controllable->get_measurement());
   }
+}
+void PIDValve::iterate(const double) {
+  update_measurement();
   pid_iterate();
   servo_1st_order();
   m_state.e_t_h = m_state.kappa_servo - m_pid_output;
