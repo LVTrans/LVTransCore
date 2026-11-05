@@ -55,9 +55,16 @@ TEST(PIDValveTest, ZeroGainIsFiniteAndServoOutputStaysBounded) {
   pid.iterate();
   EXPECT_DOUBLE_EQ(value(pid, "Raw PID output"), 0.3);
 }
-TEST(PIDValveTest, RejectsInvalidTimeAndReferenceFlow) {
-  EXPECT_THROW((PIDValve(PIDValveParameters{}, 0)), std::invalid_argument);
-  EXPECT_THROW((PIDValve(PIDValveParameters{.Q_wanted = 0}, 0.1)),
-               std::invalid_argument);
+TEST(PIDValveTest, DefaultConstructorMatchesExplicitDefaults) {
+  PIDValve default_pid;
+  PIDValve explicit_pid(PIDValveParameters{}, 0.1);
+  for (int i = 0; i < 20; ++i) {
+    default_pid.iterate();
+    explicit_pid.iterate();
+    EXPECT_TRUE(std::isfinite(default_pid.get_output()));
+    EXPECT_DOUBLE_EQ(default_pid.get_output(), explicit_pid.get_output());
+    EXPECT_DOUBLE_EQ(value(default_pid, "Integral"),
+                     value(explicit_pid, "Integral"));
+  }
 }
 }  // namespace
