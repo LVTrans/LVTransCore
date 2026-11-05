@@ -72,6 +72,8 @@ class Plant {
   }
 
   void reset_state();
+  void set_name(const std::string& name) { m_data.meta.name = name; }
+  std::string get_name() const { return m_data.meta.name; }
 
   void step();
   void step(size_t num_steps);
