@@ -20,7 +20,7 @@ gui:
 bench-gui:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target bench -j "$$(nproc)"
-	./build/examples/gui/bench $(PLANT)
+	./build/examples/gui/bench $(PLANT) $(DT)
 clean:
 	rm -rf build
 format:

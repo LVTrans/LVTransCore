@@ -13,9 +13,8 @@
 using Clock = std::chrono::steady_clock;
 using namespace lvtrans;
 
-auto plant1() {
-  constexpr double dt = 0.1;
-  auto plant = std::make_unique<Plant>(dt);
+auto plant1(double DT) {
+  auto plant = std::make_unique<Plant>(DT);
   plant->set_name("Plant 1");
   ReservoirParameters reservoir_params{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
   ReservoirParameters reservoir_params2{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
@@ -39,7 +38,7 @@ auto plant1() {
                              .use_Dh = false};
 
   auto left = plant->add_element<ConstantLevelLeft>(reservoir_params).value();
-  auto pipe = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto pipe = plant->add_element<Pipe>(pipe_params, DT).value();
   auto right =
       plant->add_element<ConstantLevelRight>(reservoir_params2).value();
   HydraulicConnections::connect(*pipe, PipeEnd::Left, *left);
@@ -47,9 +46,8 @@ auto plant1() {
   return plant;
 }
 
-auto plant2() {
-  constexpr double dt = 0.1;
-  auto plant = std::make_unique<Plant>(dt);
+auto plant2(double DT) {
+  auto plant = std::make_unique<Plant>(DT);
   plant->set_name("Plant 2");
   ReservoirParameters reservoir_params{
       .H0 = 100.000000E+0, .cvp = 100.000000E+3, .cvm = 100.000000E+3};
@@ -90,14 +88,14 @@ auto plant2() {
 
   auto reservoir_left =
       plant->add_element<ConstantLevelLeft>(reservoir_params).value();
-  auto pipe1 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto pipe1 = plant->add_element<Pipe>(pipe_params, DT).value();
   auto simple_conn1 =
       plant->add_element<SimpleConnection>(simple_connection_params).value();
   auto valve2 =
-      plant->add_element<ValveInternalServo>(valve_params, dt).value();
-  auto pipe2 = plant->add_element<Pipe>(pipe_params, dt).value();
-  auto pipe3 = plant->add_element<Pipe>(pipe_params, dt).value();
-  auto pipe4 = plant->add_element<Pipe>(pipe_params, dt).value();
+      plant->add_element<ValveInternalServo>(valve_params, DT).value();
+  auto pipe2 = plant->add_element<Pipe>(pipe_params, DT).value();
+  auto pipe3 = plant->add_element<Pipe>(pipe_params, DT).value();
+  auto pipe4 = plant->add_element<Pipe>(pipe_params, DT).value();
   auto simple_conn2 =
       plant->add_element<SimpleConnection>(simple_connection_params).value();
   auto reservoir_right =
@@ -119,22 +117,29 @@ auto plant2() {
 
 int main(int argc, char** argv) {
   int bench_plant = 1;
+  double dt = 0.1;
   if (argc > 1) {
     bench_plant = std::stoi(argv[1]);
+  }
+
+  if (argc > 2) {
+    dt = std::stod(argv[2]);
   }
 
   std::unique_ptr<Plant> plant = nullptr;
 
   switch (bench_plant) {
     case 1:
-      plant = plant1();
+      plant = plant1(dt);
       break;
     case 2:
-      plant = plant2();
+      plant = plant2(dt);
       break;
   }
 
   std::cout << "Plant name: " << plant->get_name() << '\n';
+  std::cout << "dt: " << plant->get_step_size() << '\n';
+  std::cout << "Number of elements: " << plant->get_elements().size() << '\n';
   BenchApp app(*plant);
   if (app.init() != 0) {
     std::cerr << "Failed to initialize GUI application.\n";
