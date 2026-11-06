@@ -36,6 +36,7 @@ class PIDValve : public Controller {
  private:
   void pid_iterate();
   void servo_1st_order();
+  void update_measurement();
   PIDValveParameters m_params{};
   PIDValveState m_state{};
   double m_previous_time{};
