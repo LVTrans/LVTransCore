@@ -1,4 +1,4 @@
-"""Plot one benchmark run or compare two runs against simulation time."""
+"""Plot benchmark CSVs together against simulation time."""
 
 import argparse
 import csv
@@ -33,21 +33,78 @@ def read_benchmark(path):
     return columns
 
 
+def plot_benchmarks(paths, runs, separate=False):
+    comparing = len(runs) > 1
+    labels = [path.stem for path in paths]
+    labels = [
+        f"Run {i + 1}: {path}" if labels.count(label) > 1 else label
+        for i, (path, label) in enumerate(zip(paths, labels))
+    ]
+
+    plot_count = len(runs) if separate else 1
+    fig, axes = plt.subplots(
+        1,
+        plot_count,
+        squeeze=False,
+        figsize=(8 * plot_count if plot_count > 1 else 11, 5),
+        layout="constrained",
+    )
+    for index, (label, (times, rates)) in enumerate(zip(labels, runs)):
+        ax = axes[0, index if separate else 0]
+        ax.plot(
+            times,
+            rates,
+            color=f"C{index % 10}" if not separate else "C0",
+            linewidth=1.5,
+            marker=".",
+            markersize=4,
+            label=label,
+        )
+        if separate or not comparing:
+            ax.axhline(
+                mean(rates),
+                color="C1",
+                linestyle="--",
+                label=f"Average: {mean(rates):,.1f} iterations/s",
+            )
+            ax.axhline(
+                median(rates),
+                color="C2",
+                linestyle=":",
+                label=f"Median: {median(rates):,.1f} iterations/s",
+            )
+        if separate:
+            ax.set_title(label)
+            ax.set_xlim(left=0, right=max(times) or 1)
+
+    if not separate:
+        axes[0, 0].set_xlim(left=0, right=max(max(times) for times, _ in runs) or 1)
+    for ax in axes[0]:
+        ax.legend(fontsize="small")
+        ax.set_xlabel("Simulation time (hh:mm:ss)")
+        ax.set_ylabel("Iterations per second")
+        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
+        ax.xaxis.set_major_formatter(FuncFormatter(format_time))
+        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:,.0f}"))
+        ax.grid(True, alpha=0.3)
+    fig.suptitle("Benchmark throughput" if comparing else labels[0])
+    return fig
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("csv_file", type=Path, help="First benchmark CSV")
     parser.add_argument(
-        "comparison_csv", type=Path, nargs="?", help="Optional second benchmark CSV"
+        "csv_files", type=Path, nargs="+", help="One or more benchmark CSV files"
+    )
+    parser.add_argument(
+        "--separate", action="store_true", help="Show each run in its own subplot"
     )
     parser.add_argument(
         "--save", type=Path, help="Save the plot instead of opening a window"
     )
     args = parser.parse_args()
-    paths = [args.csv_file]
-    if args.comparison_csv is not None:
-        paths.append(args.comparison_csv)
     runs = []
-    for path in paths:
+    for path in args.csv_files:
         try:
             runs.append(read_benchmark(path))
         except (
@@ -60,60 +117,11 @@ def main():
         ) as error:
             parser.error(f"Could not read benchmark CSV '{path}': {error}")
 
-    comparing = len(runs) == 2
-    labels = [path.stem for path in paths]
-    if comparing and labels[0] == labels[1]:
-        labels = [f"Run {i + 1}: {path}" for i, path in enumerate(paths)]
-
-    # Compare the first N samples from each run; statistics use the same subset.
-    row_count = min(len(run[0]) for run in runs)
-    runs = [tuple(column[:row_count] for column in run) for run in runs]
-    fig, axes = plt.subplots(
-        1,
-        len(runs),
-        squeeze=False,
-        figsize=(16 if comparing else 11, 5),
-        layout="constrained",
-    )
-    for index, (label, (times, rates)) in enumerate(zip(labels, runs)):
-        ax = axes[0, index]
-        ax.plot(
-            times,
-            rates,
-            color="C0",
-            linewidth=1.5,
-            marker=".",
-            markersize=4,
-            label="Throughput (iterations/s)",
-        )
-        ax.axhline(
-            mean(rates),
-            color="C1",
-            linestyle="--",
-            label=f"Average: {mean(rates):,.1f} iterations/s",
-        )
-        ax.axhline(
-            median(rates),
-            color="C2",
-            linestyle=":",
-            label=f"Median: {median(rates):,.1f} iterations/s",
-        )
-        ax.legend(fontsize="small")
-        ax.set_title(f"{label} - Throughput" if comparing else "Throughput")
-        ax.set_xlabel("Simulation time (hh:mm:ss)")
-        ax.set_ylabel("Iterations per second")
-        ax.xaxis.set_major_locator(MaxNLocator(nbins=4))
-        ax.xaxis.set_major_formatter(FuncFormatter(format_time))
-        ax.yaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value:,.0f}"))
-        ax.set_xlim(left=0, right=max(times) or 1)
-        ax.grid(True, alpha=0.3)
-    title = " vs ".join(labels)
-    if comparing:
-        title += f" (first {row_count}s)"
-    fig.suptitle(title)
+    fig = plot_benchmarks(args.csv_files, runs, separate=args.separate)
 
     if args.save:
         fig.savefig(args.save, dpi=160)
+        plt.close(fig)
     else:
         plt.show()
 
