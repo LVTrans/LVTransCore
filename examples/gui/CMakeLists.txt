@@ -36,6 +36,7 @@ set(
   LVTRANS_GUI_EXAMPLES
   gui
   bench
+  pid_valve_demo
 )
 
 

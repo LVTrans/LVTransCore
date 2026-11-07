@@ -3,6 +3,8 @@
 #include "lvtrans/config/plant_config_repository.hpp"
 #include "lvtrans/element_container.hpp"
 #include "lvtrans/element_modifications.hpp"
+#include "lvtrans/element_states.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/element.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/elements/pipe.hpp"
@@ -70,6 +72,8 @@ class Plant {
   }
 
   void reset_state();
+  void set_name(const std::string& name) { m_data.meta.name = name; }
+  std::string get_name() const { return m_data.meta.name; }
 
   void step();
   void step(size_t num_steps);

@@ -9,11 +9,12 @@
 #include <utility>
 #include <vector>
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/element_view.hpp"
+using namespace lvtrans;
 
 struct PlotContainer {
   static constexpr int capacity = 200;
-  using Key =
-      std::tuple<lvtrans::ElementID, std::string, std::string, std::string>;
+  using Key = std::tuple<ElementID, std::string, std::string, std::string>;
 
   struct History {
     std::array<double, capacity> time{};
@@ -34,9 +35,9 @@ struct PlotContainer {
   };
 
   std::map<Key, History> histories;
-  std::vector<lvtrans::ElementView> views;
+  std::vector<ElementView> views;
 
-  static Key key(lvtrans::ElementID id, const lvtrans::ScalarValue& value) {
+  static Key key(ElementID id, const ScalarValue& value) {
     return {id, value.name, value.symbol, value.unit};
   }
 
@@ -51,13 +52,13 @@ struct PlotContainer {
   }
 
   void sample(std::uint64_t step, double time,
-              std::vector<lvtrans::ElementView> current_views) {
+              std::vector<ElementView> current_views) {
     if (!sample_due(step)) return;
     last_sample_step = step;
     views = std::move(current_views);
     for (const auto& view : views) {
       for (const auto& value : view.values) {
-        if (const auto* scalar = std::get_if<lvtrans::ScalarValue>(&value)) {
+        if (const auto* scalar = std::get_if<ScalarValue>(&value)) {
           histories[key(view.element_id, *scalar)].append(time, scalar->value);
         }
       }

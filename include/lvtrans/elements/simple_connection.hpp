@@ -1,6 +1,7 @@
 #pragma once
 #include "lvtrans/element_parameters.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {

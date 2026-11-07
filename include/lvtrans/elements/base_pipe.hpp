@@ -6,6 +6,7 @@
 #include <vector>
 #include "lvtrans/const.hpp"
 #include "lvtrans/element_parameters.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 namespace lvtrans {

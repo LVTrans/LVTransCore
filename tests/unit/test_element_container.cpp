@@ -94,10 +94,10 @@ TEST(ElementContainerTest, ContainersKeepIdsAndOwnershipIndependent) {
 TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
   ElementContainer container;
   auto reservoir = add_to<ConstantLevelLeft>(container);
-  auto valve = container
-                    .add_element<ValveInternalServo>(
-                        ValveInternalServoParameters{}, 0.1)
-                    .value();
+  auto valve =
+      container
+          .add_element<ValveInternalServo>(ValveInternalServoParameters{}, 0.1)
+          .value();
   auto pipe = add_to<Pipe>(container);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
@@ -126,10 +126,10 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
 TEST(ElementContainerTest, DisconnectIsRepeatableAndPreservesOtherConnections) {
   ElementContainer container;
   auto reservoir = add_to<ConstantLevelLeft>(container);
-  auto valve = container
-                    .add_element<ValveInternalServo>(
-                        ValveInternalServoParameters{}, 0.1)
-                    .value();
+  auto valve =
+      container
+          .add_element<ValveInternalServo>(ValveInternalServoParameters{}, 0.1)
+          .value();
   auto pipe = add_to<Pipe>(container);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *reservoir),
             ConnectResult::Ok);
@@ -178,10 +178,10 @@ TEST(ElementContainerTest, RemovingNonPipeDisconnectsBothEndsOfSamePipe) {
   using namespace lvtrans;
   ElementContainer container;
   auto* pipe = container.add_element<Pipe>(PipeParameters{}, 0.1).value();
-  auto* valve = container
-                    .add_element<ValveInternalServo>(
-                        ValveInternalServoParameters{}, 0.1)
-                    .value();
+  auto* valve =
+      container
+          .add_element<ValveInternalServo>(ValveInternalServoParameters{}, 0.1)
+          .value();
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *valve),
             ConnectResult::Ok);
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),

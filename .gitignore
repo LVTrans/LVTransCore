@@ -77,3 +77,4 @@ output.csv
 bench_results.csv
 .~lock.bench_results.csv#
 perf.data.old
+tools/visualizer/__pycache__

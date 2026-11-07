@@ -1,5 +1,6 @@
 #pragma once
 #include "lvtrans/element_parameters.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/controllable.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
@@ -7,8 +8,8 @@ namespace lvtrans {
 
 class ValveInternalServo : public Controllable, public NonPipe {
  public:
-  ValveInternalServo(const ValveInternalServoParameters& parameters, double dt);
-  ValveInternalServo(const ValveInternalServoParameters& parameters, double dt,
+  ValveInternalServo(ValveInternalServoParameters parameters, double dt);
+  ValveInternalServo(ValveInternalServoParameters parameters, double dt,
                      ValveInternalServoState state);
   ~ValveInternalServo() override;
   void disconnect_all() noexcept override;
@@ -24,6 +25,7 @@ class ValveInternalServo : public Controllable, public NonPipe {
   double get_H(CharacteristicsType type, ElementID id) override;
   double get_Q(CharacteristicsType, ElementID, IterateInput = {}) override;
   double get_tau() const { return m_state.tau; }
+  double get_measurement() const override { return m_state.Q; }
   double get_setpoint() const { return m_state.setpoint; }
   bool is_rate_limited() const { return m_state.rate_limited; }
   const ValveInternalServoParameters& config() const { return m_params; }

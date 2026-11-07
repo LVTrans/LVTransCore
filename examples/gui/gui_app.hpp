@@ -15,7 +15,9 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include "implot.h"
+#include "lvtrans/element_states.hpp"
 #include "lvtrans/element_types.hpp"
+#include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/plant.hpp"
 #include "plot_data.hpp"
@@ -26,6 +28,7 @@ struct GuiApp {
   Plant& plant;
   PlotContainer plots;
   GLFWwindow* window{nullptr};
+  bool initialized{false};
   double dt = 0.1;
   const std::uint64_t graph_sampling_steps[6] = {1, 5, 10, 20, 50, 100};
   const char* graph_intervals[6]{
@@ -80,6 +83,7 @@ struct GuiApp {
     style.WindowRounding = 0.0f;
     style.FrameRounding = 0.0f;
     style.ItemSpacing = ImVec2(8, 8);
+    initialized = true;
     return 0;
   }
   auto steps() -> std::uint64_t {
@@ -154,6 +158,8 @@ struct GuiApp {
   }
 
   void shutdown() {
+    if (!initialized) return;
+    initialized = false;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImPlot::DestroyContext();
@@ -236,7 +242,7 @@ struct GuiApp {
     for (const auto& e : plant.get_elements()) {
       ImGui::PushID(e->get_ID());
       const auto title = std::format("Element {} ({})", e->get_ID(),
-                                     element_type_to_str(e->get_type()));
+                                     element_type_str(e->get_type()));
 
       if (ImGui::CollapsingHeader(title.c_str(),
                                   ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -291,17 +297,31 @@ struct GuiApp {
       ImPlot::PushStyleVar(ImPlotStyleVar_FitPadding, ImVec2(0.0f, 0.1f));
       if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
         for (const auto& view : plots.views) {
+          const auto found = plant.get_element_by_id(view.element_id);
+          if (!found) continue;
+          const auto* element = *found;
           ImGui::PushID(view.element_id);
+          const auto group_title = std::format(
+              "{} — {} (ID {})###element_plots", element->get_name(),
+              element_type_str(element->get_type()), view.element_id);
+          if (!ImGui::CollapsingHeader(group_title.c_str(),
+                                       ImGuiTreeNodeFlags_DefaultOpen)) {
+            ImGui::PopID();
+            continue;
+          }
+          ImGui::Indent();
+          ImGui::BeginGroup();
+          if (view.values.empty()) {
+            ImGui::TextDisabled("No plot data available for this element.");
+          }
           for (std::size_t i = 0; i < view.values.size(); ++i) {
             ImGui::PushID(static_cast<int>(i));
             std::visit(
                 [&](const auto& value) {
                   using Value = std::decay_t<decltype(value)>;
-                  auto element =
-                      plant.get_element_by_id(view.element_id).value();
                   const auto title = std::format(
                       "{} ({}): {} ", element->get_name(),
-                      element_type_to_str(element->get_type()), value.name);
+                      element_type_str(element->get_type()), value.name);
                   if (ImPlot::BeginPlot(title.c_str(), ImVec2(-1, 240))) {
                     ImPlot::SetupAxisFormat(ImAxis_Y1, "%.2f");
                     if constexpr (std::is_same_v<Value, ScalarValue>) {
@@ -320,8 +340,6 @@ struct GuiApp {
                           static_cast<std::size_t>(history.count)));
                       ImPlotSpec spec;
                       spec.Offset = history.offset;
-                      // A stable hidden ID preserves the color and visibility
-                      // when the displayed value changes.
                       const auto legend = std::format(
                           "{}: {:.2f}{}{}###series", value.name, value.value,
                           value.unit.empty() ? "" : " ", value.unit);
@@ -368,6 +386,9 @@ struct GuiApp {
                 view.values[i]);
             ImGui::PopID();
           }
+          ImGui::EndGroup();
+          ImGui::Unindent();
+          ImGui::Spacing();
           ImGui::PopID();
         }
         ImPlot::EndAlignedPlots();

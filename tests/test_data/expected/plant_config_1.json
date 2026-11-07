@@ -81,7 +81,8 @@
       "state": {
         "rate_limited": false,
         "setpoint": 0.0,
-        "tau": 1.0
+        "tau": 1.0,
+        "external_active": false
       },
       "type": "ValveInternalServo"
     }

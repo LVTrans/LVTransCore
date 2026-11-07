@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstdint>
 #include <format>
+#include <iostream>
 #include <span>
 #include "implot.h"
 
@@ -84,4 +85,12 @@ inline int TimeFormatter(double value, char* buff, int size, void* user_data) {
       std::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60);
 
   return std::snprintf(buff, size, "%s", time_str.c_str());
+}
+
+inline void print_build_type() {
+#ifdef NDEBUG
+  std::cout << "Build type: Release\n";
+#else
+  std::cout << "Build type: Debug\n";
+#endif
 }
