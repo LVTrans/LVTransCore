@@ -3,8 +3,9 @@
 import argparse
 import csv
 import math
+from fnmatch import fnmatchcase
 from pathlib import Path
-from statistics import mean, median
+from statistics import median
 
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, MaxNLocator
@@ -42,15 +43,21 @@ def plot_benchmarks(paths, runs, separate=False):
     ]
 
     plot_count = len(runs) if separate else 1
+    columns = min(plot_count, 2)
+    rows = math.ceil(plot_count / columns)
     fig, axes = plt.subplots(
-        1,
-        plot_count,
+        rows,
+        columns,
         squeeze=False,
-        figsize=(8 * plot_count if plot_count > 1 else 11, 5),
+        figsize=(14 if columns > 1 else 11, 4 * rows if rows > 1 else 5),
         layout="constrained",
     )
+    axes = axes.ravel()
+    for ax in axes[plot_count:]:
+        fig.delaxes(ax)
+    axes = axes[:plot_count]
     for index, (label, (times, rates)) in enumerate(zip(labels, runs)):
-        ax = axes[0, index if separate else 0]
+        ax = axes[index if separate else 0]
         ax.plot(
             times,
             rates,
@@ -62,12 +69,6 @@ def plot_benchmarks(paths, runs, separate=False):
         )
         if separate or not comparing:
             ax.axhline(
-                mean(rates),
-                color="C1",
-                linestyle="--",
-                label=f"Average: {mean(rates):,.1f} iterations/s",
-            )
-            ax.axhline(
                 median(rates),
                 color="C2",
                 linestyle=":",
@@ -78,8 +79,8 @@ def plot_benchmarks(paths, runs, separate=False):
             ax.set_xlim(left=0, right=max(times) or 1)
 
     if not separate:
-        axes[0, 0].set_xlim(left=0, right=max(max(times) for times, _ in runs) or 1)
-    for ax in axes[0]:
+        axes[0].set_xlim(left=0, right=max(max(times) for times, _ in runs) or 1)
+    for ax in axes:
         ax.legend(fontsize="small")
         ax.set_xlabel("Simulation time (hh:mm:ss)")
         ax.set_ylabel("Iterations per second")
@@ -97,14 +98,28 @@ def main():
         "csv_files", type=Path, nargs="+", help="One or more benchmark CSV files"
     )
     parser.add_argument(
-        "--separate", action="store_true", help="Show each run in its own subplot"
+        "--separate", action="store_true",
+        help="Show each run in its own subplot, in a grid with at most two columns",
     )
     parser.add_argument(
         "--save", type=Path, help="Save the plot instead of opening a window"
     )
+    parser.add_argument(
+        "--exclude", action="append", default=[], metavar="PATTERN",
+        help="Skip matching filenames or supplied paths (repeatable; quote wildcards)",
+    )
     args = parser.parse_args()
+    paths = [
+        path for path in args.csv_files
+        if not any(
+            fnmatchcase(path.name, pattern) or fnmatchcase(str(path), pattern)
+            for pattern in args.exclude
+        )
+    ]
+    if not paths:
+        parser.error("No benchmark CSV files remain after exclusions")
     runs = []
-    for path in args.csv_files:
+    for path in paths:
         try:
             runs.append(read_benchmark(path))
         except (
@@ -117,7 +132,7 @@ def main():
         ) as error:
             parser.error(f"Could not read benchmark CSV '{path}': {error}")
 
-    fig = plot_benchmarks(args.csv_files, runs, separate=args.separate)
+    fig = plot_benchmarks(paths, runs, separate=args.separate)
 
     if args.save:
         fig.savefig(args.save, dpi=160)
