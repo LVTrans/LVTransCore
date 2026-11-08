@@ -32,6 +32,7 @@ target_sources(
         src/elements/constant_level_right.cpp
         src/hydraulic_connections.cpp
         src/controller_connections.cpp
+        src/elements/pid_valve.cpp
         src/elements/pid_turbine.cpp
         src/elements/surge_shaft_standard.cpp
         src/elements/controllable.cpp

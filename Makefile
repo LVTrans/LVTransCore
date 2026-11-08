@@ -14,16 +14,18 @@ examples:
 	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_EXAMPLES=ON -G "Ninja"
 	cmake --build build --config Debug -j "$$(nproc)"
 gui:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target gui -j "$$(nproc)"
 	./build/examples/gui/gui
 bench-gui:
-	cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -G "Ninja"
+	cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DLVTRANS_BUILD_GUI=ON -G "Ninja"
 	cmake --build build --target bench -j "$$(nproc)"
-	./build/examples/gui/bench
+	./build/examples/gui/bench $(PLANT) $(DT)
 clean:
 	rm -rf build
 format:
-	find . -type f \( -name "*.cpp" -o -name "*.hpp" \) -exec clang-format -i -style=file {} +
+	find . \( -name "build" -o -name "build-*" -o -name "cmake-build-debug" -o -name ".cache" -o -name ".*" \) -prune -o -regex '.*\.\(cpp\|hpp\|h\|cc\|cxx\)' -exec clang-format -i {} \;
 check:
-	find . -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.cc" \) | xargs clang-tidy -fix -- -std=c++20
+	find . \( -name "build" -o -name "build-*" -o -name "cmake-build-debug" -o -name ".cache" -o -name ".*" \) -prune \
+	-o \( -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.cc" \) -print \) \
+	| xargs -r -n 1 clang-tidy -fix -p build --extra-arg=-std=c++20

@@ -1,15 +1,19 @@
 #include <gtest/gtest.h>
+#include <array>
 #include <cassert>
 #include <cmath>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
 #include "../test_helpers.hpp"
 #include "lvtrans/const.hpp"
+#include "lvtrans/controller_connections.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
 #include "lvtrans/elements/constant_level_right.hpp"
+#include "lvtrans/elements/pid_valve.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
@@ -214,8 +218,8 @@ TEST(MultiElementsTest, ReservoirPipeReservoir) {
   EXPECT_FALSE(reference.bad());
 }
 
-// clang-format off
-    // Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection 2 <->Pipe 3 <->ValveInternalServo <->Pipe 4 <->Reservoir 2
+// Reservoir 1 <->Pipe 1 <->Simple Connection 1 <-->Pipe 2 <->Simple Connection
+// 2 <->Pipe 3 <->ValveInternalServo <->Pipe 4 <->Reservoir 2 (LabVIEW)
 TEST(MultiElementsTest, Complex) {
   using namespace lvtrans;
   constexpr double dt = 0.1;
@@ -249,18 +253,16 @@ TEST(MultiElementsTest, Complex) {
 
   LossCoefficients simple_connection_params{.cvp = 100e3, .cvm = 100e3};
 
-  ValveInternalServoParameters valve_params{
-      .cvp = 10e3, 
-      .cvm = 10e3,
-      .closing_time_high = 10,
-      .closing_time_low = 10,
-      .switch_over = 500e-3,
-      .servo_time = 1.0,
-      .initial_opening = 1.0,
-      .use_cv_file = false,
-      .cv_file = "cv-file.txt",
-      .diameter = 1.0
-    };
+  ValveInternalServoParameters valve_params{.cvp = 10e3,
+                                            .cvm = 10e3,
+                                            .closing_time_high = 10,
+                                            .closing_time_low = 10,
+                                            .switch_over = 500e-3,
+                                            .servo_time = 1.0,
+                                            .initial_opening = 1.0,
+                                            .use_cv_file = false,
+                                            .cv_file = "cv-file.txt",
+                                            .diameter = 1.0};
 
   auto reservoir_left =
       plant.add_element<ConstantLevelLeft>(reservoir_params).value();
@@ -276,18 +278,29 @@ TEST(MultiElementsTest, Complex) {
   auto reservoir_right =
       plant.add_element<ConstantLevelRight>(reservoir_params2).value();
 
-    ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left), ConnectResult::Ok);
-    ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1), ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left),
+      ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe1, PipeEnd::Right, *simple_conn1),
+      ConnectResult::Ok);
 
-    ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *simple_conn1), ConnectResult::Ok);
-    ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *simple_conn2), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *simple_conn1),
+            ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe2, PipeEnd::Right, *simple_conn2),
+      ConnectResult::Ok);
 
-    ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2), ConnectResult::Ok);
-    ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2), ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *simple_conn2),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve2),
+            ConnectResult::Ok);
 
-    ASSERT_EQ(HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2), ConnectResult::Ok);
-    ASSERT_EQ(HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right), ConnectResult::Ok);
-
+  ASSERT_EQ(HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve2),
+            ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right),
+      ConnectResult::Ok);
 
   const auto test_file_path =
       get_mock_data_file_path("generated/labview_test_B.csv");
@@ -295,21 +308,26 @@ TEST(MultiElementsTest, Complex) {
 
   ASSERT_TRUE(output_file.is_open());
 
-  output_file << "t,P1_H0,P1_HN,P1_Q1,P1_Q2,P2_H0,P2_HN,P2_Q1,P2_Q2,P3_H0,P3_HN,P3_Q1,P3_Q2,P4_H0,P4_HN,P4_Q1,P4_Q2,V_H1,V_H2,V_Q1,V_Q2,V_tau_SP,V_tau_OP\n";
+  output_file << "t,P1_H0,P1_HN,P1_Q1,P1_Q2,P2_H0,P2_HN,P2_Q1,P2_Q2,P3_H0,P3_"
+                 "HN,P3_Q1,P3_Q2,P4_H0,P4_HN,P4_Q1,P4_Q2,V_H1,V_H2,V_Q1,V_Q2,V_"
+                 "tau_SP,V_tau_OP\n";
 
   std::ifstream reference(
       get_mock_data_file_path("expected/labview_test_B.txt"));
   ASSERT_TRUE(reference.is_open());
   std::string line;
   ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));  // Header.
-  ASSERT_EQ(line, "Time(s)	P1_H0	P1_HN	P1_Q1	P1_Q2	P2_H0	P2_HN	P2_Q1	P2_Q2	P3_H0	P3_HN	P3_Q1	P3_Q2	P4_H0	P4_HN	P4_Q1	P4_Q2	V_H1	V_H2	V_Q1	V_Q2	V_tau_SP	V_tau_OP");
+  ASSERT_EQ(
+      line,
+      "Time(s)	P1_H0	P1_HN	P1_Q1	P1_Q2	P2_H0	P2_HN	P2_Q1	"
+      "P2_Q2	P3_H0	P3_HN	P3_Q1	P3_Q2	P4_H0	P4_HN	P4_Q1	"
+      "P4_Q2	V_H1	V_H2	V_Q1	V_Q2	V_tau_SP	V_tau_OP");
   output_file << std::setprecision(8);
 
-    
   // TODO: Lower the tolerance for higher accuracy
-  constexpr double head_tolerance = 5e-6;  
-  constexpr double flow_tolerance = 5e-6; 
-  constexpr double opening_tolerance = 5.1e-7;  
+  constexpr double head_tolerance = 5e-6;
+  constexpr double flow_tolerance = 5e-6;
+  constexpr double opening_tolerance = 5.1e-7;
   int row = 0;
   while (std::getline(reference, line)) {
     std::replace(line.begin(), line.end(), ',', '.');
@@ -319,32 +337,33 @@ TEST(MultiElementsTest, Complex) {
 
     double v_h1, v_h2, v_q1, v_q2, v_tau_sp, v_tau_op;
 
-    ASSERT_TRUE(
-        static_cast<bool>(fields >> reported_time >> p1_h0 >> p1_hn >> p1_q0 >> p1_qn >> p2_h0 >>
-                          p2_hn >> p2_q0 >> p2_qn >> p3_h0 >> p3_hn >>
-                          p3_q0 >> p3_qn >> p4_h0 >> p4_hn >> p4_q0 >>
-                          p4_qn >> v_h1 >> v_h2 >> v_q1 >> v_q2 >>
-                          v_tau_sp >> v_tau_op));
+    ASSERT_TRUE(static_cast<bool>(
+        fields >> reported_time >> p1_h0 >> p1_hn >> p1_q0 >> p1_qn >> p2_h0 >>
+        p2_hn >> p2_q0 >> p2_qn >> p3_h0 >> p3_hn >> p3_q0 >> p3_qn >> p4_h0 >>
+        p4_hn >> p4_q0 >> p4_qn >> v_h1 >> v_h2 >> v_q1 >> v_q2 >> v_tau_sp >>
+        v_tau_op));
     ASSERT_TRUE(fields.eof());
 
     const auto sample_step =
         static_cast<std::uint64_t>(std::llround(reported_time / dt));
     ASSERT_GE(sample_step, plant.get_num_terations());
     while (plant.get_num_terations() < sample_step) {
-        plant.step();
-        const auto valve_state = valve2->get_state_as<ValveInternalServoState>();
-        output_file << plant.get_current_time() << ',' << pipe1->get_H().front()
-                << ',' << pipe1->get_H().back() << ',' << pipe1->get_Q().front()
-                << ',' << pipe1->get_Q().back() << ','
-                << pipe2->get_H().front() << ',' << pipe2->get_H().back() << ','
-                << pipe2->get_Q().front() << ',' << pipe2->get_Q().back() << ','
-                << pipe3->get_H().front() << ',' << pipe3->get_H().back() << ','
-                << pipe3->get_Q().front() << ',' << pipe3->get_Q().back() << ','
-                << pipe4->get_H().front() << ',' << pipe4->get_H().back() << ','
-                << pipe4->get_Q().front() << ',' << pipe4->get_Q().back() << ','
-                << valve_state.H1 << ',' << valve_state.H2 << ','
-                << valve_state.Q << ',' << valve_state.Q << ','
-            << valve2->get_setpoint() << ',' << valve2->get_tau() << '\n';
+      plant.step();
+      const auto valve_state = valve2->get_state_as<ValveInternalServoState>();
+      output_file << plant.get_current_time() << ',' << pipe1->get_H().front()
+                  << ',' << pipe1->get_H().back() << ','
+                  << pipe1->get_Q().front() << ',' << pipe1->get_Q().back()
+                  << ',' << pipe2->get_H().front() << ','
+                  << pipe2->get_H().back() << ',' << pipe2->get_Q().front()
+                  << ',' << pipe2->get_Q().back() << ','
+                  << pipe3->get_H().front() << ',' << pipe3->get_H().back()
+                  << ',' << pipe3->get_Q().front() << ','
+                  << pipe3->get_Q().back() << ',' << pipe4->get_H().front()
+                  << ',' << pipe4->get_H().back() << ','
+                  << pipe4->get_Q().front() << ',' << pipe4->get_Q().back()
+                  << ',' << valve_state.H1 << ',' << valve_state.H2 << ','
+                  << valve_state.Q << ',' << valve_state.Q << ','
+                  << valve2->get_setpoint() << ',' << valve2->get_tau() << '\n';
     }
 
     SCOPED_TRACE("LabVIEW reported t=" + std::to_string(reported_time) +
@@ -385,14 +404,143 @@ TEST(MultiElementsTest, Complex) {
   }
 }
 
-
-
-
-TEST(MultiElementsTest, SurgeShaft) {
-    GTEST_SKIP() << "Skipping SurgeShaft test due to bugs related Surge Shaft's states";
+// LabVIEW: ResA -> Pipe_01 -> C_01 -> Pipe_02 -> C_02 -> Pipe_03
+//                  -> PID-controlled Valve -> Pipe_04 -> ResB
+// Unlike Complex, this test adds PIDValve feedback from Pipe_03 flow.
+// This is an integration/smoke test, not yet a LabVIEW reference comparison.
+TEST(MultiElementsTest, ComplexPIDValve) {
   using namespace lvtrans;
   constexpr double dt = 0.1;
-  Plant plant (dt);
+  constexpr int num_steps = 8000;  // 20 seconds simulated
+  Plant plant(dt);
+
+  const ReservoirParameters res_a{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
+  const ReservoirParameters res_b{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
+  const LossCoefficients connection_params{.cvp = 100e3, .cvm = 100e3};
+  const PipeParameters pipe_params{.H0 = 0.0,
+                                   .Q0 = 0.0,
+                                   .length = 1000.0,
+                                   .diameter = 1.0,
+                                   .area = 785.4e-3,
+                                   .periphery = 3.1416,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 0.01,
+                                   .a = 1200.0,
+                                   .z0 = 0.0,
+                                   .z1 = 0.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+  const ValveInternalServoParameters valve_params{.cvp = 10e3,
+                                                  .cvm = 10e3,
+                                                  .closing_time_high = 10.0,
+                                                  .closing_time_low = 10.0,
+                                                  .switch_over = 0.5,
+                                                  .servo_time = 1.0,
+                                                  .initial_opening = 1.0,
+                                                  .use_cv_file = false,
+                                                  .cv_file = "cv-file.txt",
+                                                  .diameter = 1.0};
+  const PIDValveParameters pid_params{
+      .Q_wanted = 5.0, .SP_Q = 4.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
+
+  auto* reservoir_left = plant.add_element<ConstantLevelLeft>(res_a).value();
+  auto* pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* connection1 =
+      plant.add_element<SimpleConnection>(connection_params).value();
+  auto* pipe2 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* connection2 =
+      plant.add_element<SimpleConnection>(connection_params).value();
+  auto* pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* valve = plant.add_element<ValveInternalServo>(valve_params, dt).value();
+  auto* pipe4 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* reservoir_right = plant.add_element<ConstantLevelRight>(res_b).value();
+  auto* pid = plant.add_element<PIDValve>(pid_params, dt).value();
+
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left),
+      ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Right, *connection1),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *connection1),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *connection2),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *connection2),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *valve),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe4, PipeEnd::Left, *valve),
+            ConnectResult::Ok);
+  ASSERT_EQ(
+      HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right),
+      ConnectResult::Ok);
+
+  ASSERT_TRUE(ControllerConnections::connect(*pid, *valve));
+  ASSERT_EQ(pid->get_controllable(), valve);
+  ASSERT_EQ(valve->get_controller(), pid);
+
+  // Explicitly enable automatic PID control. These mode/filter options
+  // are assumptions until the LabVIEW PID front-panel settings are known.
+  pid->set_controls(/*active=*/true, /*automatic=*/true,
+                    /*antiwindup=*/true, /*manual=*/1.0,
+                    /*Tt=*/1.0, /*Tf=*/0.1);
+  pid->set_SP_Q(pid_params.SP_Q);
+
+  const auto output_path =
+      get_mock_data_file_path("generated/labview_test_pid_valve.csv");
+  std::ofstream output(output_path);
+  ASSERT_TRUE(output.is_open());
+  output << std::setprecision(10);
+  output << "t,P1_Q0,P1_QN,P2_Q0,P2_QN,P3_Q0,P3_QN,P4_Q0,P4_QN,"
+            "V_Q,V_tau_SP,V_tau_OP,PID_PV_Q,PID_output\n";
+
+  for (int k = 0; k < num_steps; ++k) {
+    // 'HandQ get Q' in LabVIEW reads Pipe_03 flow. Supply that measurement
+    // to the controller before the next step. Plant::step() runs pipes,
+    // then controllers, then non-pipe elements.
+    const double measured_q = pipe3->get_Q().back();
+    pid->set_PV_Q(measured_q);
+    plant.step();
+
+    const auto valve_state = valve->get_state_as<ValveInternalServoState>();
+    SCOPED_TRACE("step " + std::to_string(k + 1));
+    EXPECT_TRUE(std::isfinite(pid->get_output()));
+    EXPECT_TRUE(std::isfinite(pid->get_PV_Q()));
+    EXPECT_TRUE(std::isfinite(valve->get_tau()));
+    EXPECT_TRUE(std::isfinite(valve->get_setpoint()));
+    EXPECT_TRUE(std::isfinite(valve_state.Q));
+    for (auto* pipe : {pipe1, pipe2, pipe3, pipe4}) {
+      ASSERT_FALSE(pipe->get_H().empty());
+      ASSERT_FALSE(pipe->get_Q().empty());
+      EXPECT_TRUE(std::isfinite(pipe->get_H().front()));
+      EXPECT_TRUE(std::isfinite(pipe->get_H().back()));
+      EXPECT_TRUE(std::isfinite(pipe->get_Q().front()));
+      EXPECT_TRUE(std::isfinite(pipe->get_Q().back()));
+    }
+
+    output << plant.get_current_time() << ',' << pipe1->get_Q().front() << ','
+           << pipe1->get_Q().back() << ',' << pipe2->get_Q().front() << ','
+           << pipe2->get_Q().back() << ',' << pipe3->get_Q().front() << ','
+           << pipe3->get_Q().back() << ',' << pipe4->get_Q().front() << ','
+           << pipe4->get_Q().back() << ',' << valve_state.Q << ','
+           << valve->get_setpoint() << ',' << valve->get_tau() << ','
+           << pid->get_PV_Q() << ',' << pid->get_output() << '\n';
+  }
+  EXPECT_EQ(plant.get_num_terations(), static_cast<std::uint64_t>(num_steps));
+  EXPECT_FALSE(output.bad());
+}
+
+TEST(MultiElementsTest, SurgeShaft) {
+  GTEST_SKIP()
+      << "Skipping SurgeShaft test due to bugs related Surge Shaft's states";
+  using namespace lvtrans;
+  constexpr double dt = 0.1;
+  Plant plant(dt);
 
   const ReservoirParameters dammen_params{
       .H0 = 350.0, .cvp = 10e3, .cvm = 10e3};
@@ -437,16 +585,18 @@ TEST(MultiElementsTest, SurgeShaft) {
   auto tun2 = plant.add_element<Pipe>(tun2_params, dt).value();
   auto elva = plant.add_element<ConstantLevelRight>(elva_params).value();
 
-
   // dammen -> tun1 -> svingesjakt -> tun2 -> elva
-  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Left, *dammen), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Right, *shaft), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Left, *shaft), ConnectResult::Ok);
-  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Right, *elva), ConnectResult::Ok);
-
+  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Left, *dammen),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun1, PipeEnd::Right, *shaft),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Left, *shaft),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*tun2, PipeEnd::Right, *elva),
+            ConnectResult::Ok);
 
   const auto test_file_path =
-      get_mock_data_file_path("generated/labview_test_C.csv");
+      get_mock_data_file_path("generated/labview_test_D.csv");
   std::ofstream output_file(test_file_path);
 
   ASSERT_TRUE(output_file.is_open());
@@ -454,13 +604,12 @@ TEST(MultiElementsTest, SurgeShaft) {
   output_file << "t,s_H1,s_H2,s_H3,s_Q1,s_Q2,s_Q3\n";
 
   std::ifstream reference(
-      get_mock_data_file_path("expected/labview_test_C.txt"));
+      get_mock_data_file_path("expected/labview_test_D.txt"));
   ASSERT_TRUE(reference.is_open());
   std::string line;
   ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));  // Header.
   output_file << std::setprecision(8);
 
-    
   constexpr double head_tolerance = 5e-1;
   constexpr double flow_tolerance = 5e-1;
   int row = 0;
@@ -468,11 +617,11 @@ TEST(MultiElementsTest, SurgeShaft) {
     std::replace(line.begin(), line.end(), ',', '.');
     std::istringstream fields(line);
     double reported_time, s_h1, s_h2, s_h3, s_q1, s_q2, s_q3;
-    double h_floor, h_datum; 
+    double h_floor, h_datum;
 
-
-    ASSERT_TRUE(
-            static_cast<bool>(fields >> reported_time >> s_h1 >> s_h2 >> s_h3 >> s_q1 >> s_q2 >> s_q3 >> h_floor >> h_datum));
+    ASSERT_TRUE(static_cast<bool>(fields >> reported_time >> s_h1 >> s_h2 >>
+                                  s_h3 >> s_q1 >> s_q2 >> s_q3 >> h_floor >>
+                                  h_datum));
     fields >> std::ws;
     ASSERT_TRUE(fields.eof()) << "Unexpected extra reference columns";
 
@@ -481,12 +630,12 @@ TEST(MultiElementsTest, SurgeShaft) {
     ASSERT_GE(sample_step, plant.get_num_terations());
     ASSERT_NEAR(static_cast<double>(sample_step) * dt, reported_time, 1e-10);
     while (plant.get_num_terations() < sample_step) {
-        plant.step();
-        auto shaft_state = shaft->get_state_as<SurgeShaftState>();
-        output_file << plant.get_current_time() << ',' << shaft_state.H1
-                << ',' << shaft_state.H2 << ',' << shaft_state.H3 << ','
-                << shaft_state.Q1 << ',' << shaft_state.Q2 << ','
-                << shaft_state.Q3 << '\n';
+      plant.step();
+      auto shaft_state = shaft->get_state_as<SurgeShaftState>();
+      output_file << plant.get_current_time() << ',' << shaft_state.H1 << ','
+                  << shaft_state.H2 << ',' << shaft_state.H3 << ','
+                  << shaft_state.Q1 << ',' << shaft_state.Q2 << ','
+                  << shaft_state.Q3 << '\n';
     }
 
     SCOPED_TRACE("LabVIEW reported t=" + std::to_string(reported_time) +
@@ -502,7 +651,6 @@ TEST(MultiElementsTest, SurgeShaft) {
     EXPECT_NEAR(shaft_state.Q1, s_q1, flow_tolerance);
     EXPECT_NEAR(shaft_state.Q2, s_q2, flow_tolerance);
     EXPECT_NEAR(shaft_state.Q3, s_q3, flow_tolerance);
-
 
     ++row;
   }
