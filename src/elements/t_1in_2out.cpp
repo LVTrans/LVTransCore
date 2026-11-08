@@ -1,15 +1,15 @@
-#include "lvtrans/elements/t_1in_2out_n.hpp"
+#include "lvtrans/elements/t_1in_2out.hpp"
 #include "lvtrans/element_states.hpp"
 #include "lvtrans/elements/base_pipe.hpp"
 
 namespace lvtrans {
 
-T1In2OutN::T1In2OutN(const TConnectionParameters& parameters)
+T1In2Out::T1In2Out(const TConnectionParameters& parameters)
     : NonPipe(1, 2), m_params{parameters}, m_state{} {}
 
-std::optional<ElementState> T1In2OutN::get_state() const { return m_state; }
+std::optional<ElementState> T1In2Out::get_state() const { return m_state; }
 
-double T1In2OutN::get_H(CharacteristicsType ct, ElementID id) {
+double T1In2Out::get_H(CharacteristicsType ct, ElementID id) {
   calculate_q();
   if (ct == CharacteristicsType::Plus) {
     return m_state.H1;
@@ -22,7 +22,7 @@ double T1In2OutN::get_H(CharacteristicsType ct, ElementID id) {
   }
 }
 
-double T1In2OutN::get_Q(CharacteristicsType ct, ElementID id, IterateInput) {
+double T1In2Out::get_Q(CharacteristicsType ct, ElementID id, IterateInput) {
   if (ct == CharacteristicsType::Plus) {
     return m_state.Q1;
   } else {
@@ -34,9 +34,9 @@ double T1In2OutN::get_Q(CharacteristicsType ct, ElementID id, IterateInput) {
   }
 }
 
-void T1In2OutN::iterate(const double) { calculate_q(); }
+void T1In2Out::iterate(const double) { calculate_q(); }
 
-double T1In2OutN::calculate_q() {
+double T1In2Out::calculate_q() {
   double tol = 0.00001;
   double F01, F02, F1, F2, F11, F12, F21, F22;
   double dQ2, dQ3, Fx, eps;
@@ -89,7 +89,7 @@ double T1In2OutN::calculate_q() {
   return 0;
 }
 
-ElementView T1In2OutN::read_view() const {
+ElementView T1In2Out::read_view() const {
   return ElementView{.element_id = get_ID(),
                      .values = {ScalarValue{
                                     .name = "H1",

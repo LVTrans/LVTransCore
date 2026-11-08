@@ -5,7 +5,7 @@
 #include "lvtrans/elements/pid_turbine.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
-#include "lvtrans/elements/t_1in_2out_n.hpp"
+#include "lvtrans/elements/t_1in_2out.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 namespace lvtrans {
 

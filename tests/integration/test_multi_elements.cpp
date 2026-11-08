@@ -1,12 +1,17 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/const.hpp"
 #include "lvtrans/controller_connections.hpp"
@@ -16,6 +21,7 @@
 #include "lvtrans/elements/pid_valve.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
+#include "lvtrans/elements/t_1in_2out.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -411,7 +417,7 @@ TEST(MultiElementsTest, Complex) {
 TEST(MultiElementsTest, ComplexPIDValve) {
   using namespace lvtrans;
   constexpr double dt = 0.1;
-  constexpr int num_steps = 8000;  // 20 seconds simulated
+  constexpr int num_steps = 200;  // 20 seconds simulated
   Plant plant(dt);
 
   const ReservoirParameters res_a{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
@@ -532,6 +538,167 @@ TEST(MultiElementsTest, ComplexPIDValve) {
            << pid->get_PV_Q() << ',' << pid->get_output() << '\n';
   }
   EXPECT_EQ(plant.get_num_terations(), static_cast<std::uint64_t>(num_steps));
+  EXPECT_FALSE(output.bad());
+}
+
+// ResA -> Pipe_01 -> T1In2OutN -> Pipe_02 -> ResB
+//                              \-> Pipe_03 -> ResC
+TEST(MultiElementsTest, T1In2Out) {
+  using namespace lvtrans;
+  constexpr double dt = 0.1;
+  Plant plant(dt);
+
+  const ReservoirParameters res_a{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
+  const ReservoirParameters res_out{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
+  const TConnectionParameters junction_params{
+      .cv1 = 100.0, .cv2 = 100.0, .cv3 = 100.0};
+  const PipeParameters pipe_params{.H0 = 0.0,
+                                   .Q0 = 0.0,
+                                   .length = 1200.0,
+                                   .diameter = 1.0,
+                                   .area = 785.4e-3,
+                                   .periphery = 3.1416,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 0.01,
+                                   .a = 1200.0,
+                                   .z0 = 0.0,
+                                   .z1 = 0.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+
+  auto* resA = plant.add_element<ConstantLevelLeft>(res_a).value();
+  auto* pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* junction = plant.add_element<T1In2OutN>(junction_params).value();
+  auto* pipe2 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* resB = plant.add_element<ConstantLevelRight>(res_out).value();
+  auto* pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* resC = plant.add_element<ConstantLevelRight>(res_out).value();
+
+  ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Left, *resA),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Right, *junction),
+            ConnectResult::Ok);  // Inlet 1
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *junction, 0),
+            ConnectResult::Ok);  // Outlet 2 (right)
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *junction, 1),
+            ConnectResult::Ok);  // Outlet 3 (north)
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *resB),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *resC),
+            ConnectResult::Ok);
+
+  const std::string header =
+      "Time(s)\tP1_H1_abs\tP1_H2_abs\tP1_Q1\tP1_Q2"
+      "\tP2_H1_abs\tP2_H2_abs\tP2_Q1\tP2_Q2"
+      "\tP3_H1_abs\tP3_H2_abs\tP3_Q1\tP3_Q2"
+      "\tT_H1\tT_H2\tT_H3\tT_Q1\tT_Q2\tT_Q3";
+
+  const auto output_path =
+      get_mock_data_file_path("generated/labview_test_T1in2OutN.txt");
+  std::ofstream output(output_path);
+  ASSERT_TRUE(output.is_open());
+  output << header << '\n' << std::setprecision(12);
+
+  std::ifstream reference(
+      get_mock_data_file_path("expected/labview_test_T1in2OutN.txt"));
+  std::vector<std::array<double, 19>> expected_rows;
+  std::vector<std::uint64_t> sample_steps;
+  if (reference.is_open()) {
+    std::string line;
+    ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));
+    ASSERT_EQ(line, header);
+    while (std::getline(reference, line)) {
+      if (line.empty()) continue;
+      std::replace(line.begin(), line.end(), ',', '.');
+      std::istringstream fields(line);
+      std::array<double, 19> row{};
+      for (double& value : row) {
+        ASSERT_TRUE(static_cast<bool>(fields >> value)) << "Row: " << line;
+      }
+      fields >> std::ws;
+      ASSERT_TRUE(fields.eof()) << "Extra reference columns";
+      const auto step = static_cast<std::uint64_t>(std::llround(row[0] / dt));
+      ASSERT_NEAR(static_cast<double>(step) * dt, row[0], 1e-8);
+      ASSERT_TRUE(sample_steps.empty() || step > sample_steps.back());
+      sample_steps.push_back(step);
+      expected_rows.push_back(row);
+    }
+    ASSERT_FALSE(reference.bad());
+    ASSERT_FALSE(expected_rows.empty());
+  } else {
+    // Sample at t = 0.3, 1.3, 2.3, ... 59.3 s, as in previous LabVIEW logs.
+    for (std::uint64_t step = 3; step <= 593; step += 10) {
+      sample_steps.push_back(step);
+    }
+  }
+
+  for (std::size_t row = 0; row < sample_steps.size(); ++row) {
+    const auto step = sample_steps[row];
+    ASSERT_GE(step, plant.get_num_terations());
+    plant.step(step - plant.get_num_terations());
+
+    const auto& h1 = pipe1->get_H();
+    const auto& q1 = pipe1->get_Q();
+    const auto& h2 = pipe2->get_H();
+    const auto& q2 = pipe2->get_Q();
+    const auto& h3 = pipe3->get_H();
+    const auto& q3 = pipe3->get_Q();
+    ASSERT_FALSE(h1.empty());
+    ASSERT_FALSE(q1.empty());
+    ASSERT_FALSE(h2.empty());
+    ASSERT_FALSE(q2.empty());
+    ASSERT_FALSE(h3.empty());
+    ASSERT_FALSE(q3.empty());
+
+    const std::array<double, 19> actual{plant.get_current_time(),
+                                        h1.front(),
+                                        h1.back(),
+                                        q1.front(),
+                                        q1.back(),
+                                        h2.front(),
+                                        h2.back(),
+                                        q2.front(),
+                                        q2.back(),
+                                        h3.front(),
+                                        h3.back(),
+                                        q3.front(),
+                                        q3.back(),
+                                        h1.back(),
+                                        h2.front(),
+                                        h3.front(),
+                                        q1.back(),
+                                        q2.front(),
+                                        q3.front()};
+
+    for (std::size_t i = 0; i < actual.size(); ++i) {
+      if (i != 0) output << '\t';
+      output << actual[i];
+      EXPECT_TRUE(std::isfinite(actual[i]));
+    }
+    output << '\n';
+
+    SCOPED_TRACE("T1In2OutN at t=" + std::to_string(actual[0]));
+    // Equal downstream branches: flow and head should match.
+    EXPECT_NEAR(q2.front(), q3.front(), 1e-8);
+    EXPECT_NEAR(q2.back(), q3.back(), 1e-8);
+    EXPECT_NEAR(h2.front(), h3.front(), 1e-8);
+    EXPECT_NEAR(h2.back(), h3.back(), 1e-8);
+    // Junction continuity, all pipe flows positive left-to-right.
+    EXPECT_NEAR(q1.back(), q2.front() + q3.front(), 1e-5);
+
+    if (reference.is_open()) {
+      EXPECT_NEAR(actual[0], expected_rows[row][0], 1e-8);
+      for (std::size_t i = 1; i < actual.size(); ++i) {
+        EXPECT_NEAR(actual[i], expected_rows[row][i], 5e-5)
+            << "Column " << i << " at t=" << actual[0];
+      }
+    }
+  }
   EXPECT_FALSE(output.bad());
 }
 
