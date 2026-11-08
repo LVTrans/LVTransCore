@@ -79,7 +79,17 @@ struct PIDValveState {
   double PV_q_out{};     // [pu]
 };
 
+struct TConnectiontate {
+  double H1{};
+  double H2{};
+  double H3{};
+  double H4{};
+  double Q1{};
+  double Q2{};
+  double Q3{};
+};
+
 using ElementID = int;
 using ElementState = std::variant<PipeState, ReservoirState, SurgeShaftState,
-                                  ValveInternalServoState>;
+                                  ValveInternalServoState, TConnectiontate>;
 }  // namespace lvtrans

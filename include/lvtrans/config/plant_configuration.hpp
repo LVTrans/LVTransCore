@@ -8,6 +8,7 @@
 #include <variant>
 #include <vector>
 #include "lvtrans/element_parameters.hpp"
+#include "lvtrans/element_states.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant_types.hpp"
@@ -54,19 +55,22 @@ struct PlantConfiguration {
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantMetaData, name)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SimulationConfig, step_size)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
-    PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
-    z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
 // ####### Element States ########
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PipeState, Q, H)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PipeState, Q, H)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoState, tau,
                                                 setpoint, external_active,
                                                 rate_limited)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(ReservoirState, Q)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(SurgeShaftState, Q1, Q2, Q3, H1, H2, H3, L,
-                                   H_liquid, H_liquid_0, H_liquid, Hb)
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(PlantState, current_time, num_iterations)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirState, Q)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(SurgeShaftState, Q1, Q2, Q3, H1,
+                                                H2, H3, L, H_liquid, H_liquid_0,
+                                                H_liquid, Hb)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(TConnectiontate, H1, H2, H3, H4,
+                                                Q1, Q2, Q3)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(PlantState, current_time,
+                                                num_iterations)
 
 // ######## Element Parameters ########
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ReservoirParameters, H0, cvp,
@@ -93,6 +97,10 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(ValveInternalServoParameters,
                                                 closing_time_low, switch_over,
                                                 servo_time, initial_opening,
                                                 use_cv_file, cv_file, diameter)
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE_WITH_DEFAULT(
+    PipeParameters, length, diameter, area, periphery, epsilon, ny, rho, f, a,
+    z0, z1, lambda, f_max, dimension, use_diameter, use_full_moody, use_Dh)
 
 NLOHMANN_JSON_SERIALIZE_ENUM(PipeDimension,
                              {{PipeDimension::Circular, "Circular"},

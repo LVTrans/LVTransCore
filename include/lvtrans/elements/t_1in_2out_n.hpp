@@ -1,14 +1,12 @@
 #pragma once
 #include "lvtrans/element_parameters.hpp"
+#include "lvtrans/element_states.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/element_view.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 
 namespace lvtrans {
 
-// LVTrans manual section 12.14: One inlet and two outlets; third branch drawn
-// north. Supports connection topology; solver and serialization are not yet
-// implemented and report unsupported operations with std::logic_error.
 class T1In2OutN : public NonPipe {
  public:
   explicit T1In2OutN(const TConnectionParameters& parameters);
@@ -19,13 +17,18 @@ class T1In2OutN : public NonPipe {
   ElementParameters get_parameters() const override { return m_params; }
   std::optional<ElementState> get_state() const override;
   ElementView read_view() const override;
+  double get_H(CharacteristicsType ct, ElementID id) override;
+  double get_Q(CharacteristicsType ct, ElementID id,
+               IterateInput input) override;
   void reset_state() override {}
   ModificationResult modify(const ElementModification&) override {
     return ModificationResult::Ok;
   }
 
  private:
+  double calculate_q();
   TConnectionParameters m_params;
+  TConnectiontate m_state{};
 };
 
 }  // namespace lvtrans
