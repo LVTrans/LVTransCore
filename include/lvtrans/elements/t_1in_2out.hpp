@@ -27,7 +27,7 @@ class T1In2Out : public NonPipe {
   }
 
  private:
-  double calculate_q();
+  void calculate_q();
   TConnectionParameters m_params;
   TConnectiontate m_state{};
 };

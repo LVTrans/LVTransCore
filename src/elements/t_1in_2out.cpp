@@ -36,7 +36,7 @@ double T1In2Out::get_Q(CharacteristicsType ct, ElementID id, IterateInput) {
 
 void T1In2Out::iterate(const double) { calculate_q(); }
 
-double T1In2Out::calculate_q() {
+void T1In2Out::calculate_q() {
   double tol = 0.00001;
   double F01, F02, F1, F2, F11, F12, F21, F22;
   double dQ2, dQ3, Fx, eps;
@@ -85,8 +85,6 @@ double T1In2Out::calculate_q() {
   s.H2 = cm1.c + cm1.b * s.Q2;
   s.H3 = cm2.c + cm2.b * s.Q3;
   s.H4 = s.H1 - s.Q1 * std::abs(s.Q1) / (2.0 * p.cv1);
-
-  return 0;
 }
 
 ElementView T1In2Out::read_view() const {
