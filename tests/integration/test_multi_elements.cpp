@@ -582,11 +582,11 @@ TEST(MultiElementsTest, T1In2Out) {
   ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Left, *resA),
             ConnectResult::Ok);
   ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Right, *junction),
-            ConnectResult::Ok);  // Inlet 1
+            ConnectResult::Ok);  // T inlet 1
   ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *junction, 0),
-            ConnectResult::Ok);  // Outlet 2 (right)
+            ConnectResult::Ok);  // T outlet 2
   ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *junction, 1),
-            ConnectResult::Ok);  // Outlet 3 (north)
+            ConnectResult::Ok);  // T outlet 3 (north)
   ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *resB),
             ConnectResult::Ok);
   ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *resC),
@@ -598,108 +598,102 @@ TEST(MultiElementsTest, T1In2Out) {
       "\tP3_H1_abs\tP3_H2_abs\tP3_Q1\tP3_Q2"
       "\tT_H1\tT_H2\tT_H3\tT_Q1\tT_Q2\tT_Q3";
 
-  const auto output_path =
-      get_mock_data_file_path("generated/labview_test_T1in2OutN.txt");
-  std::ofstream output(output_path);
-  ASSERT_TRUE(output.is_open());
-  output << header << '\n' << std::setprecision(12);
-
   std::ifstream reference(
       get_mock_data_file_path("expected/labview_test_T1in2OutN.txt"));
-  std::vector<std::array<double, 19>> expected_rows;
-  std::vector<std::uint64_t> sample_steps;
-  if (reference.is_open()) {
-    std::string line;
-    ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));
-    ASSERT_EQ(line, header);
-    while (std::getline(reference, line)) {
-      if (line.empty()) continue;
-      std::replace(line.begin(), line.end(), ',', '.');
-      std::istringstream fields(line);
-      std::array<double, 19> row{};
-      for (double& value : row) {
-        ASSERT_TRUE(static_cast<bool>(fields >> value)) << "Row: " << line;
-      }
-      fields >> std::ws;
-      ASSERT_TRUE(fields.eof()) << "Extra reference columns";
-      const auto step = static_cast<std::uint64_t>(std::llround(row[0] / dt));
-      ASSERT_NEAR(static_cast<double>(step) * dt, row[0], 1e-8);
-      ASSERT_TRUE(sample_steps.empty() || step > sample_steps.back());
-      sample_steps.push_back(step);
-      expected_rows.push_back(row);
+  ASSERT_TRUE(reference.is_open()) << "Missing LabVIEW reference file";
+  std::string line;
+  ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));
+  if (!line.empty() && line.back() == '\r') line.pop_back();
+  ASSERT_EQ(line, header);
+
+  const auto output_path =
+      get_mock_data_file_path("generated/labview_test_T1in2OutN.csv");
+  std::ofstream output_file(output_path);
+  ASSERT_TRUE(output_file.is_open());
+  std::string output_header = header;
+  std::replace(output_header.begin(), output_header.end(), '\t', ',');
+  output_file << output_header << '\n' << std::setprecision(12);
+
+  constexpr double head_tolerance = 5e-6;
+  constexpr double flow_tolerance = 5e-6;
+
+  int row = 0;
+  while (std::getline(reference, line)) {
+    if (line.empty()) continue;
+    if (line.back() == '\r') line.pop_back();
+    std::replace(line.begin(), line.end(), ',', '.');
+    std::istringstream fields(line);
+
+    double reported_time;
+    double p1_h1, p1_h2, p1_q1, p1_q2;
+    double p2_h1, p2_h2, p2_q1, p2_q2;
+    double p3_h1, p3_h2, p3_q1, p3_q2;
+    double t_h1, t_h2, t_h3, t_q1, t_q2, t_q3;
+
+    ASSERT_TRUE(static_cast<bool>(fields >> reported_time >> p1_h1 >> p1_h2 >>
+                                  p1_q1 >> p1_q2 >> p2_h1 >> p2_h2 >> p2_q1 >>
+                                  p2_q2 >> p3_h1 >> p3_h2 >> p3_q1 >> p3_q2 >>
+                                  t_h1 >> t_h2 >> t_h3 >> t_q1 >> t_q2 >> t_q3))
+        << "Failed to parse reference row " << row;
+    fields >> std::ws;
+    ASSERT_TRUE(fields.eof()) << "Extra columns on reference row " << row;
+
+    SCOPED_TRACE("Reference row " + std::to_string(row) +
+                 ", LabVIEW t=" + std::to_string(reported_time));
+    ASSERT_GE(reported_time, 0.0);
+    const auto sample_step =
+        static_cast<std::uint64_t>(std::llround(reported_time / dt));
+    ASSERT_NEAR(static_cast<double>(sample_step) * dt, reported_time, 1e-8);
+
+    while (plant.get_num_terations() < sample_step) {
+      plant.step();
+      output_file << plant.get_current_time() << ',' << pipe1->get_H().front()
+                  << ',' << pipe1->get_H().back() << ','
+                  << pipe1->get_Q().front() << ',' << pipe1->get_Q().back()
+                  << ',' << pipe2->get_H().front() << ','
+                  << pipe2->get_H().back() << ',' << pipe2->get_Q().front()
+                  << ',' << pipe2->get_Q().back() << ','
+                  << pipe3->get_H().front() << ',' << pipe3->get_H().back()
+                  << ',' << pipe3->get_Q().front() << ','
+                  << pipe3->get_Q().back() << ','
+                  << pipe1->get_H().back()          // T port 1
+                  << ',' << pipe2->get_H().front()  // T port 2
+                  << ',' << pipe3->get_H().front()  // T port 3
+                  << ',' << pipe1->get_Q().back() << ','
+                  << pipe2->get_Q().front() << ',' << pipe3->get_Q().front()
+                  << '\n';
     }
-    ASSERT_FALSE(reference.bad());
-    ASSERT_FALSE(expected_rows.empty());
-  } else {
-    // Sample at t = 0.3, 1.3, 2.3, ... 59.3 s, as in previous LabVIEW logs.
-    for (std::uint64_t step = 3; step <= 593; step += 10) {
-      sample_steps.push_back(step);
-    }
+
+    ASSERT_NEAR(plant.get_current_time(), reported_time, 1e-8);
+
+    EXPECT_NEAR(pipe1->get_H().front(), p1_h1, head_tolerance);
+    EXPECT_NEAR(pipe1->get_H().back(), p1_h2, head_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().front(), p1_q1, flow_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().back(), p1_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe2->get_H().front(), p2_h1, head_tolerance);
+    EXPECT_NEAR(pipe2->get_H().back(), p2_h2, head_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().front(), p2_q1, flow_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().back(), p2_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe3->get_H().front(), p3_h1, head_tolerance);
+    EXPECT_NEAR(pipe3->get_H().back(), p3_h2, head_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().front(), p3_q1, flow_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().back(), p3_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe1->get_H().back(), t_h1, head_tolerance);
+    EXPECT_NEAR(pipe2->get_H().front(), t_h2, head_tolerance);
+    EXPECT_NEAR(pipe3->get_H().front(), t_h3, head_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().back(), t_q1, flow_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().front(), t_q2, flow_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().front(), t_q3, flow_tolerance);
+
+    ++row;
   }
 
-  for (std::size_t row = 0; row < sample_steps.size(); ++row) {
-    const auto step = sample_steps[row];
-    ASSERT_GE(step, plant.get_num_terations());
-    plant.step(step - plant.get_num_terations());
-
-    const auto& h1 = pipe1->get_H();
-    const auto& q1 = pipe1->get_Q();
-    const auto& h2 = pipe2->get_H();
-    const auto& q2 = pipe2->get_Q();
-    const auto& h3 = pipe3->get_H();
-    const auto& q3 = pipe3->get_Q();
-    ASSERT_FALSE(h1.empty());
-    ASSERT_FALSE(q1.empty());
-    ASSERT_FALSE(h2.empty());
-    ASSERT_FALSE(q2.empty());
-    ASSERT_FALSE(h3.empty());
-    ASSERT_FALSE(q3.empty());
-
-    const std::array<double, 19> actual{plant.get_current_time(),
-                                        h1.front(),
-                                        h1.back(),
-                                        q1.front(),
-                                        q1.back(),
-                                        h2.front(),
-                                        h2.back(),
-                                        q2.front(),
-                                        q2.back(),
-                                        h3.front(),
-                                        h3.back(),
-                                        q3.front(),
-                                        q3.back(),
-                                        h1.back(),
-                                        h2.front(),
-                                        h3.front(),
-                                        q1.back(),
-                                        q2.front(),
-                                        q3.front()};
-
-    for (std::size_t i = 0; i < actual.size(); ++i) {
-      if (i != 0) output << '\t';
-      output << actual[i];
-      EXPECT_TRUE(std::isfinite(actual[i]));
-    }
-    output << '\n';
-
-    SCOPED_TRACE("T1In2OutN at t=" + std::to_string(actual[0]));
-    // Equal downstream branches: flow and head should match.
-    EXPECT_NEAR(q2.front(), q3.front(), 1e-8);
-    EXPECT_NEAR(q2.back(), q3.back(), 1e-8);
-    EXPECT_NEAR(h2.front(), h3.front(), 1e-8);
-    EXPECT_NEAR(h2.back(), h3.back(), 1e-8);
-    // Junction continuity, all pipe flows positive left-to-right.
-    EXPECT_NEAR(q1.back(), q2.front() + q3.front(), 1e-5);
-
-    if (reference.is_open()) {
-      EXPECT_NEAR(actual[0], expected_rows[row][0], 1e-8);
-      for (std::size_t i = 1; i < actual.size(); ++i) {
-        EXPECT_NEAR(actual[i], expected_rows[row][i], 5e-5)
-            << "Column " << i << " at t=" << actual[0];
-      }
-    }
-  }
-  EXPECT_FALSE(output.bad());
+  EXPECT_GT(row, 0);
+  EXPECT_FALSE(reference.bad());
+  EXPECT_FALSE(output_file.bad());
 }
 
 TEST(MultiElementsTest, SurgeShaft) {

@@ -10,7 +10,6 @@ T1In2Out::T1In2Out(const TConnectionParameters& parameters)
 std::optional<ElementState> T1In2Out::get_state() const { return m_state; }
 
 double T1In2Out::get_H(CharacteristicsType ct, ElementID id) {
-  calculate_q();
   if (ct == CharacteristicsType::Plus) {
     return m_state.H1;
   } else {
