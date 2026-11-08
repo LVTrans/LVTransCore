@@ -179,6 +179,14 @@ auto plant3() {
 
   ControllerConnections::connect(*pid, *valve);
 
+  double sp = 7.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 10.0, tf = -1.0,
+         manual = 0.5;
+  bool active = true, automatic = true, aw = true;
+
+  pid->set_SP_Q(sp);
+  pid->set_gains(kp, ti, td);
+  pid->set_controls(active, automatic, aw, manual, tt, tf);
+
   plant->set_name("Plant 3");
 
   return plant;
