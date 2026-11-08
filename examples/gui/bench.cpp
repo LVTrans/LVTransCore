@@ -152,7 +152,7 @@ auto plant3() {
                                                   .cv_file = "cv-file.txt",
                                                   .diameter = 1.0};
   const PIDValveParameters pid_params{
-      .Q_wanted = 5.0, .SP_Q = 4.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
+      .Q_wanted = 6.0, .SP_Q = 6.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
 
   auto* pid = plant->add_element<PIDValve>(pid_params, dt).value();
   auto* valve =
