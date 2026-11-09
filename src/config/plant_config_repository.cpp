@@ -26,17 +26,16 @@ PlantRepositoryResult PlantConfigRepository::load(
   std::ifstream file(path);
 
   if (!file.is_open()) {
-    std::cout << "Failed to open file: " << path << '\n';
+    std::cerr << "Failed to open file: " << path << '\n';
     return PlantRepositoryResult::Error;
   }
-  std::cout << "Loading plant configuration from: " << path << '\n';
 
   // must use try-catch as per the json library
   try {
     json = json::parse(file);
     config = json.get<PlantConfiguration>();
   } catch (std::exception& ex) {
-    std::cout << "Failed to parse file: " << ex.what() << '\n';
+    std::cerr << "Failed to parse file: " << ex.what() << '\n';
     return PlantRepositoryResult::Error;
   }
 
@@ -61,10 +60,10 @@ PlantRepositoryResult PlantConfigRepository::load(
   for (const auto& connection : config.connections) {
     const auto* from = &connection.from;
     const auto* to = &connection.to;
-    // case 1 pipe to non-pipe connection
+    // case 1: pipe to non-pipe connection
     if (from->port_type == ConnectionPort::Left ||
         from->port_type == ConnectionPort::Right) {
-      // Pipe are always 'from'
+      // Pipes are always 'from'
       auto* pipe = container.get_element_by_id<BasePipe>(from->element_id);
       auto* non_pipe = container.get_element_by_id<NonPipe>(to->element_id);
 
@@ -81,7 +80,7 @@ PlantRepositoryResult PlantConfigRepository::load(
       }
     }
 
-    // case 2 non-pipe to controller connection
+    // case 2: non-pipe to controller connection
     if (from->port_type == ConnectionPort::Controller &&
         to->port_type == ConnectionPort::Controllable) {
       auto* controllable =
@@ -137,23 +136,28 @@ std::vector<ConnectionConfig> to_connection_configs(
     // pipes
     if (const auto* pipe = dynamic_cast<const BasePipe*>(element)) {
       if (const auto* peer = pipe->left_np()) {
-        configs.push_back({{ConnectionPort::Left, pipe->get_ID()},
-                           {ConnectionPort::Right, peer->get_ID(),
-                            pipe->left_link().terminal.index}});
+        configs.push_back({.from = {.port_type = ConnectionPort::Left,
+                                    .element_id = pipe->get_ID()},
+                           .to = {.port_type = ConnectionPort::Right,
+                                  .element_id = peer->get_ID(),
+                                  .index = pipe->left_link().terminal.index}});
       }
       if (const auto* peer = pipe->right_np()) {
-        configs.push_back({{ConnectionPort::Right, pipe->get_ID()},
-                           {ConnectionPort::Left, peer->get_ID(),
-                            pipe->right_link().terminal.index}});
+        configs.push_back({.from = {.port_type = ConnectionPort::Right,
+                                    .element_id = pipe->get_ID()},
+                           .to = {.port_type = ConnectionPort::Left,
+                                  .element_id = peer->get_ID(),
+                                  .index = pipe->right_link().terminal.index}});
       }
     }
 
     // non-pipes
     if (const auto* controllable = dynamic_cast<const Controllable*>(element)) {
       if (const auto* controller = controllable->get_controller()) {
-        configs.push_back(
-            {{ConnectionPort::Controller, element->get_ID()},
-             {ConnectionPort::Controllable, controller->get_ID()}});
+        configs.push_back({.from = {.port_type = ConnectionPort::Controller,
+                                    .element_id = element->get_ID()},
+                           .to = {.port_type = ConnectionPort::Controllable,
+                                  .element_id = controller->get_ID()}});
       }
     }
   }

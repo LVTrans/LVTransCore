@@ -144,8 +144,6 @@ class BasePipe : public Element {
   const PipeParameters& parameters() const { return m_params; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
-  double get_latest_H() const { return m_state.H.back(); }
-  double get_latest_Q() const { return m_state.Q.back(); }
   PipeDerivedData get_derived_data() const { return m_derived; }
   void update_boundaries();
   void update_characteristics();

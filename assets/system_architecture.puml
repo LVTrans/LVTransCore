@@ -25,6 +25,8 @@ abstract class NonPipe {
   + right(index): BasePipe*
   + left_links(): span<PipeLink>
   + right_links(): span<PipeLink>
+  + connect_left(non_pipe*): ConnectResult
+  + connect_right(non_pipe*): ConnectResult
   + disconnect_all(): void {abstract}
   + set_characteristics(characteristics, element_id): void
   + get_Q(characteristics_type, element_id): double
@@ -49,11 +51,25 @@ abstract class BasePipe {
 }
 
 class ConcreteNonPipe  {
-  + ConcreteNonPipe(id: int)
+  + ConcreteNonPipe(parameters)
 }
 
 class ConcretePipe {
-  + ConcretePipe(id: int)
+  + ConcretePipe(parameters)
+}
+
+abstract class Controller {
+  # controllable: Controllable*
+  {abstract} + get_output: double
+  {abstract} + is_active: bool
+  + get_controllable(): Controllable*
+  + disconnect_all(): void
+}
+
+abstract class Controllable {
+  # controller: Controller*
+  {abstract} + get_measurement: double
+  + get_controller(): Controller*
 }
 
 
@@ -62,19 +78,20 @@ class Plant {
   + Plant(file_path)
   + Plant(plantData)
   + step()
-  + run_steps(steps)
-  + get_state()
-  + save_data(path)
-  + load_data(path)
-  + save_state(path)
+  + step(num_steps)
+  + reset_state()
+  + save(path)
+  + load(path)
   + modify_element(id, modification)
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
+  + get_element_by_ID<T>(id)
+  + remove_element_by_id(id)
   + get_pipes()
   + get_non_pipes()
+  + get_controllers()
   + get_elements()
-  + remove_element_by_id(id)
 }
 
 
@@ -90,15 +107,17 @@ class ElementContainer {
   - element_id: ElementID
   - pipes: vector<unique_ptr<BasePipe>>
   - non_pipes: vector<unique_ptr<NonPipe>>
+  - controllers: vector<unique_ptr<Controller>>
   - element_indicies: map<ElementID, pair<ElementAbstractType, int>>
-  + ElementContainer()
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
+  + get_element_by_ID<T>(id)
+  + remove_element_by_id(id)
   + get_pipes()
   + get_non_pipes()
+  + get_controllers()
   + get_elements()
-  + remove_element_by_id(id)
 }
 
 
@@ -108,21 +127,19 @@ class PlantConfigurationRepository << (S,#FF7700) Singleton >> {
 }
 
 abstract class ElementParser {
-  + parse(container, element_config, step_size)
+  + parse(&container, &element_config, step_size): ElementParserResult {abstract}
 }
 
 class ConcreteElementParser {
-  + parse(container, element_config, step_size)
+  + parse(&container&, &element_config, step_size): ElementParserResult 
 }
 
 
-
-
 class HydraulicConnections {
-  {static} + connect(BasePipe&, PipeEnd, NonPipe&, index)
-  {static} + disconnect(BasePipe&, PipeEnd)
-  {static} + disconnect_all(BasePipe&)
-  {static} + disconnect_all(NonPipe&)
+  {static} + connect(&pipe, pipe_end, &non_pipe, terminal_index)
+  {static} + disconnect(&pipe, pipe_end)
+  {static} + disconnect_all(&pipe)
+  {static} + disconnect_all(&non_pipe)
 }
 
 class BoundaryLink {
@@ -138,12 +155,25 @@ class TerminalId {
   + index: size_t
 }
 
+
+class ControllerConnections {
+  {static} + connect(&controller, &controllable)
+  {static} + disconnect(&controller, &controllable)
+  {static} + disconnect_all(&controller)
+  {static} + disconnect_all(&controllable)
+}
+
 ' Relations
-HydraulicConnections ..> BasePipe : maintains links
-HydraulicConnections ..> NonPipe : maintains links
+HydraulicConnections ..> BasePipe 
+HydraulicConnections ..> NonPipe 
+
+ControllerConnections ..> Controller 
+ControllerConnections ..> Controllable 
+
 BasePipe *-- BoundaryLink
 NonPipe *-- PipeLink
 BoundaryLink -- TerminalId
+Controllable -- Controller
 Plant -- PlantData
 
 Element <|-- NonPipe
@@ -151,7 +181,7 @@ Element <|-- BasePipe
 
 NonPipe <|-- ConcreteNonPipe
 BasePipe <|-- ConcretePipe
-BasePipe "0..*" -- "0..2" NonPipe : hydraulic connections
+BasePipe "1..*" -- "0..2" NonPipe 
 
 
 ElementParser <|-- ConcreteElementParser
