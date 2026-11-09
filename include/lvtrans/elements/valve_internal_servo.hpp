@@ -12,7 +12,7 @@ class ValveInternalServo : public Controllable, public NonPipe {
   ValveInternalServo(ValveInternalServoParameters parameters, double dt,
                      ValveInternalServoState state);
   ~ValveInternalServo() override;
-  void disconnect_all() noexcept override;
+  void disconnect_all() override;
   ElementType get_type() const override {
     return ElementType::ValveInternalServo;
   }

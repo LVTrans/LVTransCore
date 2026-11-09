@@ -11,7 +11,7 @@ namespace lvtrans {
 class Element {
  public:
   Element() = default;
-  Element(const std::string& name) : m_name(std::move(name)) {}
+  Element(std::string& name) : m_name(std::move(name)) {}
   Element(const Element&) = delete;
   Element& operator=(const Element&) = delete;
   Element(Element&&) = delete;
@@ -20,6 +20,10 @@ class Element {
   virtual void iterate(const double = 0) {};
   virtual ElementType get_type() const = 0;
   virtual ElementParameters get_parameters() const = 0;
+  template <typename T>
+  T get_parameters_as() const {
+    return std::get<T>(get_parameters());
+  }
   virtual std::optional<ElementState> get_state() const { return std::nullopt; }
   template <typename T>
   T get_state_as() const {

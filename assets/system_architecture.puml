@@ -16,13 +16,16 @@ abstract class Element {
 }
 
 abstract class NonPipe {
+  + NonPipe(left_count, right_count)
   - left: vector<PipeLink>
   - right: vector<PipeLink>
   # map<ElementID, Characteristics> c_plus{};
   # map<ElementID, Characteristics> c_minus{};
   + left(index): BasePipe*
   + right(index): BasePipe*
-  + disconnect_all()
+  + left_links(): span<PipeLink>
+  + right_links(): span<PipeLink>
+  + disconnect_all(): void {abstract}
   + set_characteristics(characteristics, element_id): void
   + get_Q(characteristics_type, element_id): double
   + get_H(characteristics_type, element_id): double
@@ -33,14 +36,16 @@ abstract class BasePipe {
   - left: BoundaryLink
   - right: BoundaryLink
   - params: PipeParameters
-  - derived_data: PipeState
+  - derived: PipeDerivedData
   - state: PipeState
   - initial_state: PipeState
+  + disconnect_all(): void 
+  + left(): NonPipe*
+  + right(): NonPipe*
   + get_H()
   + get_Q()
-  + disconnect_all()
-  + left_element(): 
-  + right_element(): 
+  + update_boundaries(): void
+  + update_characteristics(): void
 }
 
 class ConcreteNonPipe  {

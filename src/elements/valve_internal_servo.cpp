@@ -21,7 +21,7 @@ ValveInternalServo::ValveInternalServo(ValveInternalServoParameters parameters,
 
 ValveInternalServo::~ValveInternalServo() { disconnect_all(); }
 
-void ValveInternalServo::disconnect_all() noexcept {
+void ValveInternalServo::disconnect_all() {
   NonPipe::disconnect_all();
   ControllerConnections::disconnect_all(*this);
 }

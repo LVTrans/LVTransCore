@@ -24,7 +24,7 @@ class NonPipe : public Element {
   ~NonPipe() override;
   std::span<const PipeLink> left_links() const { return m_left; }
   std::span<const PipeLink> right_links() const { return m_right; }
-  virtual void disconnect_all() noexcept;
+  virtual void disconnect_all();
 
   virtual double get_H(CharacteristicsType, ElementID) = 0;
   virtual double get_Q(CharacteristicsType, ElementID) = 0;

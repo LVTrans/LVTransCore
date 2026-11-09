@@ -119,8 +119,8 @@ TEST(ElementContainerTest, RemovingConnectedPipeClearsSurvivingConnections) {
   ASSERT_EQ(HydraulicConnections::connect(*replacement, PipeEnd::Right, *valve),
             ConnectResult::Ok);
 
-  EXPECT_EQ(replacement->left_elem(), reservoir);
-  EXPECT_EQ(replacement->right_elem(), valve);
+  EXPECT_EQ(replacement->left_np(), reservoir);
+  EXPECT_EQ(replacement->right_np(), valve);
 }
 
 TEST(ElementContainerTest, DisconnectIsRepeatableAndPreservesOtherConnections) {
@@ -136,19 +136,19 @@ TEST(ElementContainerTest, DisconnectIsRepeatableAndPreservesOtherConnections) {
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Right, *valve),
             ConnectResult::Ok);
 
-  ASSERT_EQ(pipe->left_elem(), reservoir);
-  ASSERT_EQ(pipe->right_elem(), valve);
+  ASSERT_EQ(pipe->left_np(), reservoir);
+  ASSERT_EQ(pipe->right_np(), valve);
 
   reservoir->disconnect_all();
   reservoir->disconnect_all();
   EXPECT_EQ(reservoir->right_links()[0].pipe, nullptr);
-  EXPECT_EQ(pipe->left_elem(), nullptr);
-  EXPECT_EQ(pipe->right_elem(), valve);
+  EXPECT_EQ(pipe->left_np(), nullptr);
+  EXPECT_EQ(pipe->right_np(), valve);
 
   pipe->disconnect_all();
   pipe->disconnect_all();
-  EXPECT_EQ(pipe->left_elem(), nullptr);
-  EXPECT_EQ(pipe->right_elem(), nullptr);
+  EXPECT_EQ(pipe->left_np(), nullptr);
+  EXPECT_EQ(pipe->right_np(), nullptr);
   EXPECT_EQ(valve->left_links()[0].pipe, nullptr);
 }
 
@@ -161,15 +161,15 @@ TEST(ElementContainerTest, ReconnectingUpdatesPipeNeighbors) {
 
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *first),
             ConnectResult::Ok);
-  ASSERT_EQ(view.left_elem(), first);
+  ASSERT_EQ(view.left_np(), first);
   first->disconnect_all();
-  ASSERT_EQ(view.left_elem(), nullptr);
+  ASSERT_EQ(view.left_np(), nullptr);
 
   ASSERT_EQ(HydraulicConnections::connect(*pipe, PipeEnd::Left, *second),
             ConnectResult::Ok);
-  EXPECT_EQ(view.left_elem(), second);
+  EXPECT_EQ(view.left_np(), second);
   HydraulicConnections::disconnect(*pipe, PipeEnd::Left);
-  EXPECT_EQ(view.left_elem(), nullptr);
+  EXPECT_EQ(view.left_np(), nullptr);
   EXPECT_EQ(second->right_links()[0].pipe, nullptr);
 }
 }  // namespace
@@ -189,6 +189,6 @@ TEST(ElementContainerTest, RemovingNonPipeDisconnectsBothEndsOfSamePipe) {
   EXPECT_EQ(valve->left_links()[0].pipe, pipe);
   EXPECT_EQ(valve->right_links()[0].pipe, pipe);
   container.remove_element_by_id(valve->get_ID());
-  EXPECT_EQ(pipe->left_elem(), nullptr);
-  EXPECT_EQ(pipe->right_elem(), nullptr);
+  EXPECT_EQ(pipe->left_np(), nullptr);
+  EXPECT_EQ(pipe->right_np(), nullptr);
 }

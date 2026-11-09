@@ -10,6 +10,7 @@
 #include "lvtrans/elements/non-pipe.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 namespace lvtrans {
+
 inline constexpr double pipe_dt(const double system_dt) {
   return 0.5 * system_dt;
 }
@@ -140,9 +141,7 @@ class BasePipe : public Element {
   ConnectResult connect_left(NonPipe& element);
   ConnectResult connect_right(NonPipe& element);
 
-  const PipeParameters& config() const { return m_params; }
-  double get_R() const { return m_derived.coefficients.R; }
-  double get_B() const { return m_derived.coefficients.B; }
+  const PipeParameters& parameters() const { return m_params; }
   const std::vector<double>& get_H() const { return m_state.H; }
   const std::vector<double>& get_Q() const { return m_state.Q; }
   double get_latest_H() const { return m_state.H.back(); }
@@ -153,8 +152,8 @@ class BasePipe : public Element {
 
   const BoundaryLink& left_link() const { return m_left; }
   const BoundaryLink& right_link() const { return m_right; }
-  NonPipe* left_elem() const { return m_left.element; }
-  NonPipe* right_elem() const { return m_right.element; }
+  NonPipe* left_np() const { return m_left.element; }
+  NonPipe* right_np() const { return m_right.element; }
   void disconnect_all() noexcept;
   void disconnect_left() noexcept;
   void disconnect_right() noexcept;
@@ -166,7 +165,6 @@ class BasePipe : public Element {
 
  protected:
   PipeParameters m_params{};
-
   PipeDerivedData m_derived;
   PipeState m_state{};
   PipeState m_initial_state{};

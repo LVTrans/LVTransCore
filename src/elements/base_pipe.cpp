@@ -25,12 +25,12 @@ void BasePipe::update_boundaries() {
   constexpr size_t L0 = 0;
   const auto L1 = grid.num_segments;
 
-  if (auto* left = left_elem()) {
+  if (auto* left = left_np()) {
     m_state.H[L0] = left->get_H(CharacteristicsType::Minus, get_ID());
     m_state.Q[L0] = left->get_Q(CharacteristicsType::Minus, get_ID());
   }
 
-  if (auto* right = right_elem()) {
+  if (auto* right = right_np()) {
     m_state.H[L1] = right->get_H(CharacteristicsType::Plus, get_ID());
     m_state.Q[L1] = right->get_Q(CharacteristicsType::Plus, get_ID());
   }
@@ -45,7 +45,7 @@ void BasePipe::update_characteristics() {
   auto& Q = m_state.Q;
 
   // C- characteristic
-  if (auto* left = left_elem()) {
+  if (auto* left = left_np()) {
     Characteristics c;
     c.c = H[L0 + 1] - coefficients.B * Q[L0 + 1];
     c.b = coefficients.R * std::abs(Q[L0 + 1]) + coefficients.B;
@@ -55,7 +55,7 @@ void BasePipe::update_characteristics() {
   }
 
   // C+ characteristic
-  if (auto* right = right_elem()) {
+  if (auto* right = right_np()) {
     Characteristics c;
     c.c = H[L1 - 1] + coefficients.B * Q[L1 - 1];
     c.b = coefficients.B + coefficients.R * std::abs(Q[L1 - 1]);

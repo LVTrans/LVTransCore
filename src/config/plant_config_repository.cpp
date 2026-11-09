@@ -136,12 +136,12 @@ std::vector<ConnectionConfig> to_connection_configs(
   for (const auto* element : elements) {
     // pipes
     if (const auto* pipe = dynamic_cast<const BasePipe*>(element)) {
-      if (const auto* peer = pipe->left_elem()) {
+      if (const auto* peer = pipe->left_np()) {
         configs.push_back({{ConnectionPort::Left, pipe->get_ID()},
                            {ConnectionPort::Right, peer->get_ID(),
                             pipe->left_link().terminal.index}});
       }
-      if (const auto* peer = pipe->right_elem()) {
+      if (const auto* peer = pipe->right_np()) {
         configs.push_back({{ConnectionPort::Right, pipe->get_ID()},
                            {ConnectionPort::Left, peer->get_ID(),
                             pipe->right_link().terminal.index}});

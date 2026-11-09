@@ -1,9 +1,6 @@
-#include "lvtrans/elements/base_pipe.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
 namespace lvtrans {
 NonPipe::~NonPipe() { disconnect_all(); }
 
-void NonPipe::disconnect_all() noexcept {
-  HydraulicConnections::disconnect_all(*this);
-}
+void NonPipe::disconnect_all() { HydraulicConnections::disconnect_all(*this); }
 }  // namespace lvtrans

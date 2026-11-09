@@ -90,14 +90,14 @@ void Plant::display() const {
     }
 
     const auto* pipe = dynamic_cast<const BasePipe*>(e);
-    if (pipe && pipe->left_elem()) {
-      std::cout << pipe->left_elem()->get_ID() << "<-->";
-      visited_ids.insert(pipe->left_elem()->get_ID());
+    if (pipe && pipe->left_np()) {
+      std::cout << pipe->left_np()->get_ID() << "<-->";
+      visited_ids.insert(pipe->left_np()->get_ID());
     }
     std::cout << e->get_ID();
-    if (pipe && pipe->right_elem()) {
-      std::cout << "<-->" << pipe->right_elem()->get_ID();
-      visited_ids.insert(pipe->right_elem()->get_ID());
+    if (pipe && pipe->right_np()) {
+      std::cout << "<-->" << pipe->right_np()->get_ID();
+      visited_ids.insert(pipe->right_np()->get_ID());
     }
 
     visited_ids.insert(e->get_ID());

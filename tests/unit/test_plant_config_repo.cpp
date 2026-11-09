@@ -91,7 +91,7 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_EQ(valve->get_ID(), 3);
 
   EXPECT_EQ(reservoir->get_state_as<ReservoirState>().Q, 0.0);
-  const auto& config = pipe->config();
+  const auto& config = pipe->get_parameters_as<PipeParameters>();
   EXPECT_DOUBLE_EQ(config.length, 100.0);
   EXPECT_DOUBLE_EQ(config.diameter, 1.0);
   EXPECT_DOUBLE_EQ(config.f, 1.0);
@@ -113,8 +113,8 @@ TEST(PlantConfigRepositoryTest, LoadAndSavePlantConfig) {
   EXPECT_FALSE(valve->is_rate_limited());
   EXPECT_EQ(valve->get_type(), ElementType::ValveInternalServo);
 
-  ASSERT_EQ(pipe->left_elem(), reservoir);
-  ASSERT_EQ(pipe->right_elem(), valve);
+  ASSERT_EQ(pipe->left_np(), reservoir);
+  ASSERT_EQ(pipe->right_np(), valve);
 
   ASSERT_EQ(reservoir->right_links().size(), 1u);
   EXPECT_EQ(reservoir->right_links()[0].pipe, pipe);
@@ -206,10 +206,10 @@ TEST(PlantConfigRepositoryTest, ComplexLayoutSurvivesRoundTrip) {
     for (const auto& [id, left, right] : neighbors) {
       auto* pipe = elements.get_element_by_id<Pipe>(id);
       ASSERT_NE(pipe, nullptr);
-      ASSERT_NE(pipe->left_elem(), nullptr);
-      ASSERT_NE(pipe->right_elem(), nullptr);
-      EXPECT_EQ(pipe->left_elem()->get_ID(), left);
-      EXPECT_EQ(pipe->right_elem()->get_ID(), right);
+      ASSERT_NE(pipe->left_np(), nullptr);
+      ASSERT_NE(pipe->right_np(), nullptr);
+      EXPECT_EQ(pipe->left_np()->get_ID(), left);
+      EXPECT_EQ(pipe->right_np()->get_ID(), right);
     }
   }
   std::ifstream saved_file(saved_path);
@@ -251,7 +251,7 @@ TEST(PlantConfigRepositoryTest, PreservesDownstreamReservoirConnections) {
           reservoir->get_ID());
   ASSERT_NE(loaded_pipe, nullptr);
   ASSERT_NE(loaded_reservoir, nullptr);
-  EXPECT_EQ(loaded_pipe->right_elem(), loaded_reservoir);
+  EXPECT_EQ(loaded_pipe->right_np(), loaded_reservoir);
   EXPECT_EQ(loaded_reservoir->left_links()[0].pipe, loaded_pipe);
   EXPECT_TRUE(loaded_reservoir->right_links().empty());
 }
@@ -291,17 +291,17 @@ TEST(PlantConfigRepositoryTest, ComplexMultiElementTopology) {
       ASSERT_NE(pipe, nullptr);
 
       if (left < 0) {
-        EXPECT_EQ(pipe->left_elem(), nullptr);
+        EXPECT_EQ(pipe->left_np(), nullptr);
       } else {
-        ASSERT_NE(pipe->left_elem(), nullptr);
-        EXPECT_EQ(pipe->left_elem()->get_ID(), left);
+        ASSERT_NE(pipe->left_np(), nullptr);
+        EXPECT_EQ(pipe->left_np()->get_ID(), left);
       }
 
       if (right < 0) {
-        EXPECT_EQ(pipe->right_elem(), nullptr);
+        EXPECT_EQ(pipe->right_np(), nullptr);
       } else {
-        ASSERT_NE(pipe->right_elem(), nullptr);
-        EXPECT_EQ(pipe->right_elem()->get_ID(), right);
+        ASSERT_NE(pipe->right_np(), nullptr);
+        EXPECT_EQ(pipe->right_np()->get_ID(), right);
       }
     }
     // test T junction

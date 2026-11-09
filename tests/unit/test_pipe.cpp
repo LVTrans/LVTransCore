@@ -67,15 +67,15 @@ TEST(PipeTest, ConnectsToUpstreamReservoir) {
             ConnectResult::Ok);
 
   EXPECT_EQ(reservoir->right(), &pipe);
-  EXPECT_NE(pipe.left_elem(), nullptr);
-  EXPECT_EQ(pipe.right_elem(), nullptr);
+  EXPECT_NE(pipe.left_np(), nullptr);
+  EXPECT_EQ(pipe.right_np(), nullptr);
 
   pipe.iterate();
   EXPECT_DOUBLE_EQ(pipe.get_H().front(), 150.0);
   EXPECT_DOUBLE_EQ(pipe.get_Q().front(), 0.0);
 
   HydraulicConnections::disconnect(pipe, PipeEnd::Left);
-  EXPECT_EQ(pipe.left_elem(), nullptr);
+  EXPECT_EQ(pipe.left_np(), nullptr);
   EXPECT_EQ(reservoir->right(), nullptr);
 }
 
@@ -88,8 +88,8 @@ TEST(PipeTest, InvalidOrOccupiedSlotsLeaveExistingConnectionsIntact) {
             ConnectResult::InvalidTerminal);
   EXPECT_EQ(HydraulicConnections::connect(pipe, PipeEnd::Left, first, 1),
             ConnectResult::InvalidTerminal);
-  EXPECT_EQ(pipe.left_elem(), nullptr);
-  EXPECT_EQ(pipe.right_elem(), nullptr);
+  EXPECT_EQ(pipe.left_np(), nullptr);
+  EXPECT_EQ(pipe.right_np(), nullptr);
   EXPECT_EQ(first.right_links()[0].pipe, nullptr);
 
   ASSERT_EQ(HydraulicConnections::connect(pipe, PipeEnd::Left, first),
@@ -98,10 +98,10 @@ TEST(PipeTest, InvalidOrOccupiedSlotsLeaveExistingConnectionsIntact) {
             ConnectResult::AlreadyConnected);
   EXPECT_EQ(HydraulicConnections::connect(other, PipeEnd::Left, first),
             ConnectResult::AlreadyConnected);
-  EXPECT_EQ(pipe.left_elem(), &first);
+  EXPECT_EQ(pipe.left_np(), &first);
   EXPECT_EQ(first.right_links()[0].pipe, &pipe);
   EXPECT_EQ(second.right_links()[0].pipe, nullptr);
-  EXPECT_EQ(other.left_elem(), nullptr);
+  EXPECT_EQ(other.left_np(), nullptr);
 }
 
 TEST(PipeTest, DestroyingEitherEndpointDisconnectsTheSurvivor) {
@@ -120,7 +120,7 @@ TEST(PipeTest, DestroyingEitherEndpointDisconnectsTheSurvivor) {
     ASSERT_EQ(HydraulicConnections::connect(pipe, PipeEnd::Left, temporary),
               ConnectResult::Ok);
   }
-  EXPECT_EQ(pipe.left_elem(), nullptr);
+  EXPECT_EQ(pipe.left_np(), nullptr);
   EXPECT_NO_THROW(pipe.disconnect_all());
 }
 
@@ -160,8 +160,8 @@ TEST(HydraulicConnectionsTest, IndexedLinksRemainStableWhenDisconnected) {
   EXPECT_EQ(first.left_link().terminal.index, 1u);
 
   HydraulicConnections::disconnect_all(reservoir);
-  EXPECT_EQ(first.left_elem(), nullptr);
-  EXPECT_EQ(first.right_elem(), nullptr);
+  EXPECT_EQ(first.left_np(), nullptr);
+  EXPECT_EQ(first.right_np(), nullptr);
   EXPECT_EQ(reservoir.left_links()[1].pipe, nullptr);
   EXPECT_EQ(reservoir.right_links()[1].pipe, nullptr);
   EXPECT_NO_THROW(HydraulicConnections::disconnect_all(reservoir));
@@ -177,7 +177,7 @@ TEST(HydraulicConnectionsTest, InvalidPipeEndDoesNotChangeConnections) {
   EXPECT_EQ(HydraulicConnections::connect(pipe, invalid, reservoir),
             ConnectResult::InvalidTerminal);
   HydraulicConnections::disconnect(pipe, invalid);
-  EXPECT_EQ(pipe.left_elem(), &reservoir);
+  EXPECT_EQ(pipe.left_np(), &reservoir);
   EXPECT_EQ(reservoir.right_links()[0].pipe, &pipe);
   HydraulicConnections::disconnect_all(pipe);
   EXPECT_EQ(reservoir.right_links()[0].pipe, nullptr);
