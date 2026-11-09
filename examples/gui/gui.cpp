@@ -9,6 +9,7 @@
 #include "lvtrans/elements/pid_valve.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
+#include "lvtrans/elements/t_1in_2out.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/hydraulic_connections.hpp"
 #include "lvtrans/plant.hpp"
@@ -187,9 +188,64 @@ auto plant3() {
   return plant;
 }
 
+// ResA -> Pipe_01 -> T1In2OutN -> Pipe_02 -> ResB
+//                              \-> Pipe_03 -> ResC
+auto plant4() {
+  constexpr double dt = 0.1;
+  auto plant = std::make_unique<Plant>(dt);
+
+  const ReservoirParameters res_a{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
+  const ReservoirParameters res_out{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
+  const TConnectionParameters junction_params{
+      .cv1 = 100.0, .cv2 = 100.0, .cv3 = 100.0};
+  const PipeParameters pipe_params{.H0 = 0.0,
+                                   .Q0 = 0.0,
+                                   .length = 1200.0,
+                                   .diameter = 1.0,
+                                   .area = 785.4e-3,
+                                   .periphery = 3.1416,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 0.01,
+                                   .a = 1200.0,
+                                   .z0 = 0.0,
+                                   .z1 = 0.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+
+  auto* resA = plant->add_element<ConstantLevelLeft>(res_a).value();
+  auto* pipe1 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* junction = plant->add_element<T1In2OutN>(junction_params).value();
+  auto* pipe2 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* resB = plant->add_element<ConstantLevelRight>(res_out).value();
+  auto* pipe3 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* resC = plant->add_element<ConstantLevelRight>(res_out).value();
+
+  HydraulicConnections::connect(*pipe1, PipeEnd::Left, *resA);
+  HydraulicConnections::connect(*pipe1, PipeEnd::Right, *junction);
+  HydraulicConnections::connect(*pipe2, PipeEnd::Left, *junction, 0);
+  HydraulicConnections::connect(*pipe3, PipeEnd::Left, *junction, 1);
+  HydraulicConnections::connect(*pipe2, PipeEnd::Right, *resB);
+  HydraulicConnections::connect(*pipe3, PipeEnd::Right, *resC);
+
+  resA->set_name("ResA");
+  pipe1->set_name("Pipe_01");
+  pipe2->set_name("Pipe_02");
+  pipe3->set_name("Pipe_03");
+  junction->set_name("T");
+  resB->set_name("ResB");
+  resC->set_name("ResC");
+
+  return plant;
+}
+
 int main() {
   print_build_type();
-  auto plant = plant3();
+  auto plant = plant4();
   GuiApp app(*plant);
   if (app.init() != 0) {
     std::cerr << "Failed to initialize GUI application.\n";

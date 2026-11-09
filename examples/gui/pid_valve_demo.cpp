@@ -91,7 +91,7 @@ auto plant2() {
                                                   .cv_file = "cv-file.txt",
                                                   .diameter = 1.0};
   const PIDValveParameters pid_params{
-      .Q_wanted = 5.0, .SP_Q = 4.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
+      .Q_wanted = 6.0, .SP_Q = 6.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
 
   auto* pid = plant->add_element<PIDValve>(pid_params, dt).value();
   auto* valve =
@@ -117,6 +117,15 @@ auto plant2() {
   HydraulicConnections::connect(*pipe4, PipeEnd::Right, *reservoir_right);
 
   ControllerConnections::connect(*pid, *valve);
+
+  double sp = 7.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 10.0, tf = -1.0,
+         manual = 0.5;
+  bool active = true, automatic = true, aw = true;
+
+  pid->set_SP_Q(sp);
+  pid->set_gains(kp, ti, td);
+  pid->set_controls(active, automatic, aw, manual, tt, tf);
+
   return plant;
 }
 
@@ -132,7 +141,7 @@ int main(int argc, char** argv) {
   }
   app.max_speed = false;
   app.graph_interval = 0;
-  double sp = 1.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 10.0, tf = -1.0,
+  double sp = 7.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 3.0, tf = -1.0,
          manual = 0.5;
   bool active = true, automatic = true, aw = true;
   app.add_data_point();

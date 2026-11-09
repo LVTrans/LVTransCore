@@ -38,10 +38,8 @@ target_sources(
         src/elements/controllable.cpp
         src/elements/controller.cpp
         src/elements/simple_connection.cpp
-        src/elements/t_1in_2out_n.cpp
-        src/elements/t_1in_2out_s.cpp
-        src/elements/t_2in_1out_n.cpp
-        src/elements/t_2in_1out_s.cpp
+        src/elements/t_1in_2out.cpp
+        src/elements/t_2in_1out.cpp
         src/plant.cpp
         src/element_container.cpp
         src/config/plant_config_repository.cpp

@@ -1,12 +1,17 @@
 #include <gtest/gtest.h>
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <lvtrans/elements/pipe.hpp>
 #include <lvtrans/elements/reservoir.hpp>
+#include <sstream>
+#include <string>
+#include <vector>
 #include "../test_helpers.hpp"
 #include "lvtrans/const.hpp"
 #include "lvtrans/controller_connections.hpp"
@@ -16,6 +21,7 @@
 #include "lvtrans/elements/pid_valve.hpp"
 #include "lvtrans/elements/simple_connection.hpp"
 #include "lvtrans/elements/surge_shaft_standard.hpp"
+#include "lvtrans/elements/t_1in_2out.hpp"
 #include "lvtrans/elements/valve_internal_servo.hpp"
 #include "lvtrans/plant.hpp"
 
@@ -411,7 +417,7 @@ TEST(MultiElementsTest, Complex) {
 TEST(MultiElementsTest, ComplexPIDValve) {
   using namespace lvtrans;
   constexpr double dt = 0.1;
-  constexpr int num_steps = 8000;  // 20 seconds simulated
+  constexpr int num_steps = 200;  // 20 seconds simulated
   Plant plant(dt);
 
   const ReservoirParameters res_a{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
@@ -533,6 +539,161 @@ TEST(MultiElementsTest, ComplexPIDValve) {
   }
   EXPECT_EQ(plant.get_num_terations(), static_cast<std::uint64_t>(num_steps));
   EXPECT_FALSE(output.bad());
+}
+
+// ResA -> Pipe_01 -> T1In2OutN -> Pipe_02 -> ResB
+//                              \-> Pipe_03 -> ResC
+TEST(MultiElementsTest, T1In2Out) {
+  using namespace lvtrans;
+  constexpr double dt = 0.1;
+  Plant plant(dt);
+
+  const ReservoirParameters res_a{.H0 = 10.0, .cvp = 100e3, .cvm = 100e3};
+  const ReservoirParameters res_out{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
+  const TConnectionParameters junction_params{
+      .cv1 = 100.0, .cv2 = 100.0, .cv3 = 100.0};
+  const PipeParameters pipe_params{.H0 = 0.0,
+                                   .Q0 = 0.0,
+                                   .length = 1200.0,
+                                   .diameter = 1.0,
+                                   .area = 785.4e-3,
+                                   .periphery = 3.1416,
+                                   .epsilon = 10e-3,
+                                   .ny = 1.1e-6,
+                                   .rho = 1e3,
+                                   .f = 0.01,
+                                   .a = 1200.0,
+                                   .z0 = 0.0,
+                                   .z1 = 0.0,
+                                   .lambda = 500e3,
+                                   .f_max = 100.0,
+                                   .use_diameter = true,
+                                   .use_full_moody = false,
+                                   .use_Dh = false};
+
+  auto* resA = plant.add_element<ConstantLevelLeft>(res_a).value();
+  auto* pipe1 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* junction = plant.add_element<T1In2OutN>(junction_params).value();
+  auto* pipe2 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* resB = plant.add_element<ConstantLevelRight>(res_out).value();
+  auto* pipe3 = plant.add_element<Pipe>(pipe_params, dt).value();
+  auto* resC = plant.add_element<ConstantLevelRight>(res_out).value();
+
+  ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Left, *resA),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe1, PipeEnd::Right, *junction),
+            ConnectResult::Ok);  // T inlet 1
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Left, *junction, 0),
+            ConnectResult::Ok);  // T outlet 2
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Left, *junction, 1),
+            ConnectResult::Ok);  // T outlet 3 (north)
+  ASSERT_EQ(HydraulicConnections::connect(*pipe2, PipeEnd::Right, *resB),
+            ConnectResult::Ok);
+  ASSERT_EQ(HydraulicConnections::connect(*pipe3, PipeEnd::Right, *resC),
+            ConnectResult::Ok);
+
+  const std::string header =
+      "Time(s)\tP1_H1_abs\tP1_H2_abs\tP1_Q1\tP1_Q2"
+      "\tP2_H1_abs\tP2_H2_abs\tP2_Q1\tP2_Q2"
+      "\tP3_H1_abs\tP3_H2_abs\tP3_Q1\tP3_Q2"
+      "\tT_H1\tT_H2\tT_H3\tT_Q1\tT_Q2\tT_Q3";
+
+  std::ifstream reference(
+      get_mock_data_file_path("expected/labview_test_T1in2OutN.txt"));
+  ASSERT_TRUE(reference.is_open()) << "Missing LabVIEW reference file";
+  std::string line;
+  ASSERT_TRUE(static_cast<bool>(std::getline(reference, line)));
+  if (!line.empty() && line.back() == '\r') line.pop_back();
+  ASSERT_EQ(line, header);
+
+  const auto output_path =
+      get_mock_data_file_path("generated/labview_test_T1in2OutN.csv");
+  std::ofstream output_file(output_path);
+  ASSERT_TRUE(output_file.is_open());
+  std::string output_header = header;
+  std::replace(output_header.begin(), output_header.end(), '\t', ',');
+  output_file << output_header << '\n' << std::setprecision(12);
+
+  constexpr double head_tolerance = 5e-6;
+  constexpr double flow_tolerance = 5e-6;
+
+  int row = 0;
+  while (std::getline(reference, line)) {
+    if (line.empty()) continue;
+    if (line.back() == '\r') line.pop_back();
+    std::replace(line.begin(), line.end(), ',', '.');
+    std::istringstream fields(line);
+
+    double reported_time;
+    double p1_h1, p1_h2, p1_q1, p1_q2;
+    double p2_h1, p2_h2, p2_q1, p2_q2;
+    double p3_h1, p3_h2, p3_q1, p3_q2;
+    double t_h1, t_h2, t_h3, t_q1, t_q2, t_q3;
+
+    ASSERT_TRUE(static_cast<bool>(fields >> reported_time >> p1_h1 >> p1_h2 >>
+                                  p1_q1 >> p1_q2 >> p2_h1 >> p2_h2 >> p2_q1 >>
+                                  p2_q2 >> p3_h1 >> p3_h2 >> p3_q1 >> p3_q2 >>
+                                  t_h1 >> t_h2 >> t_h3 >> t_q1 >> t_q2 >> t_q3))
+        << "Failed to parse reference row " << row;
+    fields >> std::ws;
+    ASSERT_TRUE(fields.eof()) << "Extra columns on reference row " << row;
+
+    SCOPED_TRACE("Reference row " + std::to_string(row) +
+                 ", LabVIEW t=" + std::to_string(reported_time));
+    ASSERT_GE(reported_time, 0.0);
+    const auto sample_step =
+        static_cast<std::uint64_t>(std::llround(reported_time / dt));
+    ASSERT_NEAR(static_cast<double>(sample_step) * dt, reported_time, 1e-8);
+
+    while (plant.get_num_terations() < sample_step) {
+      plant.step();
+      output_file << plant.get_current_time() << ',' << pipe1->get_H().front()
+                  << ',' << pipe1->get_H().back() << ','
+                  << pipe1->get_Q().front() << ',' << pipe1->get_Q().back()
+                  << ',' << pipe2->get_H().front() << ','
+                  << pipe2->get_H().back() << ',' << pipe2->get_Q().front()
+                  << ',' << pipe2->get_Q().back() << ','
+                  << pipe3->get_H().front() << ',' << pipe3->get_H().back()
+                  << ',' << pipe3->get_Q().front() << ','
+                  << pipe3->get_Q().back() << ','
+                  << pipe1->get_H().back()          // T port 1
+                  << ',' << pipe2->get_H().front()  // T port 2
+                  << ',' << pipe3->get_H().front()  // T port 3
+                  << ',' << pipe1->get_Q().back() << ','
+                  << pipe2->get_Q().front() << ',' << pipe3->get_Q().front()
+                  << '\n';
+    }
+
+    ASSERT_NEAR(plant.get_current_time(), reported_time, 1e-8);
+
+    EXPECT_NEAR(pipe1->get_H().front(), p1_h1, head_tolerance);
+    EXPECT_NEAR(pipe1->get_H().back(), p1_h2, head_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().front(), p1_q1, flow_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().back(), p1_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe2->get_H().front(), p2_h1, head_tolerance);
+    EXPECT_NEAR(pipe2->get_H().back(), p2_h2, head_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().front(), p2_q1, flow_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().back(), p2_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe3->get_H().front(), p3_h1, head_tolerance);
+    EXPECT_NEAR(pipe3->get_H().back(), p3_h2, head_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().front(), p3_q1, flow_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().back(), p3_q2, flow_tolerance);
+
+    EXPECT_NEAR(pipe1->get_H().back(), t_h1, head_tolerance);
+    EXPECT_NEAR(pipe2->get_H().front(), t_h2, head_tolerance);
+    EXPECT_NEAR(pipe3->get_H().front(), t_h3, head_tolerance);
+    EXPECT_NEAR(pipe1->get_Q().back(), t_q1, flow_tolerance);
+    EXPECT_NEAR(pipe2->get_Q().front(), t_q2, flow_tolerance);
+    EXPECT_NEAR(pipe3->get_Q().front(), t_q3, flow_tolerance);
+
+    ++row;
+  }
+
+  EXPECT_GT(row, 0);
+  EXPECT_FALSE(reference.bad());
+  EXPECT_FALSE(output_file.bad());
 }
 
 TEST(MultiElementsTest, SurgeShaft) {
