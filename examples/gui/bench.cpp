@@ -116,9 +116,8 @@ auto plant2(double DT) {
   return plant;
 };
 
-auto plant3() {
-  constexpr double dt = 0.1;
-  auto plant = std::make_unique<Plant>(dt);
+auto plant3(const double DT) {
+  auto plant = std::make_unique<Plant>(DT);
 
   const ReservoirParameters res_a{.H0 = 100.0, .cvp = 100e3, .cvm = 100e3};
   const ReservoirParameters res_b{.H0 = 0.0, .cvp = 100e3, .cvm = 100e3};
@@ -154,18 +153,18 @@ auto plant3() {
   const PIDValveParameters pid_params{
       .Q_wanted = 6.0, .SP_Q = 6.0, .Kp = 1.0, .Ti = 10.0, .Td = 0.0};
 
-  auto* pid = plant->add_element<PIDValve>(pid_params, dt).value();
+  auto* pid = plant->add_element<PIDValve>(pid_params, DT).value();
   auto* valve =
-      plant->add_element<ValveInternalServo>(valve_params, dt).value();
+      plant->add_element<ValveInternalServo>(valve_params, DT).value();
   auto* reservoir_left = plant->add_element<ConstantLevelLeft>(res_a).value();
-  auto* pipe1 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* pipe1 = plant->add_element<Pipe>(pipe_params, DT).value();
   auto* connection1 =
       plant->add_element<SimpleConnection>(connection_params).value();
-  auto* pipe2 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* pipe2 = plant->add_element<Pipe>(pipe_params, DT).value();
   auto* connection2 =
       plant->add_element<SimpleConnection>(connection_params).value();
-  auto* pipe3 = plant->add_element<Pipe>(pipe_params, dt).value();
-  auto* pipe4 = plant->add_element<Pipe>(pipe_params, dt).value();
+  auto* pipe3 = plant->add_element<Pipe>(pipe_params, DT).value();
+  auto* pipe4 = plant->add_element<Pipe>(pipe_params, DT).value();
   auto* reservoir_right = plant->add_element<ConstantLevelRight>(res_b).value();
 
   HydraulicConnections::connect(*pipe1, PipeEnd::Left, *reservoir_left);
@@ -179,7 +178,7 @@ auto plant3() {
 
   ControllerConnections::connect(*pid, *valve);
 
-  double sp = 7.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 10.0, tf = -1.0,
+  double sp = 7.0, kp = 0.5, ti = 5.0, td = 0.0, tt = 3.0, tf = -1.0,
          manual = 0.5;
   bool active = true, automatic = true, aw = true;
 
@@ -213,7 +212,7 @@ int main(int argc, char** argv) {
       plant = plant2(dt);
       break;
     case 3:
-      plant = plant3();
+      plant = plant3(dt);
       break;
   }
 
