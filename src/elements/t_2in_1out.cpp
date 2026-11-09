@@ -5,7 +5,7 @@
 namespace lvtrans {
 
 T2In1Out::T2In1Out(const TConnectionParameters& parameters)
-    : NonPipe(1, 2), m_params{parameters}, m_state{} {}
+    : NonPipe(2, 1), m_params{parameters}, m_state{} {}
 
 std::optional<ElementState> T2In1Out::get_state() const { return m_state; }
 
