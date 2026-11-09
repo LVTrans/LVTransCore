@@ -33,8 +33,7 @@ class SurgeShaftStandard : public NonPipe {
   void reset_state() override;
 
   double get_H(CharacteristicsType, ElementID) override;
-  double get_Q(CharacteristicsType, ElementID,
-               const IterateInput = {}) override;
+  double get_Q(CharacteristicsType, ElementID) override;
 
  private:
   void initialize_from_pipes();

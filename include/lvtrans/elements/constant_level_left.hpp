@@ -15,7 +15,7 @@ class ConstantLevelLeft : public Reservoir {
   void iterate(double) override;
 
   double get_H(CharacteristicsType, ElementID id) override;
-  double get_Q(CharacteristicsType, ElementID, const IterateInput) override;
+  double get_Q(CharacteristicsType, ElementID) override;
 
  private:
   double calculate_q();

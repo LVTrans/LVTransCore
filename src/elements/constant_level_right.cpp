@@ -18,8 +18,7 @@ double ConstantLevelRight::get_H(CharacteristicsType, ElementID id) {
   return c.c - c.b * q;
 }
 
-double ConstantLevelRight::get_Q(CharacteristicsType, ElementID,
-                                 const IterateInput) {
+double ConstantLevelRight::get_Q(CharacteristicsType, ElementID) {
   return m_state.Q;
 }
 

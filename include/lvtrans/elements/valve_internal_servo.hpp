@@ -23,7 +23,7 @@ class ValveInternalServo : public Controllable, public NonPipe {
   void iterate(double t = 0) override;
   void reset_state() override;
   double get_H(CharacteristicsType type, ElementID id) override;
-  double get_Q(CharacteristicsType, ElementID, IterateInput = {}) override;
+  double get_Q(CharacteristicsType, ElementID) override;
   double get_tau() const { return m_state.tau; }
   double get_measurement() const override { return m_state.Q; }
   double get_setpoint() const { return m_state.setpoint; }

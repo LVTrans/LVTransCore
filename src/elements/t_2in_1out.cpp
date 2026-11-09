@@ -22,7 +22,7 @@ double T2In1Out::get_H(CharacteristicsType ct, ElementID id) {
   }
 }
 
-double T2In1Out::get_Q(CharacteristicsType ct, ElementID id, IterateInput) {
+double T2In1Out::get_Q(CharacteristicsType ct, ElementID id) {
   if (ct == CharacteristicsType::Minus) {
     return m_state.Q2;
   } else {

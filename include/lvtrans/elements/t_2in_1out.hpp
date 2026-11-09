@@ -18,8 +18,7 @@ class T2In1Out : public NonPipe {
   std::optional<ElementState> get_state() const override;
   ElementView read_view() const override;
   double get_H(CharacteristicsType ct, ElementID id) override;
-  double get_Q(CharacteristicsType ct, ElementID id,
-               IterateInput input) override;
+  double get_Q(CharacteristicsType ct, ElementID id) override;
   void reset_state() override { m_state = TConnectiontate{}; }
 
   ModificationResult modify(const ElementModification&) override {

@@ -8,19 +8,6 @@
 
 namespace lvtrans {
 
-struct IterateOutput {
-  double H{};
-  double Q{};
-};
-
-struct IterateInput {
-  double t{};
-  double H{};
-  double Q{};
-  double B{};
-  double R{};
-};
-
 class Element {
  public:
   Element() = default;

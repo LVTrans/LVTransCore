@@ -10,8 +10,7 @@ class SimpleConnection : public NonPipe {
   SimpleConnection();
   explicit SimpleConnection(const LossCoefficients& loss_coeffs);
   double get_H(CharacteristicsType, ElementID) override;
-  double get_Q(CharacteristicsType, ElementID,
-               const IterateInput = {}) override;
+  double get_Q(CharacteristicsType, ElementID) override;
 
   ElementType get_type() const override {
     return ElementType::SimpleConnection;

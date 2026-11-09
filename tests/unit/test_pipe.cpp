@@ -125,9 +125,15 @@ TEST(PipeTest, DestroyingEitherEndpointDisconnectsTheSurvivor) {
 }
 
 namespace {
-class ReservoirSlots final : public lvtrans::Reservoir {
+class ReservoirSlots : public lvtrans::Reservoir {
  public:
   using Reservoir::Reservoir;
+  double get_H(lvtrans::CharacteristicsType, lvtrans::ElementID) override {
+    return 0.0;
+  }
+  double get_Q(lvtrans::CharacteristicsType, lvtrans::ElementID) override {
+    return 0.0;
+  }
 };
 }  // namespace
 

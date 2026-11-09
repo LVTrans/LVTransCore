@@ -27,7 +27,7 @@ double SimpleConnection::get_H(CharacteristicsType ct, ElementID id) {
   }
 }
 
-double SimpleConnection::get_Q(CharacteristicsType, ElementID, IterateInput) {
+double SimpleConnection::get_Q(CharacteristicsType, ElementID) {
   return m_state.Q;
 }
 

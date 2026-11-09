@@ -66,8 +66,7 @@ double SurgeShaftStandard::get_H(CharacteristicsType ct, ElementID) {
     return m_state.H2;
   }
 }
-double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID,
-                                 const IterateInput) {
+double SurgeShaftStandard::get_Q(CharacteristicsType ct, ElementID) {
   initialize_from_pipes();
   if (ct == CharacteristicsType::Plus) {
     return m_state.Q1;

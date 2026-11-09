@@ -121,7 +121,7 @@ TEST(MultiElementsTest, ReservoirPipeValve) {
     output_file << plant.get_current_time() << "," << valve->get_tau() << ","
                 << valve->get_H(CharacteristicsType::Plus, pipe->get_ID())
                 << ","
-                << valve->get_Q(CharacteristicsType::Plus, pipe->get_ID(), {})
+                << valve->get_Q(CharacteristicsType::Plus, pipe->get_ID())
                 << '\n';
   }
 

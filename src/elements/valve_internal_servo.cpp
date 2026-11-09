@@ -87,7 +87,7 @@ double ValveInternalServo::get_H(CharacteristicsType type, ElementID id) {
   }
 }
 
-double ValveInternalServo::get_Q(CharacteristicsType, ElementID, IterateInput) {
+double ValveInternalServo::get_Q(CharacteristicsType, ElementID) {
   return calculate_q();
 }
 

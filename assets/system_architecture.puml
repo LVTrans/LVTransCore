@@ -2,12 +2,16 @@
 
 abstract class Element {
   # id: ElementID
-  # type: ElementType
+  # name: string
   + set_name(name)
   + get_name(): string
-  + get_ID(): int
-  + get_parameters(): void
-  + get_state(): ElementState
+  + get_ID(): ElementID
+  + get_type(): ElementType {abstract}
+  + get_parameters(): ElementParameters {abstract}
+  + get_state(): ElementState {abstract}
+  + reset_state(): void {abstract}
+  + modify(element_modification): ModificationResult {abstract}
+  + iterate(step_size): void {abstract}
 
 }
 
@@ -16,13 +20,12 @@ abstract class NonPipe {
   - right: vector<PipeLink>
   # map<ElementID, Characteristics> c_plus{};
   # map<ElementID, Characteristics> c_minus{};
-  + left_links(): span<const PipeLink>
-  + right_links(): span<const PipeLink>
+  + left(index): BasePipe*
+  + right(index): BasePipe*
   + disconnect_all()
-  + set_c_characteristic(val): void
-  + set_b_characteristic(val): void
-  + get_Q(): double
-  + get_H(): double
+  + set_characteristics(characteristics, element_id): void
+  + get_Q(characteristics_type, element_id): double
+  + get_H(characteristics_type, element_id): double
 
 }
 
