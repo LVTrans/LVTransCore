@@ -40,6 +40,7 @@ struct GuiApp {
   bool invalid = false;
   int speed = 1;
   double dt_accumulator = 0.0;
+  char file_path[256] = "plant_state.json";
   Clock::time_point last_frame = Clock::now();
 
   explicit GuiApp(Plant& p) : plant(p), dt{plant.get_step_size()} {}
@@ -101,6 +102,25 @@ struct GuiApp {
     }
     plots.sample(step, plant.get_current_time(), std::move(views));
   };
+
+  bool load_plant(const std::string& path) {
+    if (plant.load(path) != PlantRepositoryResult::Ok) {
+      std::cerr << "Failed to load plant configuration from: " << path << '\n';
+      return false;
+    }
+
+    running = false;
+    invalid = false;
+    dt = plant.get_step_size();
+    dt_accumulator = 0.0;
+    stats.reset(steps());
+    // Cached views and histories belong to the plant that was replaced.
+    plots.reset();
+    add_data_point();
+    last_frame = Clock::now();
+    std::cerr << "Loaded plant configuration from: " << path << '\n';
+    return true;
+  }
 
   void spin() {
     add_data_point();
@@ -207,6 +227,15 @@ struct GuiApp {
       last_frame = Clock::now();
     }
 
+    if (ImGui::Button("Save")) {
+      plant.save("plant_state.json");
+    }
+    ImGui::InputText("File path", file_path, IM_ARRAYSIZE(file_path));
+
+    if (ImGui::Button("Load")) {
+      load_plant(file_path);
+    }
+
     if (ImGui::Checkbox("Max Speed", &max_speed)) {
       dt_accumulator = 0.0;
       last_frame = Clock::now();
@@ -298,7 +327,7 @@ struct GuiApp {
       if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
         for (const auto& view : plots.views) {
           const auto found = plant.get_element_by_id(view.element_id);
-          if (!found) continue;
+          if (!found || !*found) continue;
           const auto* element = *found;
           ImGui::PushID(view.element_id);
           const auto group_title = std::format(

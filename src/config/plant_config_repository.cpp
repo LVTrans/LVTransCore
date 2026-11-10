@@ -5,6 +5,7 @@
 #include "lvtrans/config/element_parsers.hpp"
 #include "lvtrans/config/plant_configuration.hpp"
 #include "lvtrans/controller_connections.hpp"
+#include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/controllable.hpp"
 #include "lvtrans/elements/controller.hpp"
 #include "lvtrans/elements/non-pipe.hpp"
@@ -51,7 +52,7 @@ PlantRepositoryResult PlantConfigRepository::load(
     if (!parser || parser->parse(container, element, plant.config.step_size) ==
                        ElementParseResult::Error) {
       std::cerr << "Failed to parse element: " << element.name
-                << " of type: " << static_cast<int>(element.type) << '\n';
+                << " of type: " << element_type_str(element.type) << '\n';
       return PlantRepositoryResult::Error;
     }
   }

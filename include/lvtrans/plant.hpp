@@ -68,7 +68,18 @@ class Plant {
   // @brief Loads a new plant configuration from file.
   // @remarks Replaces current plant data with the loaded data.
   PlantRepositoryResult load(const std::string& file_path) {
-    return PlantConfigRepository::load(file_path, m_data);
+    auto data = PlantData{};
+    data.config = m_data.config;
+    data.meta = m_data.meta;
+    data.state = m_data.state;
+
+    if (PlantConfigRepository::load(file_path, data) !=
+        PlantRepositoryResult::Ok) {
+      return PlantRepositoryResult::Error;
+    }
+    m_data = std::move(data);
+
+    return PlantRepositoryResult::Ok;
   }
 
   void reset_state();

@@ -13,6 +13,15 @@
          "label": "Debug gui",
          "request": "launch",
          "adapter": "CodeLLDB",
-         "program": "./build/examples/gui/gui"
+         "program": "$ZED_WORKTREE_ROOT/build-gui-debug/examples/gui/gui",
+         "cwd": "$ZED_WORKTREE_ROOT",
+         "build": {
+             "command": "sh",
+             "args": [
+                 "-c",
+                 "cmake -S . -B build-gui-debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DLVTRANS_BUILD_GUI=ON -DLVTRANS_BUILD_EXAMPLES=OFF -DLVTRANS_BUILD_BENCHMARKS=OFF && cmake --build build-gui-debug --target gui -j 4"
+             ],
+             "cwd": "$ZED_WORKTREE_ROOT"
+         }
      }
 ]
