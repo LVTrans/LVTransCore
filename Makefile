@@ -24,8 +24,6 @@ bench-gui:
 clean:
 	rm -rf build
 format:
-	find . \( -name "build" -o -name "build-*" -o -name "cmake-build-debug" -o -name ".cache" -o -name ".*" \) -prune -o -regex '.*\.\(cpp\|hpp\|h\|cc\|cxx\)' -exec clang-format -i {} \;
+	fd -t f -e c -e cpp -e h -e hpp . src/ include/ examples/ -x clang-format -i
 check:
-	find . \( -name "build" -o -name "build-*" -o -name "cmake-build-debug" -o -name ".cache" -o -name ".*" \) -prune \
-	-o \( -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" -o -name "*.cc" \) -print \) \
-	| xargs -r -n 1 clang-tidy -fix -p build --extra-arg=-std=c++20
+	fd -i . src/ include/ examples/ | xargs -r -n 1 clang-tidy -fix -p build --extra-arg=-std=c++20
