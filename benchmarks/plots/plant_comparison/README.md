@@ -1,8 +1,6 @@
 # C++ and LabVIEW plant benchmarks
 
-Throughput is the median of `IterationsPerSecond` after excluding the first sample of every run. C++ starts at zero; LabVIEW starts with negative or unusually low rates. No other samples are discarded. Speedup = C++ median / LabVIEW median, calculated before rounding. k = 1,000; M = 1,000,000.
-
-Each comparison matches plant and dt. Runs have different sample counts and simulation horizons, so these are whole-run median comparisons, not ratios at matched simulation times. Hardware/build equivalence is not recorded in these files. All raw samples remain visible in the plots. Paired plots use independent axes so both implementations' variation remains visible.
+Throughput is the median of `IterationsPerSecond`.
 
 ![Median throughput and speedup](summary.png)
 
