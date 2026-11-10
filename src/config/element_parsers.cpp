@@ -120,7 +120,7 @@ ElementParseResult SurgeShaftStandardParser::parse(ElementContainer& container,
   return ElementParseResult::Success;
 }
 
-std::unique_ptr<ElementParser> ParserFactory::create(ElementType type) {
+std::unique_ptr<ElementParser> ElementParserFactory::create(ElementType type) {
   switch (type) {
     case ElementType::Pipe:
     case ElementType::AlgebraicPipe:

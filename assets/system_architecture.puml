@@ -103,13 +103,17 @@ class ElementContainer {
 }
 
 
-class PlantConfigurationRepository << (S,#FF7700) Singleton >> {
+class PlantConfigurationRepository << (S,#FF7700) Static >> {
   + load(path, &plant_data): PlantRepositoryResult
   + save(path, &plant_data): PlantRepositoryResult
 }
 
 abstract class ElementParser {
   + parse(&container, &element_config, step_size): ElementParserResult {abstract}
+}
+
+class ElementParserFactory << (S,#FF7700) Static >> {
+  + create(element_type): unique_ptr<ElementParser>
 }
 
 class HydraulicConnections {
@@ -142,6 +146,8 @@ Element <|-- BasePipe
 Element <|-- Controller
 
 BasePipe -- NonPipe 
+
+ElementParserFactory --> ElementParser
 
 
 ElementContainer -- Element

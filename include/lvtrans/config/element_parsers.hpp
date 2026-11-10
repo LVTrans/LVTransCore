@@ -70,7 +70,7 @@ class SurgeShaftStandardParser : public ElementParser {
 };
 
 // create a parser depending on the element type
-class ParserFactory {
+class ElementParserFactory {
  public:
   static std::unique_ptr<ElementParser> create(ElementType type);
 };
