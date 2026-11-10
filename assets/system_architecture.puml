@@ -1,11 +1,18 @@
 @startuml
 
+
+skinparam linetype ortho
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam packageStyle rectangle
+skinparam shadowing false
+
+hide empty members
+
+
 abstract class Element {
   # id: ElementID
   # name: string
-  + set_name(name)
-  + get_name(): string
-  + get_ID(): ElementID
   + get_type(): ElementType {abstract}
   + get_parameters(): ElementParameters {abstract}
   + get_state(): ElementState {abstract}
@@ -23,11 +30,6 @@ abstract class NonPipe {
   # map<ElementID, Characteristics> c_minus{};
   + left(index): BasePipe*
   + right(index): BasePipe*
-  + left_links(): span<PipeLink>
-  + right_links(): span<PipeLink>
-  + connect_left(non_pipe*): ConnectResult
-  + connect_right(non_pipe*): ConnectResult
-  + disconnect_all(): void {abstract}
   + set_characteristics(characteristics, element_id): void
   + get_Q(characteristics_type, element_id): double
   + get_H(characteristics_type, element_id): double
@@ -41,23 +43,11 @@ abstract class BasePipe {
   - derived: PipeDerivedData
   - state: PipeState
   - initial_state: PipeState
-  + disconnect_all(): void 
   + left(): NonPipe*
   + right(): NonPipe*
-  + get_H()
-  + get_Q()
   + update_boundaries(): void
   + update_characteristics(): void
 }
-
-class ConcreteNonPipe  {
-  + ConcreteNonPipe(parameters)
-}
-
-class ConcretePipe {
-  + ConcretePipe(parameters)
-}
-
 abstract class Controller {
   # controllable: Controllable*
   {abstract} + get_output: double
@@ -86,11 +76,7 @@ class Plant {
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
-  + get_element_by_ID<T>(id)
   + remove_element_by_id(id)
-  + get_pipes()
-  + get_non_pipes()
-  + get_controllers()
   + get_elements()
 }
 
@@ -112,11 +98,7 @@ class ElementContainer {
   + add_element<T>(args)
   + add_element_with_id<T>(id, args)
   + get_element_by_ID(id)
-  + get_element_by_ID<T>(id)
   + remove_element_by_id(id)
-  + get_pipes()
-  + get_non_pipes()
-  + get_controllers()
   + get_elements()
 }
 
@@ -130,31 +112,12 @@ abstract class ElementParser {
   + parse(&container, &element_config, step_size): ElementParserResult {abstract}
 }
 
-class ConcreteElementParser {
-  + parse(&container&, &element_config, step_size): ElementParserResult 
-}
-
-
 class HydraulicConnections {
   {static} + connect(&pipe, pipe_end, &non_pipe, terminal_index)
   {static} + disconnect(&pipe, pipe_end)
   {static} + disconnect_all(&pipe)
   {static} + disconnect_all(&non_pipe)
 }
-
-class BoundaryLink {
-  + element: NonPipe*
-  + terminal: TerminalId
-}
-class PipeLink {
-  + pipe: BasePipe*
-  + end: PipeEnd
-}
-class TerminalId {
-  + side: Side
-  + index: size_t
-}
-
 
 class ControllerConnections {
   {static} + connect(&controller, &controllable)
@@ -170,21 +133,15 @@ HydraulicConnections ..> NonPipe
 ControllerConnections ..> Controller 
 ControllerConnections ..> Controllable 
 
-BasePipe *-- BoundaryLink
-NonPipe *-- PipeLink
-BoundaryLink -- TerminalId
+
 Controllable -- Controller
 Plant -- PlantData
 
 Element <|-- NonPipe
 Element <|-- BasePipe
+Element <|-- Controller
 
-NonPipe <|-- ConcreteNonPipe
-BasePipe <|-- ConcretePipe
-BasePipe "1..*" -- "0..2" NonPipe 
-
-
-ElementParser <|-- ConcreteElementParser
+BasePipe -- NonPipe 
 
 
 ElementContainer -- Element
