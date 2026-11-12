@@ -12,7 +12,7 @@ class PIDValve : public Controller {
   explicit PIDValve(const PIDValveParameters& parameters,
                     const double dt = 0.1);
   PIDValve();
-  ~PIDValve();
+  ~PIDValve() override;
   const PIDValveParameters& config() const { return m_params; }
   void iterate(const double t = 0) override;
   ElementType get_type() const override;

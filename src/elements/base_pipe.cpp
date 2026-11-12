@@ -14,7 +14,7 @@ static PipeState initialize_H_and_Q(const InitialPipeState& H0,
 
 BasePipe::~BasePipe() { disconnect_all(); }
 
-BasePipe::BasePipe(PipeParameters p, double system_dt)
+BasePipe::BasePipe(const PipeParameters& p, double system_dt)
     : m_params{p},
       m_derived{calculate_pipe_data(p, system_dt)},
       m_state{initialize_H_and_Q(p.H0, p.Q0, m_derived.grid.num_nodes)},

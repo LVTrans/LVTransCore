@@ -50,7 +50,8 @@ struct GuiApp {
     glfwSetErrorCallback([](int code, const char* description) {
       std::cerr << "GLFW error " << code << ": " << description << '\n';
     });
-    if (!glfwInit()) return 1;
+    if (!glfwInit()) { return 1;
+}
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     window =
@@ -70,7 +71,8 @@ struct GuiApp {
         glfw_ready && ImGui_ImplOpenGL3_Init("#version 130");
     if (!opengl_ready) {
       std::cerr << "ImGui initialization failed\n";
-      if (glfw_ready) ImGui_ImplGlfw_Shutdown();
+      if (glfw_ready) { ImGui_ImplGlfw_Shutdown();
+}
       ImPlot::DestroyContext();
       ImGui::DestroyContext();
       glfwDestroyWindow(window);
@@ -93,7 +95,8 @@ struct GuiApp {
 
   auto add_data_point() {
     const auto step = steps();
-    if (!plots.sample_due(step)) return;
+    if (!plots.sample_due(step)) { return;
+}
     std::vector<ElementView> views;
     for (const auto* element : plant.get_elements()) {
       auto view = element->read_view();
@@ -178,7 +181,8 @@ struct GuiApp {
   }
 
   void shutdown() {
-    if (!initialized) return;
+    if (!initialized) { return;
+}
     initialized = false;
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
@@ -327,7 +331,8 @@ struct GuiApp {
       if (ImPlot::BeginAlignedPlots("SimulationPlots")) {
         for (const auto& view : plots.views) {
           const auto found = plant.get_element_by_id(view.element_id);
-          if (!found || !*found) continue;
+          if (!found || !*found) { continue;
+}
           const auto* element = *found;
           ImGui::PushID(view.element_id);
           const auto group_title = std::format(

@@ -32,7 +32,8 @@ ConnectResult HydraulicConnections::connect(BasePipe& pipe, const PipeEnd end,
 
 void HydraulicConnections::disconnect(BasePipe& pipe, const PipeEnd end) {
   auto& boundary = end == PipeEnd::Left ? pipe.m_left : pipe.m_right;
-  if (!boundary.element) return;
+  if (!boundary.element) { return;
+}
 
   auto& slots = boundary.terminal.side == Side::Left
                     ? boundary.element->m_left
@@ -47,13 +48,15 @@ void HydraulicConnections::disconnect_all(BasePipe& pipe) {
 }
 
 void HydraulicConnections::disconnect_all(const NonPipe& element) {
-  for (auto& [pipe, end] : element.m_left)
+  for (auto& [pipe, end] : element.m_left) {
     if (pipe) {
       disconnect(*pipe, end);
     }
-  for (auto& [pipe, end] : element.m_right)
+}
+  for (auto& [pipe, end] : element.m_right) {
     if (pipe) {
       disconnect(*pipe, end);
     }
+}
 }
 }  // namespace lvtrans

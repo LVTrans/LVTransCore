@@ -6,7 +6,7 @@ namespace lvtrans {
 
 Pipe::Pipe(const double dt) : BasePipe(PipeParameters{}, dt) {}
 
-Pipe::Pipe(PipeParameters params, const double dt) : BasePipe(params, dt) {}
+Pipe::Pipe(const PipeParameters& params, const double dt) : BasePipe(params, dt) {}
 
 void Pipe::iterate(const double) {
   const auto& grid = m_derived.grid;

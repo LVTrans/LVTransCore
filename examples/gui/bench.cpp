@@ -2,6 +2,7 @@
 #include <chrono>
 #include <iostream>
 #include <memory>
+#include <numbers>
 #include "bench_app.hpp"
 #include "lvtrans/element_types.hpp"
 #include "lvtrans/elements/constant_level_left.hpp"
@@ -24,7 +25,7 @@ auto plant1(double DT) {
                              .length = 1000,
                              .diameter = 1,
                              .area = 785.400000e-3,
-                             .periphery = 3.141600,
+                             .periphery = std::numbers::pi,
                              .epsilon = 10e-3,
                              .ny = 1.1e-6,
                              .rho = 1e3,
@@ -61,7 +62,7 @@ auto plant2(double DT) {
       .length = 1000,
       .diameter = 1,
       .area = 785.400000E-3,
-      .periphery = 3.141600E+0,
+      .periphery = std::numbers::pi,
       .epsilon = 10.000000E-3,
       .ny = 1.1e-6,
       .rho = 1e3,
@@ -127,7 +128,7 @@ auto plant3(const double DT) {
                                    .length = 1000.0,
                                    .diameter = 1.0,
                                    .area = 785.4e-3,
-                                   .periphery = 3.1416,
+                                   .periphery = std::numbers::pi,
                                    .epsilon = 10e-3,
                                    .ny = 1.1e-6,
                                    .rho = 1e3,

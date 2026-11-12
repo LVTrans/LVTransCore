@@ -16,13 +16,13 @@ void plot(FILE* gp, const std::vector<Point>& data) {
 }
 
 int main() {
-  std::vector<Point> data = {{1.0, 2.3}, {2.0, 3.8}, {3.0, 5.1},
-                             {4.0, 4.5}, {5.0, 6.2}, {6.0, 7.8}};
+  std::vector<Point> data = {{.x=1.0, .y=2.3}, {.x=2.0, .y=3.8}, {.x=3.0, .y=5.1},
+                             {.x=4.0, .y=4.5}, {.x=5.0, .y=6.2}, {.x=6.0, .y=7.8}};
 
   FILE* gp = popen("gnuplot -persist", "w");
   if (!gp) {
     std::cerr << "Error: Could not open pipe to Gnuplot. Is it installed?"
-              << std::endl;
+              << '\n';
     return 1;
   }
 

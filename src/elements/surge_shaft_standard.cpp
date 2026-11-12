@@ -50,7 +50,8 @@ void SurgeShaftStandard::initialize_from_pipes() {
   // TODO: verify if Z0 (elevation) is calcualted corectly here
   m_base_elevation = (left()->parameters().z1 + right()->parameters().z0) / 2.0;
   m_initialized = true;
-  if (m_restored_state) return;
+  if (m_restored_state) { return;
+}
   s.Hb = p.H_start;
 
   s.H_liquid = p.H_start - m_base_elevation;

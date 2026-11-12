@@ -64,7 +64,8 @@ int main() {
 
   int N = 10;
 
-  if (N % 2 != 0) ++N;
+  if (N % 2 != 0) { ++N;
+}
 
   const int nodes = N + 1;
 
@@ -184,10 +185,11 @@ int main() {
 
     double alpha;
 
-    if (t <= ts)
+    if (t <= ts) {
       alpha = t / ts;
-    else
+    } else {
       alpha = 1.0;
+}
 
     // Incoming C- characteristic from the pipe:
     //

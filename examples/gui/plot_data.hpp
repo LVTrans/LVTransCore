@@ -53,7 +53,8 @@ struct PlotContainer {
 
   void sample(std::uint64_t step, double time,
               std::vector<ElementView> current_views) {
-    if (!sample_due(step)) return;
+    if (!sample_due(step)) { return;
+}
     last_sample_step = step;
     views = std::move(current_views);
     for (const auto& view : views) {

@@ -45,7 +45,8 @@ struct BenchApp {
     glfwSetErrorCallback([](int code, const char* description) {
       std::cerr << "GLFW error " << code << ": " << description << '\n';
     });
-    if (!glfwInit()) return 1;
+    if (!glfwInit()) { return 1;
+}
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
     window =
@@ -65,7 +66,8 @@ struct BenchApp {
         glfw_ready && ImGui_ImplOpenGL3_Init("#version 130");
     if (!opengl_ready) {
       std::cerr << "ImGui initialization failed\n";
-      if (glfw_ready) ImGui_ImplGlfw_Shutdown();
+      if (glfw_ready) { ImGui_ImplGlfw_Shutdown();
+}
       ImPlot::DestroyContext();
       ImGui::DestroyContext();
       glfwDestroyWindow(window);
@@ -215,7 +217,8 @@ struct BenchApp {
     ImGui::Text("I: %llu", static_cast<unsigned long long>(count));
     ImGui::Text("I/s: %.0f", stats.iterations_per_second);
     ImGui::Text("X Realtime: %.1f", stats.x_realtime);
-    if (invalid) ImGui::Text("Simulation stopped: non-finite H/Q");
+    if (invalid) { ImGui::Text("Simulation stopped: non-finite H/Q");
+}
     ImGui::End();
   }
 };

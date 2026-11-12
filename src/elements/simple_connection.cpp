@@ -69,10 +69,10 @@ double SimpleConnection::calculate_q() {
 ElementView SimpleConnection::read_view() const {
   return {.element_id = get_ID(),
           .values = {ScalarValue{
-              "Flow Rate",
-              "m³/s",
-              "Q",
-              m_state.Q,
+              .name="Flow Rate",
+              .unit="m³/s",
+              .symbol="Q",
+              .value=m_state.Q,
           }}};
 }
 }  // namespace lvtrans

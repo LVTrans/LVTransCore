@@ -6,7 +6,7 @@ class Pipe : public BasePipe {
  public:
   Pipe() = default;
   explicit Pipe(const double dt);
-  Pipe(PipeParameters params, const double dt);
+  Pipe(const PipeParameters& params, const double dt);
   ElementType get_type() const override { return ElementType::Pipe; }
   void iterate(const double t = 0) override;
 };

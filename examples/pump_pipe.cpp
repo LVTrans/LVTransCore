@@ -1,6 +1,7 @@
 #include <cmath>
 #include <fstream>
 #include <iostream>
+#include <numbers>
 #include <vector>
 
 int main() {
@@ -8,7 +9,7 @@ int main() {
   // Example 3-3: Centrifugal pump -> pipeline -> valve
   // ============================================================
 
-  constexpr double pi = 3.14159265358979323846;
+  constexpr double pi = std::numbers::pi;
 
   // ------------------------------------------------------------
   // Pipe parameters

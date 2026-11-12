@@ -3,6 +3,7 @@ Checks: >
   misc-definitions-in-headers,
   readability-braces-around-statements,
   performance-*,
-  -modernize-use-trailing-return-type
+  -modernize-use-trailing-return-type,
+  -modernize-use-nodiscard
 WarningsAsErrors: ""
 HeaderFilterRegex: ".*"

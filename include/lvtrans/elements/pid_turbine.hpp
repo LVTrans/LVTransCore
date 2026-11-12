@@ -10,7 +10,7 @@ class PIDTurbine : public Controller {
  public:
   explicit PIDTurbine(const PIDTurbineParameters& parameters);
   PIDTurbine();
-  ~PIDTurbine();
+  ~PIDTurbine() override;
   const PIDTurbineParameters& config() const { return m_params; }
   void iterate(const double t = 0) override;
   ElementType get_type() const override;

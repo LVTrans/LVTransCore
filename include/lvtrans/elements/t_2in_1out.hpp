@@ -11,7 +11,7 @@ class T2In1Out : public NonPipe {
  public:
   explicit T2In1Out(const TConnectionParameters& parameters);
   const TConnectionParameters& config() const { return m_params; }
-  virtual ~T2In1Out() = default;
+  ~T2In1Out() override = default;
 
   void iterate(const double t = 0) override;
   ElementParameters get_parameters() const override { return m_params; }

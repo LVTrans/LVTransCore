@@ -1,6 +1,7 @@
 #include <cmath>
 #include <iostream>
 #include <memory>
+#include <numbers>
 #include <string_view>
 #include "gui_app.hpp"
 #include "helpers.hpp"
@@ -67,7 +68,7 @@ auto plant2() {
                                    .length = 1000.0,
                                    .diameter = 1.0,
                                    .area = 785.4e-3,
-                                   .periphery = 3.1416,
+                                   .periphery = std::numbers::pi,
                                    .epsilon = 10e-3,
                                    .ny = 1.1e-6,
                                    .rho = 1e3,

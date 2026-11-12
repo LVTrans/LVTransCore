@@ -28,7 +28,8 @@ int main() {
   // Grid setup
   // ------------------------------------------------------------
 
-  if (N % 2 != 0) ++N;
+  if (N % 2 != 0) { ++N;
+}
 
   const int nodes = N + 1;
 
@@ -63,7 +64,7 @@ int main() {
   std::ofstream output_file("output_old.csv");
 
   if (!output_file) {
-    std::cerr << "Error opening output file." << std::endl;
+    std::cerr << "Error opening output file." << '\n';
     return 1;
   }
 

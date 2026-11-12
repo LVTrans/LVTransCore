@@ -40,8 +40,9 @@ struct BenchStats {
     active_seconds += std::chrono::duration<double>(now - last_tick).count();
     last_tick = now;
 
-    if (active_seconds > 0.0)
+    if (active_seconds > 0.0) {
       x_realtime = (steps - first_steps) * dt / active_seconds;
+}
 
     const double interval = active_seconds - sample_seconds;
     if (interval >= 1.0) {
@@ -58,7 +59,8 @@ inline void setup_y_limits(std::span<const double> values) {
   double maximum = 0.0;
 
   for (double value : values) {
-    if (!std::isfinite(value)) continue;
+    if (!std::isfinite(value)) { continue;
+}
     if (!has_value) {
       minimum = maximum = value;
       has_value = true;
@@ -68,7 +70,8 @@ inline void setup_y_limits(std::span<const double> values) {
     }
   }
 
-  if (!has_value) return;
+  if (!has_value) { return;
+}
 
   const double range = maximum - minimum;
   const double magnitude = std::max(std::abs(minimum), std::abs(maximum));
@@ -79,7 +82,7 @@ inline void setup_y_limits(std::span<const double> values) {
 }
 
 inline int TimeFormatter(double value, char* buff, int size, void* user_data) {
-  unsigned long long t = static_cast<unsigned long long>(value);
+  auto t = static_cast<unsigned long long>(value);
 
   std::string time_str =
       std::format("{:02}:{:02}:{:02}", t / 3600, (t / 60) % 60, t % 60);

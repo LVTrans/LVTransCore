@@ -127,8 +127,8 @@ class Element;
 class BasePipe : public Element {
  public:
   BasePipe() = default;
-  BasePipe(PipeParameters params, const double dt);
-  virtual ~BasePipe() = 0;
+  BasePipe(const PipeParameters& params, const double dt);
+  ~BasePipe() override = 0;
   ElementType get_type() const override { return ElementType::Pipe; }
   ElementParameters get_parameters() const override { return m_params; }
   ElementView read_view() const override;
