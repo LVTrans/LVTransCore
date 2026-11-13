@@ -35,9 +35,6 @@ ModificationResult Plant::modify_element(ElementID id,
 void Plant::step() {
   auto& t = m_data.state.current_time;
 
-  t += m_data.config.step_size;
-  ++m_data.state.num_iterations;
-
   const auto& pipes = m_data.element_container.get_pipes();
   const auto& non_pipes = m_data.element_container.get_non_pipes();
   const auto& controllers = m_data.element_container.get_controllers();
@@ -57,6 +54,8 @@ void Plant::step() {
   for (auto& non_pipe : non_pipes) {
     non_pipe->iterate(t);
   }
+  t += m_data.config.step_size;
+  ++m_data.state.num_iterations;
 }
 
 void Plant::step(size_t num_steps) {

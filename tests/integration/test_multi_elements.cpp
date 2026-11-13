@@ -412,8 +412,6 @@ TEST(MultiElementsTest, Complex) {
 
 // LabVIEW: ResA -> Pipe_01 -> C_01 -> Pipe_02 -> C_02 -> Pipe_03
 //                  -> PID-controlled Valve -> Pipe_04 -> ResB
-// Unlike Complex, this test adds PIDValve feedback from Pipe_03 flow.
-// This is an integration/smoke test, not yet a LabVIEW reference comparison.
 TEST(MultiElementsTest, ComplexPIDValve) {
   using namespace lvtrans;
   constexpr double dt = 0.1;
@@ -490,8 +488,6 @@ TEST(MultiElementsTest, ComplexPIDValve) {
   ASSERT_EQ(pid->get_controllable(), valve);
   ASSERT_EQ(valve->get_controller(), pid);
 
-  // Explicitly enable automatic PID control. These mode/filter options
-  // are assumptions until the LabVIEW PID front-panel settings are known.
   pid->set_controls(/*active=*/true, /*automatic=*/true,
                     /*antiwindup=*/true, /*manual=*/1.0,
                     /*Tt=*/1.0, /*Tf=*/0.1);
@@ -506,9 +502,6 @@ TEST(MultiElementsTest, ComplexPIDValve) {
             "V_Q,V_tau_SP,V_tau_OP,PID_PV_Q,PID_output\n";
 
   for (int k = 0; k < num_steps; ++k) {
-    // 'HandQ get Q' in LabVIEW reads Pipe_03 flow. Supply that measurement
-    // to the controller before the next step. Plant::step() runs pipes,
-    // then controllers, then non-pipe elements.
     const double measured_q = pipe3->get_Q().back();
     pid->set_PV_Q(measured_q);
     plant.step();
